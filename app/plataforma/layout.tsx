@@ -5,8 +5,9 @@ interface Children {
   children: React.ReactNode;
 }
 export default function Layout({ children }: Children) {
+  const allowedRoles = ["Estudiante", "Guest"];
   return (
-    <RequireAuth allowedRoles={["Administrador", "Vendedor", "Tutor"]}>
+    <RequireAuth allowedRoles={allowedRoles}>
       <div className="h-screen bg-white">
         {/* Navbar */}
         <Navbar />

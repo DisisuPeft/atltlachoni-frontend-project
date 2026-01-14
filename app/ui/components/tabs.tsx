@@ -3,16 +3,22 @@ import { Pestanias } from "@/redux/features/types/auth/auth-types";
 
 interface TabsProps {
   tabs: Pestanias[];
-  activeTab: Pestanias | undefined;
+  activeTab?: Pestanias | undefined;
   setActiveTab: (tab: Pestanias) => void;
+  pathname?: string;
 }
 
-export default function Tabs({ tabs, activeTab, setActiveTab }: TabsProps) {
+export default function Tabs({
+  tabs,
+  // activeTab,
+  setActiveTab,
+  pathname,
+}: TabsProps) {
   return (
     <div className="border-b border-gray-200 ml-[100px]">
       <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
         {tabs.map((tab) => {
-          const isActive = activeTab?.id === tab.id;
+          const isActive = tab.href === pathname;
           return (
             <button
               key={tab.uuid}

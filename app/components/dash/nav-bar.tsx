@@ -8,22 +8,13 @@ import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import Logout from "@/app/utils/auth/logout";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
+import Badge from "../plataforma/badge";
 
 export default function Navbar() {
   const { data: user } = useRetrieveUserQuery();
-  //   const [obj, setObj] = useState<User | undefined>();
-  //   const { isAuth } = useAppSelector((state) => state.auth);
+  const pathname = usePathname();
 
-  //   useEffect(() => {
-  //     if (isAuth) {
-  //       refetch();
-  //       //   console.log(user)
-  //     }
-  //   }, [isAuth, refetch]);
-
-  //   useEffect(() => {
-  //     setObj(user);
-  //   }, [user]);
   return (
     <nav className="h-16 bg-white shadow px-6 flex items-center justify-between fixed z-10 w-full">
       <Link href="/dashboard" className="flex items-center gap-3">
@@ -41,7 +32,14 @@ export default function Navbar() {
         </span>
       </Link>
       <div className="flex flex-row items-center p-2 gap-10">
-        <div className="text-sm text-gray-800">Bienvenido {user?.email}</div>
+        {pathname.startsWith("/plataforma/") ||
+          (pathname === "/plataforma" ? (
+            <Badge />
+          ) : (
+            <div className="text-sm text-gray-800 hidden md:block">
+              Bienvenido {user?.email}
+            </div>
+          ))}
         <Logout></Logout>
       </div>
     </nav>

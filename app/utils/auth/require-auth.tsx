@@ -32,7 +32,15 @@ export default function RequireAuth({ children, allowedRoles }: Props) {
       (verify.roles.length > 0 &&
         verify.roles.some((r: Role) => allowedRoles.includes(r.nombre)));
 
-    if (!tieneAcceso) {
+    const isEstudianteorGuest =
+      verify.roles.length > 0 &&
+      verify.roles.some((r: Role) =>
+        ["Estudiante", "Guest"].includes(r.nombre)
+      );
+
+    if (isEstudianteorGuest && !tieneAcceso) {
+      redirect("/plataforma");
+    } else if (!isEstudianteorGuest && !tieneAcceso) {
       redirect("/unauthorized");
     }
   }
