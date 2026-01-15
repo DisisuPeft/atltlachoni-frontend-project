@@ -5,7 +5,7 @@ import { Instituciones } from "../types/catalagos/cat";
 const institucionesApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getInstituciones: builder.query<PaginatedResponse<Instituciones>, void>({
-      query: () => "/catalagos/instituciones/",
+      query: () => "/catalogos/instituciones/",
     }),
     addInstituciones: builder.mutation({
       query: (formData) => ({

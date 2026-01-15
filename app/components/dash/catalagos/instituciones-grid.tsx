@@ -12,11 +12,14 @@ import { useForm } from "react-hook-form";
 import { Instituciones } from "@/redux/features/types/catalagos/cat";
 import { useAppDispatch } from "@/redux/hooks";
 import { setAlert } from "@/redux/features/alert/alertSlice";
+import { useGetEmpresaQuery } from "@/redux/features/sistema/sistemaApiSlice";
+import Select from "@/app/ui/components/select";
 
 export default function InstitucionesGrid() {
   const dispatch = useAppDispatch();
   const [addInstituciones] = useAddInstitucionesMutation();
   const { data: instituciones, refetch } = useGetInstitucionesQuery();
+  const { data: empresa } = useGetEmpresaQuery("CINFA");
   const [show, setShow] = useState<boolean>(false);
   const {
     register,
@@ -52,7 +55,7 @@ export default function InstitucionesGrid() {
         </button>
       </div>
       <div className="overflow-auto mt-4">
-        {instituciones?.results.length === 0 ? (
+        {instituciones?.results.length === 0 || !instituciones ? (
           <div>No existen instituciones</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
@@ -88,6 +91,18 @@ export default function InstitucionesGrid() {
             />
             {errors.nombre && (
               <div className="text-red-500">{errors.nombre.message}</div>
+            )}
+          </div>
+          <div className="mt-2">
+            <Select
+              label="Empresa"
+              options={empresa ?? []}
+              labelKey="slug"
+              valueKey="id"
+              {...register("empresa")}
+            />
+            {errors.empresa && (
+              <div className="text-red-500">{errors.empresa.message}</div>
             )}
           </div>
           <div className="flex jutify-end mt-6">

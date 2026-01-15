@@ -12,7 +12,6 @@ import { setAlert } from "@/redux/features/alert/alertSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import { usePathname } from "next/navigation";
 
 export default function useProgramaForm() {
   const { data: tiposProgramas } = useGetTiposProgramasQuery();

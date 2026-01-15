@@ -1,4 +1,5 @@
 import { BaseModel } from "../base-interface";
+import { UserFormData } from "@/hooks/users/user-create-form";
 
 export interface SubmoduloEducativoForm extends BaseModel {
   titulo: string;
@@ -92,4 +93,72 @@ export interface TipoProgramaGenerico extends BaseModel {
 
 export interface ModalidadesGenerico extends BaseModel {
   name: string;
+}
+
+export interface EstudiantePerfilForm extends BaseModel {
+  status: number;
+
+  user: UserFormData;
+  nivel_educativo: number | null;
+  institucion: number | null;
+  estado_pais: number | null;
+  ciudad: number | null;
+
+  especialidad: string;
+  matricula: string;
+  fecha_ingreso: string | null;
+}
+
+export const InitalUserValues: UserFormData = {
+  nombre: "",
+  apellido_paterno: "",
+  apellido_materno: "",
+  genero: 0,
+  edad: 0,
+  fecha_nacimiento: "",
+  telefono: "",
+  email: "",
+  status: null,
+  roles: [],
+  password: "",
+};
+
+export const estudiantePerfilInitialValues: EstudiantePerfilForm = {
+  status: 0,
+
+  user: InitalUserValues,
+  nivel_educativo: null,
+  institucion: null,
+  estado_pais: null,
+  ciudad: null,
+
+  especialidad: "",
+  matricula: "",
+  fecha_ingreso: null,
+};
+
+export interface User {
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  genero: number;
+  edad: number;
+  fecha_nacimiento: string;
+  telefono: string;
+  email: string;
+  status: number | null;
+}
+
+export interface EstudiantePerfil extends BaseModel {
+  status: number;
+
+  user: User;
+  nivel_educativo: number | null;
+  institucion: number | null;
+  estado_pais: number | null;
+  ciudad: number | null;
+
+  especialidad: string;
+  matricula: string;
+  fecha_ingreso: string | null;
 }

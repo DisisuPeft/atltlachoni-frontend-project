@@ -2,6 +2,8 @@
 
 import useProgramaForm from "@/hooks/control-escolar/use-programa-form";
 import { useFieldArray } from "react-hook-form";
+import { useRetrieveInstitucionesQuery } from "@/redux/features/catalogos/genericosApiSlice";
+import Select from "@/app/ui/components/select";
 
 export default function NuevoProgramaPage() {
   const {
@@ -16,7 +18,7 @@ export default function NuevoProgramaPage() {
     modalidades,
     tiposProgramas,
   } = useProgramaForm();
-
+  const { data: instituciones } = useRetrieveInstitucionesQuery();
   return (
     <div className="p-4 md:p-6 lg:p-8">
       <div className="max-w-5xl mx-auto">
@@ -64,6 +66,19 @@ export default function NuevoProgramaPage() {
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Describe el programa educativo..."
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                {/* <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Institucion
+                </label> */}
+                <Select
+                  label="Selecciona una institucion"
+                  options={instituciones ?? []}
+                  labelKey="nombre"
+                  valueKey="id"
+                  {...register("institucion")}
                 />
               </div>
 
