@@ -13,6 +13,7 @@ export default function EstudianteDetallePage() {
     nivelEducativo,
     instituciones,
     estados,
+    localidades,
   } = useAlumnoForm();
   return (
     <div className="bg-gray-50">
@@ -312,8 +313,15 @@ export default function EstudianteDetallePage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 >
                   <option value="">Seleccionar</option>
-                  <option value={1}>Ciudad Principal</option>
-                  <option value={2}>Ciudad Secundaria</option>
+                  {localidades ? (
+                    localidades.map((localidad) => (
+                      <option key={localidad.id} value={localidad.id}>
+                        {localidad.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">No data</option>
+                  )}
                 </select>
               </div>
             </div>

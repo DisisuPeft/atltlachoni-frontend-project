@@ -18,7 +18,7 @@ const generoApiSlice = apiSlice.injectEndpoints({
       query: () => "/catalagos/genericos/estados/",
     }),
     retrieveLocalidades: builder.query<Localidad[], number>({
-      query: (estado) => `/catalagos/genericos/localidades/?=${estado}`,
+      query: (estado) => `/catalagos/genericos/localidades/?estado=${estado}`,
     }),
   }),
 });

@@ -95,21 +95,34 @@ export interface ModalidadesGenerico extends BaseModel {
   name: string;
 }
 
+export interface UserStudentData {
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  genero: number;
+  edad: number;
+  fecha_nacimiento: string;
+  telefono: string;
+  email: string;
+  status: number | null;
+  password: string;
+}
+
 export interface EstudiantePerfilForm extends BaseModel {
   status: number;
 
-  user: UserFormData;
+  user: UserStudentData;
   nivel_educativo: number | null;
   institucion: number | null;
-  estado_pais: number | null;
-  ciudad: number | null;
+  estado_pais: string | null;
+  ciudad: string | null;
 
   especialidad: string;
   matricula: string;
   fecha_ingreso: string | null;
 }
 
-export const InitalUserValues: UserFormData = {
+export const InitalUserValues: UserStudentData = {
   nombre: "",
   apellido_paterno: "",
   apellido_materno: "",
@@ -119,7 +132,7 @@ export const InitalUserValues: UserFormData = {
   telefono: "",
   email: "",
   status: null,
-  roles: [],
+  // roles: [],
   password: "",
 };
 

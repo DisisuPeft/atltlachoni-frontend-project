@@ -9,8 +9,9 @@ import {
   useRetrieveNivelEducativoQuery,
   useRetrieveInstitucionesQuery,
   useRetrieveEstadosQuery,
-  // useRetrieveLocalidadesQuery,
+  useRetrieveLocalidadesQuery,
 } from "@/redux/features/catalogos/genericosApiSlice";
+import { useEffect } from "react";
 
 export default function useAlumnoForm() {
   // const router = useRouter();
@@ -24,20 +25,44 @@ export default function useAlumnoForm() {
     control,
     watch,
     formState: { errors, isSubmitting },
+    setValue,
   } = useForm<EstudiantePerfilForm>({
     defaultValues: estudiantePerfilInitialValues,
   });
 
   const entidad = watch("estado_pais");
-  console.log(entidad);
-  //   const { data: localidades } = useRetrieveLocalidadesQuery(
-  //     entidad ? parseInt(entidad) : 0
-  //   );
+  // console.log(typeof entidad);
+  const { data: localidades } = useRetrieveLocalidadesQuery(
+    entidad ? parseInt(entidad) : 0,
+  );
   const onSubmit = async (data: EstudiantePerfilForm) => {
     console.log(data);
 
     alert("Datos del estudiante guardados exitosamente");
   };
+  const dateBirth = watch("user.fecha_nacimiento");
+
+  const caluleAgeBirth = () => {
+    const birthday = new Date(dateBirth);
+    const today = new Date();
+    let yearsOld = today.getUTCFullYear() - birthday.getUTCFullYear();
+
+    if (birthday.getUTCMonth() < today.getUTCMonth()) {
+      return yearsOld;
+    } // Agosto no es menor que enero
+    else if (
+      today.getUTCMonth() === birthday.getUTCMonth() &&
+      birthday.getUTCDate() <= today.getUTCDate()
+    ) {
+      return yearsOld;
+    } // si mi pumple fue el 8 de enero, pues si, es menor que el dia de hoy, entonces ya cumpli anios
+    return yearsOld - 1;
+  };
+
+  useEffect(() => {
+    setValue("user.edad", caluleAgeBirth());
+    // caluleAgeBirth();
+  });
 
   return {
     register,
@@ -50,5 +75,6 @@ export default function useAlumnoForm() {
     nivelEducativo,
     instituciones,
     estados,
+    localidades,
   };
 }
