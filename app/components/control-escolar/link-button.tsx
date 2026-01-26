@@ -1,22 +1,25 @@
 "use client";
 
+import Button from "@/app/ui/components/button";
+import { DynamicIcon } from "@/app/ui/icon/dynamic-icon";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 interface Props {
   path: string;
-  title: string;
+  title?: string;
+  icon?: string;
 }
 
-export default function ButtonLink({ path, title }: Props) {
+export default function ButtonLink({ path, title, icon }: Props) {
   const searchParams = useSearchParams();
   const ref = searchParams.get("ref");
   return (
-    <Link
-      href={`${path}?ref=${ref}`}
-      className="px-4 py-2 bg-sky-500 text-white rounded-lg font-medium hover:bg-sky-700 transition-colors"
-    >
-      {title}
+    <Link href={`${path}?ref=${ref}`} className="">
+      <Button>
+        {title && <>{title}</>}
+        {icon && <DynamicIcon iconName={icon} color="white" />}
+      </Button>
     </Link>
   );
 }

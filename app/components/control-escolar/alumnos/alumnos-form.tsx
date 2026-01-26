@@ -130,6 +130,7 @@ export default function EstudianteDetallePage() {
                   Edad <span className="text-red-500">*</span>
                 </label>
                 <input
+                  disabled={true}
                   type="number"
                   {...register("user.edad", {
                     required: "La edad es requerida",

@@ -1,11 +1,17 @@
 "use client";
 
-import useProgramaForm from "@/hooks/control-escolar/use-programa-form";
 import { useFieldArray } from "react-hook-form";
-import { useRetrieveInstitucionesQuery } from "@/redux/features/catalogos/genericosApiSlice";
 import Select from "@/app/ui/components/select";
+import useEditProgramaForm from "@/hooks/control-escolar/use-edit-programa-form";
+import { PencilIcon } from "lucide-react";
+import Button from "@/app/ui/components/button";
+import { sweetAlert } from "@/sweetalert/sweetalerts";
 
-export default function NuevoProgramaPage() {
+interface Props {
+  uuid: string;
+}
+
+export default function EditProgramaPage({ uuid }: Props) {
   const {
     onSubmit,
     handleSubmit,
@@ -18,24 +24,28 @@ export default function NuevoProgramaPage() {
     modalidades,
     tiposProgramas,
     instituciones,
-  } = useProgramaForm();
+    disabled,
+    // setDisabled,
+  } = useEditProgramaForm(uuid);
+  const handleEdit = () => {
+    // setDisabled((prev) => !prev);
+    sweetAlert("info", "En breve se podra actualizar el programa", "Alerta");
+  };
   return (
     <div className="p-4 md:p-6 lg:p-8">
       <div className="max-w-5xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Crear Programa Educativo
-          </h1>
-          <p className="text-gray-600">
-            Completa el formulario para registrar un nuevo programa
-          </p>
+        <div className="flex justify-end">
+          <Button onClick={handleEdit}>
+            <PencilIcon />
+          </Button>
         </div>
-
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           <section className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">
-              Información General
-            </h2>
+            <div className="flex justify-between">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">
+                Información General
+              </h2>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
@@ -43,6 +53,7 @@ export default function NuevoProgramaPage() {
                   Nombre del Programa *
                 </label>
                 <input
+                  disabled={disabled}
                   {...register("nombre", {
                     required: "Este campo es requerido",
                   })}
@@ -62,6 +73,7 @@ export default function NuevoProgramaPage() {
                   Descripción
                 </label>
                 <textarea
+                  disabled={disabled}
                   {...register("descripcion")}
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -74,6 +86,7 @@ export default function NuevoProgramaPage() {
                   Institucion
                 </label> */}
                 <Select
+                  disabled={disabled}
                   label="Selecciona una institucion"
                   options={instituciones ?? []}
                   labelKey="nombre"
@@ -87,6 +100,7 @@ export default function NuevoProgramaPage() {
                   Tipo
                 </label>
                 <select
+                  disabled={disabled}
                   {...register("tipo")}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
@@ -104,6 +118,7 @@ export default function NuevoProgramaPage() {
                   Modalidad
                 </label>
                 <select
+                  disabled={disabled}
                   {...register("modalidad")}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
@@ -121,6 +136,7 @@ export default function NuevoProgramaPage() {
                   Duración (Horas)
                 </label>
                 <input
+                  disabled={disabled}
                   {...register("duracion_horas", { valueAsNumber: true })}
                   type="number"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -133,6 +149,7 @@ export default function NuevoProgramaPage() {
                   Duración (Meses)
                 </label>
                 <input
+                  disabled={disabled}
                   {...register("duracion_meses", { valueAsNumber: true })}
                   type="number"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -145,6 +162,7 @@ export default function NuevoProgramaPage() {
                   Fecha de Inicio
                 </label>
                 <input
+                  disabled={disabled}
                   {...register("fecha_inicio")}
                   type="date"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -156,6 +174,7 @@ export default function NuevoProgramaPage() {
                   Fecha de Fin
                 </label>
                 <input
+                  disabled={disabled}
                   {...register("fecha_fin")}
                   type="date"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -167,6 +186,7 @@ export default function NuevoProgramaPage() {
                   Horario
                 </label>
                 <input
+                  disabled={disabled}
                   {...register("horario")}
                   type="text"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -187,6 +207,7 @@ export default function NuevoProgramaPage() {
                 <div className="relative">
                   <span className="absolute left-3 top-2 text-gray-500">$</span>
                   <input
+                    disabled={disabled}
                     {...register("costo_inscripcion", { valueAsNumber: true })}
                     type="number"
                     step="0.01"
@@ -203,6 +224,7 @@ export default function NuevoProgramaPage() {
                 <div className="relative">
                   <span className="absolute left-3 top-2 text-gray-500">$</span>
                   <input
+                    disabled={disabled}
                     {...register("costo_mensualidad", { valueAsNumber: true })}
                     type="number"
                     step="0.01"
@@ -219,6 +241,7 @@ export default function NuevoProgramaPage() {
                 <div className="relative">
                   <span className="absolute left-3 top-2 text-gray-500">$</span>
                   <input
+                    disabled={disabled}
                     {...register("costo_documentacion", {
                       valueAsNumber: true,
                     })}
@@ -263,6 +286,7 @@ export default function NuevoProgramaPage() {
                   register={register}
                   control={control}
                   removeModulo={removeModulo}
+                  disabled={disabled}
                 />
               ))}
             </div>
@@ -295,6 +319,7 @@ interface ModuloSectionProps {
   register: any;
   control: any;
   removeModulo: (index: number) => void;
+  disabled?: boolean;
 }
 
 function ModuloSection({
@@ -302,6 +327,7 @@ function ModuloSection({
   register,
   control,
   removeModulo,
+  disabled,
 }: ModuloSectionProps) {
   const {
     fields: submodulosFields,
@@ -335,6 +361,7 @@ function ModuloSection({
             Nombre del Módulo *
           </label>
           <input
+            disabled={disabled}
             {...register(`modulos.${moduloIndex}.nombre`, { required: true })}
             type="text"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -347,6 +374,7 @@ function ModuloSection({
             Horas Teóricas
           </label>
           <input
+            disabled={disabled}
             {...register(`modulos.${moduloIndex}.horas_teoricas`, {
               valueAsNumber: true,
             })}
@@ -361,6 +389,7 @@ function ModuloSection({
             Horas Prácticas
           </label>
           <input
+            disabled={disabled}
             {...register(`modulos.${moduloIndex}.horas_practicas`, {
               valueAsNumber: true,
             })}
@@ -375,6 +404,7 @@ function ModuloSection({
             Horas Totales
           </label>
           <input
+            disabled={disabled}
             {...register(`modulos.${moduloIndex}.horas_totales`, {
               valueAsNumber: true,
             })}
@@ -389,6 +419,7 @@ function ModuloSection({
             Créditos
           </label>
           <input
+            disabled={disabled}
             {...register(`modulos.${moduloIndex}.creditos`, {
               valueAsNumber: true,
             })}
@@ -445,6 +476,7 @@ function ModuloSection({
                     Título *
                   </label>
                   <input
+                    disabled={disabled}
                     {...register(
                       `modulos.${moduloIndex}.submodulos.${submoduloIndex}.titulo`,
                       { required: true },
@@ -460,6 +492,7 @@ function ModuloSection({
                     Descripción
                   </label>
                   <textarea
+                    disabled={disabled}
                     {...register(
                       `modulos.${moduloIndex}.submodulos.${submoduloIndex}.descripcion`,
                     )}
@@ -474,6 +507,7 @@ function ModuloSection({
                     Orden
                   </label>
                   <input
+                    disabled={disabled}
                     {...register(
                       `modulos.${moduloIndex}.submodulos.${submoduloIndex}.orden`,
                       { valueAsNumber: true },

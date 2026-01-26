@@ -1,34 +1,36 @@
 "use client";
-
-import {
-  useRetrieveProgramasQuery,
-  useHowManyProgramasQuery,
-} from "@/redux/features/control-escolar/programasApiSlice";
 import { ColumnDef } from "@tanstack/react-table";
-import { ProgramaEducativo } from "@/redux/features/types/control-escolar/type";
 import { DataTable } from "@/app/utils/data-table";
-import ButtonLink from "../link-button";
+import { Campania } from "@/redux/features/types/control-escolar/type";
+import {
+  useRetrieveCampaniasQuery,
+  useHowManyCampaniasQuery,
+} from "@/redux/features/control-escolar/campaniasApiSlice";
+import { formatCurrency } from "@/lib/format-currency";
 
-export default function ProgramasView() {
-  const { data: programas } = useRetrieveProgramasQuery();
-  const { data: howManyPrograms } = useHowManyProgramasQuery();
-  const columns: ColumnDef<ProgramaEducativo>[] = [
+export default function CampaniasView() {
+  const { data: howManyCampanias } = useHowManyCampaniasQuery();
+  const { data: campanias } = useRetrieveCampaniasQuery();
+  const headers: ColumnDef<Campania>[] = [
     {
-      accessorFn: (row) => `${row.tipo_nombre} en ${row.nombre}`,
       header: "Nombre",
+      accessorKey: "nombre",
     },
-    { accessorKey: "institucion_nombre", header: "Instituto al que pertenece" },
-    { accessorKey: "modalidad_nombre", header: "Modalidad" },
     {
-      header: "Acciones",
-      cell: ({ row }) => {
-        return (
-          <ButtonLink
-            path={`/dashboard/control-escolar/programas/${row.original.ref}`}
-            icon="eye-icon"
-          />
-        );
-      },
+      header: "Institucion",
+      accessorKey: "institucion_nombre",
+    },
+    {
+      header: "Fecha de inicio",
+      accessorFn: (row) => row.fecha_inicio.split("-").reverse().join("/"),
+    },
+    {
+      header: "Fecha de finalizacion",
+      accessorFn: (row) => row.fecha_fin.split("-").reverse().join("/"),
+    },
+    {
+      header: "Costo asignado",
+      accessorFn: (row) => formatCurrency(parseInt(row.costo_asignado)),
     },
   ];
   return (
@@ -37,9 +39,9 @@ export default function ProgramasView() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <div className="text-2xl font-bold text-gray-900">
-            {howManyPrograms ?? 0}
+            {howManyCampanias ?? 0}
           </div>
-          <div className="text-sm text-gray-600">Programas Activos</div>
+          <div className="text-sm text-gray-600">Campañas Activas</div>
         </div>
       </div>
       {/* Filtros y Búsqueda */}
@@ -74,10 +76,10 @@ export default function ProgramasView() {
             </div>
           </div>
         </div>
-        {/* Lista de Programas */}
+        {/* Lista de Campanias */}
         <div className="p-1 mt-5">
-          {programas?.results ? (
-            <DataTable columns={columns} data={programas?.results ?? []} />
+          {campanias?.results ? (
+            <DataTable columns={headers} data={campanias?.results ?? []} />
           ) : (
             <div>Sin datos definidos</div>
           )}

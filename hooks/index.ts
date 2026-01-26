@@ -3,3 +3,5 @@ export { default as useIsMobile } from "./use-mobile";
 export { default as useVerify } from "./use-verify";
 export { default as useLogin } from "./auth/use-login";
 export { default as useAlumnoForm } from "./control-escolar/use-estudiante-form";
+export { default as useEditProgramaForm } from "./control-escolar/use-edit-programa-form";
+export { default as useAlumnoEditForm } from "./control-escolar/use-edit-estudiante-form";

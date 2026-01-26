@@ -26,6 +26,7 @@
     "react-hook-form": "^7.71.1",
     "react-leaflet": "^5.0.0",
     "react-redux": "^9.2.0",
+    "sweetalert2": "^11.26.17",
     "table": "git+https://github.com/tanstack/react-table.git",
     "zod": "^4.3.5"
   },

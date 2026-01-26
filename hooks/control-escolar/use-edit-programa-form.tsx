@@ -7,22 +7,24 @@ import {
   useGetModalidadesQuery,
   useGetTiposProgramasQuery,
 } from "@/redux/features/control-escolar/genericosApiSlice";
-import { useCreateProgramasMutation } from "@/redux/features/control-escolar/programasApiSlice";
+import {
+  useUpdateProgramasMutation,
+  useRetrieveProgramaQuery,
+} from "@/redux/features/control-escolar/programasApiSlice";
 import { setAlert } from "@/redux/features/alert/alertSlice";
 import { useAppDispatch } from "@/redux/hooks";
-import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
 import { useRetrieveInstitucionesQuery } from "@/redux/features/catalogos/genericosApiSlice";
+import { ErrorResponse } from "@/redux/features/types/reponse";
+import { useEffect, useState } from "react";
 
-export default function useProgramaForm() {
+export default function useEditProgramaForm(uuid: string) {
+  const { data: programa, isLoading } = useRetrieveProgramaQuery(uuid);
   const { data: tiposProgramas } = useGetTiposProgramasQuery();
   const { data: modalidades } = useGetModalidadesQuery();
   const { data: instituciones } = useRetrieveInstitucionesQuery();
-  const [createProgramas] = useCreateProgramasMutation();
-  const searchParams = useSearchParams();
-  const ref = searchParams.get("ref");
-  const router = useRouter();
+  const [updateProgramas] = useUpdateProgramasMutation();
   const dispatch = useAppDispatch();
+  const [disabled, setDisabled] = useState(true);
 
   const {
     register,
@@ -44,9 +46,36 @@ export default function useProgramaForm() {
     name: "modulos",
   });
 
+  useEffect(() => {
+    if (programa && !isLoading) {
+      const mapped = {
+        nombre: programa.nombre,
+        descripcion: programa.descripcion,
+
+        tipo: programa.tipo,
+        institucion: programa.institucion,
+        modalidad: programa.modalidad,
+
+        duracion_horas: programa.duracion_horas,
+        duracion_meses: programa.duracion_meses,
+
+        fecha_inicio: programa.fecha_inicio,
+        fecha_fin: programa.fecha_fin,
+
+        horario: programa.horario,
+
+        costo_inscripcion: programa.costo_inscripcion,
+        costo_mensualidad: programa.costo_mensualidad,
+        costo_documentacion: programa.costo_documentacion,
+        modulos: programa.modulos_obj,
+      };
+      reset(mapped);
+    }
+  }, [programa, isLoading, reset]);
+
   const onSubmit = async (data: ProgramaEducativoForm) => {
     try {
-      await createProgramas(data).unwrap();
+      await updateProgramas({ uuid: uuid, formData: data }).unwrap();
       reset();
       dispatch(
         setAlert({
@@ -54,9 +83,9 @@ export default function useProgramaForm() {
           message: "Programa educativo creado con exito.",
         }),
       );
-      router.replace(`/dashboard/control-escolar/programas?ref=${ref}`);
     } catch (error) {
-      console.log(error);
+      const e = error as ErrorResponse;
+      console.log(e);
       dispatch(
         setAlert({
           type: "error",
@@ -78,5 +107,7 @@ export default function useProgramaForm() {
     tiposProgramas,
     modalidades,
     instituciones,
+    disabled,
+    setDisabled,
   };
 }

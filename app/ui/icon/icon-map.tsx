@@ -13,6 +13,7 @@ import {
   PiggyBank,
   BookOpenTextIcon,
   TrendingUp,
+  EyeIcon,
 } from "lucide-react";
 
 export const iconMap: Record<string, React.ElementType> = {
@@ -30,4 +31,5 @@ export const iconMap: Record<string, React.ElementType> = {
   "piggy-bank": PiggyBank,
   "book-open-text": BookOpenTextIcon,
   "trending-up": TrendingUp,
+  "eye-icon": EyeIcon,
 };

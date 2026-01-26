@@ -1,121 +1,42 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import {
-  EstudiantePerfilForm,
-  estudiantePerfilInitialValues,
-} from "@/redux/features/types/control-escolar/type";
+import Button from "@/app/ui/components/button";
+import { useAlumnoEditForm } from "@/hooks";
+import { sweetAlert } from "@/sweetalert/sweetalerts";
+import { PencilIcon } from "lucide-react";
 
 interface Props {
-  ref?: string;
-  type: string;
+  uuid: string;
 }
-export default function EstudianteDetallePage({ ref, type }: Props) {
-  const router = useRouter();
-  const [modoEdicion, setModoEdicion] = useState(false);
-  const [guardando, setGuardando] = useState(false);
-
+export default function EstudianteEditPage({ uuid }: Props) {
   const {
     register,
     handleSubmit,
-    control,
-    formState: { errors },
-  } = useForm<EstudiantePerfilForm>({
-    defaultValues: estudiantePerfilInitialValues,
-  });
-
-  const onSubmit = async (data: EstudiantePerfilForm) => {
-    setGuardando(true);
-    console.log("[v0] Datos del estudiante a guardar:", data);
-
-    // Simular guardado
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    setGuardando(false);
-    setModoEdicion(false);
-    alert("Datos del estudiante guardados exitosamente");
+    onSubmit,
+    errors,
+    isSubmitting,
+    generos,
+    nivelEducativo,
+    instituciones,
+    estados,
+    localidades,
+    disabled,
+  } = useAlumnoEditForm(uuid);
+  const handleEdit = () => {
+    sweetAlert(
+      "info",
+      "En breve se podra editar la informacion del estudiante",
+      "Alerta",
+    );
   };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-6">
-          <Link
-            href="/estudiantes"
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
-          >
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Volver a estudiantes
-          </Link>
-
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            {/* <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {estudianteEjemplo.user.nombre}{" "}
-                {estudianteEjemplo.user.apellido_paterno}{" "}
-                {estudianteEjemplo.user.apellido_materno}
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Matrícula: {estudianteEjemplo.matricula}
-              </p>
-            </div> */}
-
-            {!modoEdicion ? (
-              <button
-                onClick={() => setModoEdicion(true)}
-                className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-                Editar Información
-              </button>
-            ) : (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setModoEdicion(false)}
-                  className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleSubmit(onSubmit)}
-                  disabled={guardando}
-                  className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                >
-                  {guardando ? "Guardando..." : "Guardar Cambios"}
-                </button>
-              </div>
-            )}
-          </div>
+    <div className="bg-gray-50">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-end">
+          <Button onClick={handleEdit}>
+            <PencilIcon />
+          </Button>
         </div>
-
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Información Personal */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -130,10 +51,10 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Nombre <span className="text-red-500">*</span>
                 </label>
                 <input
+                  disabled={disabled}
                   {...register("user.nombre", {
                     required: "El nombre es requerido",
                   })}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 />
                 {errors.user?.nombre && (
@@ -149,10 +70,10 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Apellido Paterno <span className="text-red-500">*</span>
                 </label>
                 <input
+                  disabled={disabled}
                   {...register("user.apellido_paterno", {
                     required: "El apellido paterno es requerido",
                   })}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 />
                 {errors.user?.apellido_paterno && (
@@ -168,10 +89,10 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Apellido Materno <span className="text-red-500">*</span>
                 </label>
                 <input
+                  disabled={disabled}
                   {...register("user.apellido_materno", {
                     required: "El apellido materno es requerido",
                   })}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 />
                 {errors.user?.apellido_materno && (
@@ -187,16 +108,18 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Género <span className="text-red-500">*</span>
                 </label>
                 <select
+                  disabled={disabled}
                   {...register("user.genero", {
                     required: "El género es requerido",
                   })}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 >
-                  <option value={0}>Seleccionar</option>
-                  <option value={1}>Masculino</option>
-                  <option value={2}>Femenino</option>
-                  <option value={3}>Otro</option>
+                  <option value="">Seleccionar</option>
+                  {generos?.results.map((genero) => (
+                    <option key={genero.id} value={genero.id}>
+                      {genero.nombre}
+                    </option>
+                  ))}
                 </select>
                 {errors.user?.genero && (
                   <p className="text-red-500 text-sm mt-1">
@@ -211,11 +134,11 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Fecha de Nacimiento <span className="text-red-500">*</span>
                 </label>
                 <input
+                  disabled={disabled}
                   type="date"
                   {...register("user.fecha_nacimiento", {
                     required: "La fecha de nacimiento es requerida",
                   })}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 />
                 {errors.user?.fecha_nacimiento && (
@@ -231,12 +154,12 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Edad <span className="text-red-500">*</span>
                 </label>
                 <input
+                  disabled={true}
                   type="number"
                   {...register("user.edad", {
                     required: "La edad es requerida",
                     min: 1,
                   })}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 />
                 {errors.user?.edad && (
@@ -261,12 +184,12 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input
+                  disabled={disabled}
                   type="email"
                   {...register("user.email", {
                     required: "El email es requerido",
                     pattern: { value: /^\S+@\S+$/i, message: "Email inválido" },
                   })}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 />
                 {errors.user?.email && (
@@ -282,11 +205,11 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Teléfono <span className="text-red-500">*</span>
                 </label>
                 <input
+                  disabled={disabled}
                   type="tel"
                   {...register("user.telefono", {
                     required: "El teléfono es requerido",
                   })}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 />
                 {errors.user?.telefono && (
@@ -306,7 +229,7 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Matrícula */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Matrícula <span className="text-red-500">*</span>
                 </label>
@@ -314,7 +237,6 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   {...register("matricula", {
                     required: "La matrícula es requerida",
                   })}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 />
                 {errors.matricula && (
@@ -322,7 +244,7 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                     {errors.matricula.message}
                   </p>
                 )}
-              </div>
+              </div> */}
 
               {/* Especialidad */}
               <div>
@@ -330,10 +252,10 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Especialidad <span className="text-red-500">*</span>
                 </label>
                 <input
+                  disabled={disabled}
                   {...register("especialidad", {
                     required: "La especialidad es requerida",
                   })}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 />
                 {errors.especialidad && (
@@ -349,9 +271,9 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Fecha de Ingreso
                 </label>
                 <input
+                  disabled={disabled}
                   type="date"
                   {...register("fecha_ingreso")}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 />
               </div>
@@ -362,16 +284,16 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Nivel Educativo
                 </label>
                 <select
+                  disabled={disabled}
                   {...register("nivel_educativo")}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 >
                   <option value="">Seleccionar</option>
-                  <option value={1}>Técnico</option>
-                  <option value={2}>Técnico Superior</option>
-                  <option value={3}>Licenciatura</option>
-                  <option value={4}>Maestría</option>
-                  <option value={5}>Doctorado</option>
+                  {nivelEducativo?.map((niv) => (
+                    <option key={niv.id} value={niv.id}>
+                      {niv.nombre}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -381,32 +303,35 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Institución
                 </label>
                 <select
+                  disabled={disabled}
                   {...register("institucion")}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 >
                   <option value="">Seleccionar</option>
-                  <option value={1}>Universidad Central</option>
-                  <option value={2}>Instituto Tecnológico</option>
-                  <option value={3}>Escuela Superior</option>
+                  {instituciones?.map((ins) => (
+                    <option key={ins.id} value={ins.id}>
+                      {ins.nombre}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* Estado/País */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Estado/País
+                  Estado
                 </label>
                 <select
+                  disabled={disabled}
                   {...register("estado_pais")}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 >
                   <option value="">Seleccionar</option>
-                  <option value={1}>Aguascalientes</option>
-                  <option value={15}>Ciudad de México</option>
-                  <option value={19}>Nuevo León</option>
-                  <option value={14}>Jalisco</option>
+                  {estados?.map((estado) => (
+                    <option key={estado.id} value={estado.id}>
+                      {estado.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -416,80 +341,58 @@ export default function EstudianteDetallePage({ ref, type }: Props) {
                   Ciudad
                 </label>
                 <select
+                  disabled={disabled}
                   {...register("ciudad")}
-                  disabled={!modoEdicion}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 >
                   <option value="">Seleccionar</option>
-                  <option value={1}>Ciudad Principal</option>
-                  <option value={2}>Ciudad Secundaria</option>
-                </select>
-              </div>
-
-              {/* Estado */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Estado del Estudiante
-                </label>
-                <select
-                  {...register("status")}
-                  disabled={!modoEdicion}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value={1}>Activo</option>
-                  <option value={0}>Inactivo</option>
-                  <option value={2}>Suspendido</option>
-                  <option value={3}>Egresado</option>
+                  {localidades ? (
+                    localidades.map((localidad) => (
+                      <option key={localidad.id} value={localidad.id}>
+                        {localidad.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">No data</option>
+                  )}
                 </select>
               </div>
             </div>
           </div>
+          {!disabled && (
+            <button
+              aria-label="GUardar"
+              className="
+              fixed z-50
+              bottom-4 right-4
+              sm:bottom-[50px] sm:right-[55px]
 
+              flex items-center justify-center
+              rounded-full
+
+              w-14 h-14
+              sm:w-16 sm:h-16
+
+              bg-sky-500 text-white
+              shadow-lg
+
+              hover:bg-blue-700
+              active:scale-95
+              transition-all duration-200 ease-out
+
+              focus:outline-none
+              focus:ring-4 focus:ring-blue-300
+            "
+            >
+              {isSubmitting ? <div>Guardando...</div> : <div>Guardar</div>}
+            </button>
+          )}
           {/* Información del Usuario */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          {/* <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Configuración de Usuario
             </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Estado del Usuario */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Estado del Usuario
-                </label>
-                <select
-                  {...register("user.status")}
-                  disabled={!modoEdicion}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value={1}>Activo</option>
-                  <option value={0}>Inactivo</option>
-                </select>
-              </div>
-
-              {/* Roles - Mostrando solo información */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Roles
-                </label>
-                <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
-                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                    Estudiante
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {modoEdicion && (
-              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  <span className="font-semibold">Nota:</span> Por seguridad, la
-                  contraseña no se muestra. Si necesita cambiarla, el usuario
-                  debe utilizar la función de restablecimiento de contraseña.
-                </p>
-              </div>
-            )}
-          </div>
+          </div> */}
         </form>
       </div>
     </div>

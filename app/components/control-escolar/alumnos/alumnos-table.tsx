@@ -1,14 +1,38 @@
 "use client";
 import { DataTable } from "@/app/utils/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { useState } from "react";
-import Link from "next/link";
-import { EstudiantePerfil } from "@/redux/features/types/control-escolar/type";
 import { useGetEstudiantesQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
 import ButtonLink from "../link-button";
+import { EstudiantePerfil } from "@/redux/features/types/control-escolar/type";
+import { Chip } from "@mui/material";
 
 export default function EstudiantesPage() {
   const { data: estudiantes } = useGetEstudiantesQuery();
+  const columns: ColumnDef<EstudiantePerfil>[] = [
+    { accessorKey: "matricula", header: "Matricula" },
+    { accessorKey: "user_nombre", header: "Nombre" },
+    { accessorKey: "user_genero", header: "Genero" },
+    { accessorKey: "institucion_nombre", header: "Instituto al que pertenece" },
+    {
+      header: "Estatus",
+      cell: ({ row }) => {
+        const color = row.original.status === 0 ? "error" : "success";
+        const label = row.original.status === 0 ? "Inactivo" : "Activo";
+        return <Chip label={label} color={color} variant="outlined" />;
+      },
+    },
+    {
+      header: "Acciones",
+      cell: ({ row }) => {
+        return (
+          <ButtonLink
+            icon="eye-icon"
+            path={`/dashboard/control-escolar/alumnos/${row.original.ref}`}
+          />
+        );
+      },
+    },
+  ];
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -116,65 +140,51 @@ export default function EstudiantesPage() {
                 </select>
               </div>
             </div>
-
-            {/* Botón limpiar filtros */}
-            {/* {(busqueda ||
-              filtroPrograma !== "all" ||
-              filtroStatus !== "all") && (
-              <button
-                onClick={() => {
-                  setBusqueda("");
-                  setFiltroPrograma("all");
-                  setFiltroStatus("all");
-                }}
-                className="mt-4 text-sm text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Limpiar filtros
-              </button>
-            )} */}
+            {/* Tabla de Estudiantes */}
+            {estudiantes?.count === 0 || !estudiantes ? (
+              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                <svg
+                  className="w-16 h-16 text-gray-400 mx-auto mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No se encontraron estudiantes
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  No hay estudiantes que coincidan con los filtros seleccionados
+                </p>
+                <button
+                  //   onClick={() => {
+                  //     setBusqueda("");
+                  //     setFiltroPrograma("all");
+                  //     setFiltroStatus("all");
+                  //   }}
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-hidden">
+                <div className="p-2">
+                  <DataTable
+                    data={estudiantes.results ?? []}
+                    columns={columns}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Tabla de Estudiantes */}
-        {estudiantes?.count === 0 || !estudiantes ? (
-          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-            <svg
-              className="w-16 h-16 text-gray-400 mx-auto mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No se encontraron estudiantes
-            </h3>
-            <p className="text-gray-600 mb-4">
-              No hay estudiantes que coincidan con los filtros seleccionados
-            </p>
-            <button
-              //   onClick={() => {
-              //     setBusqueda("");
-              //     setFiltroPrograma("all");
-              //     setFiltroStatus("all");
-              //   }}
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Limpiar filtros
-            </button>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <p>Tabla</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

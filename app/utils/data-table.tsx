@@ -35,7 +35,7 @@ export function DataTable<T>({ columns, data }: DataTableProps<T>) {
                     ? null
                     : flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                 </th>
               ))}
@@ -48,7 +48,7 @@ export function DataTable<T>({ columns, data }: DataTableProps<T>) {
               {row.getVisibleCells().map((cell) => (
                 <td
                   key={cell.id}
-                  className="px-4 py-2 text-sm text-gray-300 border"
+                  className="px-4 py-2 text-sm text-gray-800 border"
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>

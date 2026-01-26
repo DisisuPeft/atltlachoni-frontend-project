@@ -16,7 +16,7 @@ export default function Header() {
           <div className="bg-white rounded-full shadow-lg px-4 md:px-6 py-3 flex items-center justify-between">
             {/* Logo */}
             <motion.a
-              href="/instituto-thales"
+              href="/thales"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}

@@ -18,6 +18,34 @@ export interface ModuloEducativoForm extends BaseModel {
   submodulos: SubmoduloEducativoForm[];
 }
 
+export interface ProgramaEducativo extends BaseModel {
+  nombre: string;
+  descripcion?: string | null;
+  ref: string | null;
+  tipo_nombre: string | null;
+  institucion_nombre?: string | null;
+  modalidad?: string | null;
+
+  duracion_horas?: number | null;
+  duracion_meses?: number | null;
+
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
+
+  horario?: string | null;
+
+  costo_inscripcion?: number | null;
+  costo_mensualidad?: number | null;
+  costo_documentacion?: number | null;
+
+  instructor?: number[];
+
+  imagen_url?: string | null;
+  banner_url?: string | null;
+
+  modulos_obj: ModuloEducativoForm[];
+}
+
 export interface ProgramaEducativoForm extends BaseModel {
   nombre: string;
   descripcion?: string | null;
@@ -44,6 +72,7 @@ export interface ProgramaEducativoForm extends BaseModel {
   banner_url?: string | null;
 
   modulos: ModuloEducativoForm[];
+  modulos_obj?: ModuloEducativoForm[];
 }
 
 export const programaInicial: ProgramaEducativoForm = {
@@ -87,6 +116,10 @@ export const programaInicial: ProgramaEducativoForm = {
   ],
 };
 
+export interface ProgramaSimple extends BaseModel {
+  nombre: string;
+}
+
 export interface TipoProgramaGenerico extends BaseModel {
   nombre: string;
 }
@@ -104,19 +137,17 @@ export interface UserStudentData {
   fecha_nacimiento: string;
   telefono: string;
   email: string;
-  status: number | null;
-  password: string;
+  status: number;
 }
 
 export interface EstudiantePerfilForm extends BaseModel {
-  status: number;
-
   user: UserStudentData;
+  user_obj?: UserStudentData;
   nivel_educativo: number | null;
   institucion: number | null;
   estado_pais: string | null;
   ciudad: string | null;
-
+  status: number;
   especialidad: string;
   matricula: string;
   fecha_ingreso: string | null;
@@ -131,20 +162,17 @@ export const InitalUserValues: UserStudentData = {
   fecha_nacimiento: "",
   telefono: "",
   email: "",
-  status: null,
+  status: 0,
   // roles: [],
-  password: "",
 };
 
 export const estudiantePerfilInitialValues: EstudiantePerfilForm = {
-  status: 0,
-
   user: InitalUserValues,
   nivel_educativo: null,
   institucion: null,
   estado_pais: null,
   ciudad: null,
-
+  status: 0,
   especialidad: "",
   matricula: "",
   fecha_ingreso: null,
@@ -166,12 +194,47 @@ export interface EstudiantePerfil extends BaseModel {
   status: number;
 
   user: User;
-  nivel_educativo: number | null;
-  institucion: number | null;
-  estado_pais: number | null;
-  ciudad: number | null;
-
+  nivel_educativo_nombre: number | null;
+  institucion_nombre: number | null;
+  estado_pais_nombre: number | null;
+  ciudad_nombre: number | null;
+  user_nombre: string;
+  user_genero: string;
+  ref: string;
   especialidad: string;
   matricula: string;
   fecha_ingreso: string | null;
+}
+
+export type CampaniaFormFields = {
+  nombre: string;
+  descripcion: string;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
+  programa: string | null;
+  costo_asignado: number | null;
+  // empresa: string | null;
+  instituto: string | null;
+  status: number;
+};
+
+export const initialCampaniaFormValues: CampaniaFormFields = {
+  nombre: "",
+  descripcion: "",
+  fecha_inicio: null,
+  fecha_fin: null,
+  programa: null,
+  costo_asignado: null,
+  instituto: null,
+  status: 1,
+};
+
+export interface Campania {
+  nombre: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  costo_asignado: string;
+  institucion_nombre: string;
+  programa_nombre: string;
+  status: number;
 }

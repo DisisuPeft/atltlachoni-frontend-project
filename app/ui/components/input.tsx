@@ -14,12 +14,10 @@ export default function Input({
   className,
   ...props
 }: InputProps) {
+  // console.log(error);
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-gray-800">
-        {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
-      </label>
+      <label className="text-sm font-medium text-gray-800">{label}</label>
       <input
         {...props}
         {...register}

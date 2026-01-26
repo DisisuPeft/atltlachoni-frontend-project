@@ -11,18 +11,23 @@ import {
   useRetrieveEstadosQuery,
   useRetrieveLocalidadesQuery,
 } from "@/redux/features/catalogos/genericosApiSlice";
-import { useEffect } from "react";
-import { useAddEstudiantesMutation } from "@/redux/features/control-escolar/alumnosApiSlice";
+import { useEffect, useState } from "react";
+import {
+  useUpdateEstudianteMutation,
+  useRetrieveEstudianteQuery,
+} from "@/redux/features/control-escolar/alumnosApiSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { setAlert } from "@/redux/features/alert/alertSlice";
 
-export default function useAlumnoForm() {
+export default function useAlumnoEditForm(uuid: string) {
+  const { data: estudiante, isLoading } = useRetrieveEstudianteQuery(uuid);
   const dispatch = useAppDispatch();
   const { data: generos } = useGetGenerosQuery();
   const { data: nivelEducativo } = useRetrieveNivelEducativoQuery();
   const { data: instituciones } = useRetrieveInstitucionesQuery();
   const { data: estados } = useRetrieveEstadosQuery();
-  const [addEstudiantes] = useAddEstudiantesMutation();
+  const [updateEstudiantes] = useUpdateEstudianteMutation();
+  const [disabled, setDisabled] = useState(true);
   const {
     register,
     handleSubmit,
@@ -32,18 +37,17 @@ export default function useAlumnoForm() {
     setValue,
     reset,
   } = useForm<EstudiantePerfilForm>({
-    defaultValues: estudiantePerfilInitialValues,
+    // defaultValues: estudiantePerfilInitialValues,
+    mode: "onChange",
   });
 
-  const entidad = watch("estado_pais");
-  // console.log(typeof entidad);
-  const { data: localidades } = useRetrieveLocalidadesQuery(
-    entidad ? parseInt(entidad) : 0,
-  );
+  const entidad = estudiante?.estado_pais?.toString() ?? watch("estado_pais");
+  const { data: localidades, isLoading: isLoadingLocalidad } =
+    useRetrieveLocalidadesQuery(entidad ? parseInt(entidad) : 0);
 
   const onSubmit = async (data: EstudiantePerfilForm) => {
     try {
-      await addEstudiantes(data).unwrap();
+      await updateEstudiantes({ uuid: uuid, formData: data }).unwrap();
       reset();
       dispatch(
         setAlert({ message: "Alumno creado con exito", type: "success" }),
@@ -76,8 +80,31 @@ export default function useAlumnoForm() {
 
   useEffect(() => {
     setValue("user.edad", caluleAgeBirth());
-    // caluleAgeBirth();
-  });
+
+    if (estudiante && !isLoading && !isLoadingLocalidad) {
+      const mapped = {
+        especialidad: estudiante.especialidad,
+        matricula: estudiante.matricula,
+        fecha_ingreso: estudiante.fecha_ingreso,
+        nivel_educativo: estudiante.nivel_educativo,
+        institucion: estudiante.institucion,
+        estado_pais: estudiante.estado_pais,
+        ciudad: estudiante.ciudad,
+        status: estudiante.status,
+        user: {
+          nombre: estudiante.user_obj?.nombre,
+          apellido_paterno: estudiante.user_obj?.apellido_paterno,
+          apellido_materno: estudiante.user_obj?.apellido_materno,
+          edad: estudiante.user_obj?.edad,
+          genero: estudiante.user_obj?.genero,
+          fecha_nacimiento: estudiante.user_obj?.fecha_nacimiento,
+          email: estudiante.user_obj?.email,
+          telefono: estudiante.user_obj?.telefono,
+        },
+      };
+      reset(mapped, { keepDirty: true, keepErrors: true });
+    }
+  }, [isLoading, estudiante, reset, isLoadingLocalidad]);
 
   return {
     register,
@@ -91,5 +118,6 @@ export default function useAlumnoForm() {
     instituciones,
     estados,
     localidades,
+    disabled,
   };
 }

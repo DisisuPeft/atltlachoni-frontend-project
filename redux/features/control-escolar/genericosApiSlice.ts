@@ -2,6 +2,7 @@ import { apiSlice } from "@/redux/services/apiSlice";
 import {
   ModalidadesGenerico,
   TipoProgramaGenerico,
+  ProgramaSimple,
 } from "../types/control-escolar/type";
 
 const genericoApiSlice = apiSlice.injectEndpoints({
@@ -12,8 +13,14 @@ const genericoApiSlice = apiSlice.injectEndpoints({
     getTiposProgramas: builder.query<TipoProgramaGenerico[], void>({
       query: () => "/control-escolar/genericos/tipos-programas/",
     }),
+    getProgramasGenerico: builder.query<ProgramaSimple[], void>({
+      query: () => "/control-escolar/genericos/programas/",
+    }),
   }),
 });
 
-export const { useGetModalidadesQuery, useGetTiposProgramasQuery } =
-  genericoApiSlice;
+export const {
+  useGetModalidadesQuery,
+  useGetTiposProgramasQuery,
+  useGetProgramasGenericoQuery,
+} = genericoApiSlice;

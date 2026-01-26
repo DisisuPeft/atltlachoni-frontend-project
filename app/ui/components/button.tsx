@@ -21,7 +21,7 @@ export default function Button({
     <button
       type={type}
       {...props}
-      className={`px-4 py-2 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]}`}
+      className={`px-4 py-2 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]} cursor-pointer`}
     >
       {children}
     </button>
