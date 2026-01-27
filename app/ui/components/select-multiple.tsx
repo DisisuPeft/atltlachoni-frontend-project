@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { UseFormRegisterReturn, Controller } from "react-hook-form";
+// import { UseFormRegisterReturn, Controller } from "react-hook-form";
 
 interface MultiSelectProps {
   label: string;
@@ -12,7 +12,7 @@ interface MultiSelectProps {
   onChange?: (selected: string[]) => void;
   required?: boolean;
   placeholder?: string;
-  name: string;
+  name?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control?: any;
   containerClassName?: string;

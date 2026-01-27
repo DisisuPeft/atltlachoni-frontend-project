@@ -1,8 +1,10 @@
 import { UseFormRegisterReturn } from "react-hook-form";
 
-interface SelectProps
-  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "className"> {
-  label: string;
+interface SelectProps extends Omit<
+  React.SelectHTMLAttributes<HTMLSelectElement>,
+  "className"
+> {
+  label?: string;
   error?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   options: Record<string, any>[];

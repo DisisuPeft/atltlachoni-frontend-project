@@ -4,6 +4,7 @@ import {
   NivelEducativo,
   EstadoRepublica,
   Localidad,
+  MetodoPago,
 } from "../types/catalagos/cat";
 
 const generoApiSlice = apiSlice.injectEndpoints({
@@ -20,6 +21,9 @@ const generoApiSlice = apiSlice.injectEndpoints({
     retrieveLocalidades: builder.query<Localidad[], number>({
       query: (estado) => `/catalagos/genericos/localidades/?estado=${estado}`,
     }),
+    getMetodoPago: builder.query<MetodoPago[], void>({
+      query: () => "/catalagos/genericos/metodo-pago/",
+    }),
   }),
 });
 
@@ -28,4 +32,5 @@ export const {
   useRetrieveNivelEducativoQuery,
   useRetrieveEstadosQuery,
   useRetrieveLocalidadesQuery,
+  useGetMetodoPagoQuery,
 } = generoApiSlice;

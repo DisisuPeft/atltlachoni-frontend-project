@@ -49,7 +49,7 @@ export const Modal: React.FC<ModalProps> = ({
         close();
       }
     },
-    [show, close]
+    [show, close],
   );
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export const Modal: React.FC<ModalProps> = ({
       <div
         className={`relative z-10 w-full sm:mx-auto ${
           maxWidthClass[maxWidth]
-        } ${transparent ? "" : "bg-white"} rounded-lg overflow-hidden ${
+        } ${transparent ? "" : "bg-white"} rounded-lg ${transparent ? "overflow-hidden" : "overflow-y-auto"} max-h-[85vh] ${
           transparent ? "shadow-none" : "shadow-2xl"
         } transform transition-all duration-300`}
         onClick={(e) => e.stopPropagation()}
@@ -94,6 +94,6 @@ export const Modal: React.FC<ModalProps> = ({
         {children}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

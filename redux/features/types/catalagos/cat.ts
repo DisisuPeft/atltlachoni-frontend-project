@@ -19,3 +19,8 @@ export interface Localidad {
   id: number;
   name: string;
 }
+
+export interface MetodoPago {
+  id: string;
+  nombre: string;
+}

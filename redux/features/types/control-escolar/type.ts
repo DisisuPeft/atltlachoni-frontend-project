@@ -205,7 +205,7 @@ export interface EstudiantePerfil extends BaseModel {
   matricula: string;
   fecha_ingreso: string | null;
 }
-
+/**Campanias */
 export type CampaniaFormFields = {
   nombre: string;
   descripcion: string;
@@ -238,3 +238,65 @@ export interface Campania {
   programa_nombre: string;
   status: number;
 }
+
+export interface CampaniaPrograma {
+  id: number;
+  nombre: string;
+}
+/**Campanias */
+export type Pago = {
+  id: string;
+  estudiante: string;
+  inscripcion: number;
+  monto: string | null;
+  referencia: string | null;
+  periodo: string | null;
+  notas: string | null;
+  tipo_pago: number | null;
+  tipo_pago_r: string | null;
+  fecha_pago: string | null;
+  fecha_vencimiento: string | null;
+  metodo_pago: "efectivo" | "tarjeta" | "transferencia";
+  estado: "pendiente" | "completado" | "parcial" | "vencido" | "cancelado";
+  numero_pago: string | null;
+  concepto: string | null;
+};
+
+export interface PagoFormData {
+  tipo_pago: string[];
+  monto: number;
+  fecha_vencimiento?: string | null;
+  metodo_pago?: string;
+  notas?: string;
+  concepto: string;
+  tiene_precio_custom: boolean;
+  precios_custom: {
+    costo_inscripcion: number | undefined;
+    costo_mensualidad: number | undefined;
+    costo_documentacion: number | undefined;
+  };
+  razon_precio_custom: string;
+  campania: string | null;
+}
+
+export interface TipoPago {
+  id: number;
+  nombre: string;
+}
+
+export const InitalPagoForm = {
+  tipo_pago: [],
+  monto: 0,
+  fecha_vencimiento: "",
+  metodo_pago: "",
+  notas: "",
+  concepto: "",
+  tiene_precio_custom: false,
+  precios_custom: {
+    costo_inscripcion: 0,
+    costo_mensualidad: 0,
+    costo_documentacion: 0,
+  },
+  razon_precio_custom: "",
+  campania: null,
+};

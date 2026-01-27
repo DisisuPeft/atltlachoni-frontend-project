@@ -3,6 +3,8 @@ import {
   ModalidadesGenerico,
   TipoProgramaGenerico,
   ProgramaSimple,
+  TipoPago,
+  CampaniaPrograma,
 } from "../types/control-escolar/type";
 
 const genericoApiSlice = apiSlice.injectEndpoints({
@@ -16,6 +18,12 @@ const genericoApiSlice = apiSlice.injectEndpoints({
     getProgramasGenerico: builder.query<ProgramaSimple[], void>({
       query: () => "/control-escolar/genericos/programas/",
     }),
+    getTipoPago: builder.query<TipoPago[], void>({
+      query: () => "/control-escolar/genericos/tipo-pago/",
+    }),
+    getCampanias: builder.query<CampaniaPrograma[], void>({
+      query: () => "/control-escolar/genericos/campanias/",
+    }),
   }),
 });
 
@@ -23,4 +31,6 @@ export const {
   useGetModalidadesQuery,
   useGetTiposProgramasQuery,
   useGetProgramasGenericoQuery,
+  useGetTipoPagoQuery,
+  useGetCampaniasQuery,
 } = genericoApiSlice;

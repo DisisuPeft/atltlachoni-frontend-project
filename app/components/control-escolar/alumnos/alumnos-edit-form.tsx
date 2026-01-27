@@ -4,11 +4,15 @@ import Button from "@/app/ui/components/button";
 import { useAlumnoEditForm } from "@/hooks";
 import { sweetAlert } from "@/sweetalert/sweetalerts";
 import { PencilIcon } from "lucide-react";
+import { Modal } from "../../common/modal";
+import { useState } from "react";
+import StepEstudiante from "./steps";
 
 interface Props {
   uuid: string;
 }
 export default function EstudianteEditPage({ uuid }: Props) {
+  const [open, setOpen] = useState(false);
   const {
     register,
     handleSubmit,
@@ -31,12 +35,21 @@ export default function EstudianteEditPage({ uuid }: Props) {
   };
   return (
     <div className="bg-gray-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-end">
-          <Button onClick={handleEdit}>
-            <PencilIcon />
-          </Button>
+      <div className="max-w-8xl mx-auto px-2 sm:px-3 lg:px-4">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] items-center p-3">
+          <div>
+            <Button onClick={handleEdit}>
+              <PencilIcon />
+            </Button>
+          </div>
+          <div className="px-4">
+            <Button onClick={() => setOpen(true)}>Inscribir a programa</Button>
+            <Modal show={open} onClose={() => setOpen(false)}>
+              <StepEstudiante estudianteId={uuid} />
+            </Modal>
+          </div>
         </div>
+        {/* <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr]"> */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Información Personal */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -188,7 +201,10 @@ export default function EstudianteEditPage({ uuid }: Props) {
                   type="email"
                   {...register("user.email", {
                     required: "El email es requerido",
-                    pattern: { value: /^\S+@\S+$/i, message: "Email inválido" },
+                    pattern: {
+                      value: /^\S+@\S+$/i,
+                      message: "Email inválido",
+                    },
                   })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 />
@@ -387,13 +403,9 @@ export default function EstudianteEditPage({ uuid }: Props) {
               {isSubmitting ? <div>Guardando...</div> : <div>Guardar</div>}
             </button>
           )}
-          {/* Información del Usuario */}
-          {/* <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Configuración de Usuario
-            </h2>
-          </div> */}
         </form>
+        {/* <div className="px-4">Inscripcion</div> */}
+        {/* </div> */}
       </div>
     </div>
   );
