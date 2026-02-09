@@ -1,355 +1,169 @@
+"use client";
+
 import Link from "next/link";
+import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
+import { InscriptionDetail } from "@/redux/features/types/alumnos/inscription";
+import { IconBook, IconCheck, IconPlay } from "./iconst";
+import ButtonLink from "../control-escolar/link-button";
+import { useInscriptionAlumnoDetailQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
+
+// interface Props {
+//   inscription: InscriptionDetail | undefined;
+//   isLoading?: boolean;
+// }
 
 export default function Dashboard() {
-  const coursesInProgress = [
-    {
-      id: 1,
-      title: "Desarrollo Web Full Stack con React y Node.js",
-      instructor: "Carlos Martínez",
-      progress: 65,
-      thumbnail: "/web-development-coding.png",
-      lastAccessed: "Hace 2 horas",
-      nextLesson: "APIs REST con Express",
-    },
-    {
-      id: 2,
-      title: "Diseño UX/UI: De Principiante a Profesional",
-      instructor: "Ana García",
-      progress: 42,
-      thumbnail: "/ux-ui-design-interface.png",
-      lastAccessed: "Ayer",
-      nextLesson: "Prototipado en Figma",
-    },
-    {
-      id: 3,
-      title: "Python para Ciencia de Datos",
-      instructor: "Miguel López",
-      progress: 28,
-      thumbnail: "/python-programming-data-science.jpg",
-      lastAccessed: "Hace 3 días",
-      nextLesson: "Análisis con Pandas",
-    },
-  ];
-
-  const stats = {
-    totalHours: 127,
-    completedCourses: 8,
-    currentStreak: 12,
-    points: 3450,
-  };
-
-  const upcomingTasks = [
-    {
-      title: "Entregar proyecto final - React Avanzado",
-      dueDate: "Hoy, 23:59",
-      urgent: true,
-    },
-    {
-      title: "Quiz: Fundamentos de UX",
-      dueDate: "Mañana, 18:00",
-      urgent: false,
-    },
-    {
-      title: "Lectura: Machine Learning Basics",
-      dueDate: "En 3 días",
-      urgent: false,
-    },
-  ];
-
-  const recentAchievements = [
-    {
-      title: "Madrugador",
-      description: "Completa 5 lecciones antes de las 9 AM",
-      icon: "🌅",
-    },
-    {
-      title: "Racha de 10 días",
-      description: "Aprende 10 días seguidos",
-      icon: "🔥",
-    },
-    {
-      title: "Primer certificado",
-      description: "Completa tu primer curso",
-      icon: "🎓",
-    },
-  ];
-
+  const { data: user } = useRetrieveUserQuery();
+  // console.log(inscription?.programasInscritos);
+  const { data: inscription, isLoading } = useInscriptionAlumnoDetailQuery();
   return (
-    <div className="bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 text-sm">Horas totales</span>
-              <svg
-                className="w-5 h-5 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div className="text-3xl font-bold text-gray-900">
-              {stats.totalHours}
-            </div>
-            <div className="text-sm text-green-600 mt-1">+5 esta semana</div>
-          </div>
+    <div className="space-y-8 mt-12">
+      {/* Header de bienvenida */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-white">
+        <h1 className="text-3xl font-bold mb-2">
+          ¡Hola, {user?.nombre_completo}!
+        </h1>
+        <p className="text-blue-100 text-lg">
+          Continúa aprendiendo y alcanza tus metas.
+        </p>
+      </div>
 
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 text-sm">Completados</span>
-              <svg
-                className="w-5 h-5 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+      {/* Estadísticas rápidas */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <IconBook className="w-6 h-6 text-blue-600" />
             </div>
-            <div className="text-3xl font-bold text-gray-900">
-              {stats.completedCourses}
+            <div>
+              <p className="text-gray-500 text-sm">Cursos activos</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {inscription?.countCursos ?? 0}
+              </p>
             </div>
-            <div className="text-sm text-gray-500 mt-1">cursos</div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 text-sm">Racha actual</span>
-              <svg
-                className="w-5 h-5 text-orange-500"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 2c1.56 3.08 3.5 6.75 3.5 9.5 0 2.49-1.79 4.5-4 4.5s-4-2.01-4-4.5c0-2.75 1.94-6.42 3.5-9.5zm1 14c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z" />
-              </svg>
-            </div>
-            <div className="text-3xl font-bold text-gray-900">
-              {stats.currentStreak}
-            </div>
-            <div className="text-sm text-gray-500 mt-1">días</div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 text-sm">Puntos</span>
-              <svg
-                className="w-5 h-5 text-amber-500"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.7-6.3 4.7 2.3-7-6-4.6h7.6z" />
-              </svg>
-            </div>
-            <div className="text-3xl font-bold text-gray-900">
-              {stats.points}
-            </div>
-            <div className="text-sm text-gray-500 mt-1">XP ganados</div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Continue Learning */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Continuar aprendiendo
-              </h2>
-              <div className="space-y-4">
-                {coursesInProgress.map((course) => (
-                  <div
-                    key={course.id}
-                    className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition"
-                  >
-                    <div className="flex flex-col sm:flex-row">
-                      <div className="sm:w-48 h-32 sm:h-auto flex-shrink-0">
-                        <img
-                          src={course.thumbnail || "/placeholder.svg"}
-                          alt={course.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-1 hover:text-blue-600 cursor-pointer">
-                              {course.title}
-                            </h3>
-                            <p className="text-sm text-gray-600 mb-2">
-                              {course.instructor}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between text-sm mb-1">
-                            <span className="text-gray-600">Progreso</span>
-                            <span className="font-semibold text-blue-600">
-                              {course.progress}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full transition-all"
-                              style={{ width: `${course.progress}%` }}
-                            ></div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm text-gray-500">
-                            <span>Último acceso: {course.lastAccessed}</span>
-                          </div>
-                          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
-                            Continuar
-                          </button>
-                        </div>
-
-                        <div className="mt-2 text-sm text-gray-600">
-                          <span className="font-medium">Siguiente:</span>{" "}
-                          {course.nextLesson}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Recent Achievements */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Logros recientes
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {recentAchievements.map((achievement, index) => (
-                  <div
-                    key={index}
-                    className="bg-white p-4 rounded-lg border border-gray-200 text-center hover:border-blue-600 transition cursor-pointer"
-                  >
-                    <div className="text-4xl mb-2">{achievement.icon}</div>
-                    <h3 className="font-semibold text-gray-900 mb-1">
-                      {achievement.title}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {achievement.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <IconCheck className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-gray-500 text-sm">Completados</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {inscription?.completados ?? 0}
+              </p>
+            </div>
           </div>
+        </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Upcoming Tasks */}
-            <section className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <svg
-                  className="w-5 h-5 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+        {/* <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <IconClock className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-gray-500 text-sm">Horas esta semana</p>
+              <p className="text-2xl font-bold text-gray-900">{totalHoras}</p>
+            </div>
+          </div>
+        </div> */}
+
+        {/* <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+              <IconAward className="w-6 h-6 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-gray-500 text-sm">Racha de días</p>
+              <p className="text-2xl font-bold text-gray-900">{racha} 🔥</p>
+            </div>
+          </div>
+        </div> */}
+      </div>
+
+      {/* Continuar aprendiendo */}
+      <div>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          Continúa donde lo dejaste
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {inscription?.programasInscritos?.length === 0 && !isLoading ? (
+            <div>Sin datos</div>
+          ) : (
+            <>
+              {inscription?.programasInscritos?.map((programa) => (
+                <div
+                  key={programa.ref}
+                  className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  <img
+                    src={programa.imagen_url || "/placeholder.svg"}
+                    alt={programa.nombre}
+                    className="w-32 h-full object-cover"
+                    crossOrigin="anonymous"
                   />
-                </svg>
-                Próximas tareas
-              </h3>
-              <div className="space-y-3">
-                {upcomingTasks.map((task, index) => (
-                  <div
-                    key={index}
-                    className={`p-3 rounded-lg ${
-                      task.urgent
-                        ? "bg-red-50 border border-red-200"
-                        : "bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-start gap-2">
-                      <input type="checkbox" className="mt-1" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">
-                          {task.title}
-                        </p>
-                        <p
-                          className={`text-xs mt-1 ${
-                            task.urgent
-                              ? "text-red-600 font-semibold"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {task.dueDate}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button className="w-full mt-4 py-2 text-blue-600 font-semibold text-sm hover:bg-blue-50 rounded-lg transition">
-                Ver todas las tareas
-              </button>
-            </section>
-
-            {/* Learning Activity */}
-            <section className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                Actividad semanal
-              </h3>
-              <div className="space-y-3">
-                {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map(
-                  (day, index) => {
-                    const hours = [2, 3, 1.5, 2.5, 0, 0, 1][index];
-                    const maxHours = 3;
-                    const percentage = (hours / maxHours) * 100;
-
-                    return (
-                      <div key={day} className="flex items-center gap-3">
-                        <span className="text-sm text-gray-600 w-8">{day}</span>
-                        <div className="flex-1 bg-gray-200 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full ${
-                              hours > 0 ? "bg-blue-600" : "bg-gray-300"
-                            }`}
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm text-gray-900 font-medium w-8">
-                          {hours}h
+                  <div className="p-4 flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-1">
+                      {programa.tipo} en {programa.nombre}
+                    </h3>
+                    <div className="mb-2">
+                      {/* <div className="flex justify-between text-sm mb-1">
+                        <span className="text-gray-600">Tipo</span>
+                        <span className="text-blue-600 font-medium">
+                          {programa.tipo}
                         </span>
-                      </div>
-                    );
-                  }
+                      </div> */}
+                    </div>
+                    <ButtonLink
+                      path={`/plataforma/${programa.tipo}/${programa.ref}`}
+                    >
+                      <IconPlay className="w-4 h-4" />
+                    </ButtonLink>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Actividad reciente */}
+      <div>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          Actividad reciente
+        </h2>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm divide-y divide-gray-100">
+          {/* {actividadReciente.map((actividad) => (
+            <div key={actividad.id} className="p-4 flex items-center gap-4">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  actividad.tipo === "leccion"
+                    ? "bg-blue-100"
+                    : actividad.tipo === "quiz"
+                      ? "bg-green-100"
+                      : "bg-yellow-100"
+                }`}
+              >
+                {actividad.tipo === "leccion" && (
+                  <IconPlay className="w-5 h-5 text-blue-600" />
+                )}
+                {actividad.tipo === "quiz" && (
+                  <IconCheck className="w-5 h-5 text-green-600" />
+                )}
+                {actividad.tipo === "certificado" && (
+                  <IconAward className="w-5 h-5 text-yellow-600" />
                 )}
               </div>
-            </section>
-
-            {/* Recommendations */}
-            <section className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-6 text-white">
-              <h3 className="text-lg font-bold mb-2">¿Buscas algo nuevo?</h3>
-              <p className="text-blue-100 text-sm mb-4">
-                Explora cursos recomendados basados en tus intereses
-              </p>
-              <button className="w-full py-2 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition">
-                Explorar cursos
-              </button>
-            </section>
+              <div className="flex-1">
+                <p className="text-gray-900">{actividad.texto}</p>
+                <p className="text-gray-500 text-sm">{actividad.tiempo}</p>
+              </div>
+            </div>
+          ))} */}
+          <div className="flex justify-center p-5">
+            Sin Actividades recientes
           </div>
         </div>
       </div>

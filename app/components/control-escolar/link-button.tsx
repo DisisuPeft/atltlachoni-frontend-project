@@ -9,9 +9,10 @@ interface Props {
   path: string;
   title?: string;
   icon?: string;
+  children?: React.ReactNode;
 }
 
-export default function ButtonLink({ path, title, icon }: Props) {
+export default function ButtonLink({ path, title, icon, children }: Props) {
   const searchParams = useSearchParams();
   const ref = searchParams.get("ref");
   return (
@@ -19,6 +20,7 @@ export default function ButtonLink({ path, title, icon }: Props) {
       <Button>
         {title && <>{title}</>}
         {icon && <DynamicIcon iconName={icon} color="white" />}
+        {children}
       </Button>
     </Link>
   );

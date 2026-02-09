@@ -51,11 +51,11 @@ export default function Header() {
           {/* CTA Button */}
           <div className="hidden lg:block">
             <Link
-              href="https://wa.link/fgv19q"
-              target="_blank"
+              href="/login"
+              // target="_blank"
               className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
             >
-              Contacto
+              Log in
             </Link>
           </div>
 

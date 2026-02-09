@@ -2,9 +2,11 @@ import { apiSlice } from "@/redux/services/apiSlice";
 import {
   EstudiantePerfil,
   EstudiantePerfilForm,
+  PagoFormData,
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
 import { MessageResponse } from "../types/reponse";
+import { InscriptionDetail } from "../types/alumnos/inscription";
 
 const alumnoApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -31,6 +33,23 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
         body: formData,
       }),
     }),
+    makeInscription: builder.mutation<
+      MessageResponse,
+      {
+        campania: string | undefined;
+        estudianteId: string | undefined;
+        formData: PagoFormData;
+      }
+    >({
+      query: ({ campania, estudianteId, formData }) => ({
+        url: `/control-escolar/inscripciones/?campania=${campania}&estudiante=${estudianteId}`,
+        method: "POST",
+        body: formData,
+      }),
+    }),
+    inscriptionAlumnoDetail: builder.query<InscriptionDetail, void>({
+      query: () => `/control-escolar/inscripciones/inscription_details_alumno/`,
+    }),
   }),
 });
 
@@ -39,4 +58,6 @@ export const {
   useGetEstudiantesQuery,
   useRetrieveEstudianteQuery,
   useUpdateEstudianteMutation,
+  useMakeInscriptionMutation,
+  useInscriptionAlumnoDetailQuery,
 } = alumnoApiSlice;

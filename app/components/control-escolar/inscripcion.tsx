@@ -9,6 +9,7 @@ import MultiSelect from "@/app/ui/components/select-multiple";
 // import { PagoFormData } from "@/redux/interface/control_escolar/types/programa-educativo";
 import Button from "@/app/ui/components/button";
 import { PagoFormData } from "@/redux/features/types/control-escolar/type";
+import { Alert } from "@mui/material";
 
 export interface Props {
   estudianteId?: string;
@@ -27,10 +28,13 @@ export default function CourseEnrollment({ estudianteId, campania }: Props) {
     setValue,
     control,
     // onSuccess,
+    mensaje,
+    tipo,
   } = useInscripcionPrograma(estudianteId, campania);
 
   return (
     <div className="">
+      {mensaje && <Alert severity={tipo}>{`${mensaje}`}.</Alert>}
       <form onSubmit={handleSubmit(onSubmit)} className="mb-10">
         <div className="bg-white p-4 text-center text-black min-w-[600px]">
           <div className="flex flex-col justify-center p-4 mb-4 space-y-4">
@@ -192,9 +196,9 @@ export default function CourseEnrollment({ estudianteId, campania }: Props) {
                   }}
                   render={({ field }) => (
                     <MultiSelect
-                      label="Modalidad de pago"
+                      label="Conceptos de pago"
                       required
-                      placeholder="Seleccione la modalidad"
+                      placeholder="Seleccione los conceptos"
                       options={tipoPago ?? []}
                       labelKey="nombre"
                       valueKey="id"

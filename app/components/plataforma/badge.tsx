@@ -21,11 +21,6 @@ export default function Badge() {
             </svg>
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
-          <Link href="/profile">
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold cursor-pointer hover:bg-blue-700 transition">
-              JD
-            </div>
-          </Link>
         </div>
       </div>
     </div>

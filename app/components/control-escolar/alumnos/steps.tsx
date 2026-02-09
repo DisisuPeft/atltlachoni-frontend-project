@@ -22,7 +22,7 @@ export default function StepEstudiante({ estudianteId }: Props) {
 
   return (
     <div className="flex flex-col justify-center px-1">
-      <h1 className="text-center text-4xl font-bold mt-4">
+      <h1 className="text-center text-4xl font-bold mt-12">
         Proceso de inscripcion
       </h1>
       <div className="flex justify-center p-6">
