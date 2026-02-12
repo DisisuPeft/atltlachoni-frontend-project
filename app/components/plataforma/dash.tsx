@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
-import { InscriptionDetail } from "@/redux/features/types/alumnos/inscription";
+// import { InscriptionDetail } from "@/redux/features/types/alumnos/inscription";
 import { IconBook, IconCheck, IconPlay } from "./iconst";
 import ButtonLink from "../control-escolar/link-button";
 import { useInscriptionAlumnoDetailQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
@@ -99,7 +99,7 @@ export default function Dashboard() {
                   className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex"
                 >
                   <img
-                    src={programa.imagen_url || "/placeholder.svg"}
+                    src={programa.imagen_url || "/assets/placeholder.png"}
                     alt={programa.nombre}
                     className="w-32 h-full object-cover"
                     crossOrigin="anonymous"

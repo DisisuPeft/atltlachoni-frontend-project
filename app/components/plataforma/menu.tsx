@@ -15,7 +15,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { id: 1, nav: "/plataforma", label: "Dashboard", icon: IconDashboard },
-  { id: 2, nav: "cursos", label: "Mis Cursos", icon: IconBook },
+  { id: 2, nav: "/plataforma/educacion", label: "Mis Cursos", icon: IconBook },
   { id: 3, nav: "perfil", label: "Mi Perfil", icon: IconUser },
 ];
 

@@ -13,7 +13,7 @@ export default function Layout({ children }: Children) {
         {/* Navbar */}
         <Navbar />
         <PlataformaEducativa />
-        <main className="ml-64 p-8">{children}</main>
+        <main className="md:ml-[220px] p-8">{children}</main>
       </div>
     </RequireAuth>
   );

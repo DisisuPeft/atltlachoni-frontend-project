@@ -3,6 +3,7 @@ import {
   EstudiantePerfil,
   EstudiantePerfilForm,
   PagoFormData,
+  ProgramaEducativoDetail,
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
 import { MessageResponse } from "../types/reponse";
@@ -50,6 +51,10 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
     inscriptionAlumnoDetail: builder.query<InscriptionDetail, void>({
       query: () => `/control-escolar/inscripciones/inscription_details_alumno/`,
     }),
+    programaEstudiante: builder.query<ProgramaEducativoDetail, string>({
+      query: (id) =>
+        `/control-escolar/programas-educativos/${id}/programa_estudiante`,
+    }),
   }),
 });
 
@@ -60,4 +65,5 @@ export const {
   useUpdateEstudianteMutation,
   useMakeInscriptionMutation,
   useInscriptionAlumnoDetailQuery,
+  useProgramaEstudianteQuery,
 } = alumnoApiSlice;

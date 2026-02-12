@@ -1,5 +1,5 @@
 import { BaseModel } from "../base-interface";
-import { UserFormData } from "@/hooks/users/user-create-form";
+import { ModulosInterface } from "../alumnos/inscription";
 
 export interface SubmoduloEducativoForm extends BaseModel {
   titulo: string;
@@ -300,3 +300,28 @@ export const InitalPagoForm = {
   razon_precio_custom: "",
   campania: null,
 };
+
+export interface ProgramaEducativoDetail {
+  ref: string;
+  nombre: string;
+  descripcion: string;
+  tipo: number;
+  tipo_nombre: string;
+  institucion: number;
+  institucion_nombre: string;
+  duracion_horas: number;
+  duracion_meses: number;
+  fecha_inicio: string; // o Date si prefieres convertirlo
+  fecha_fin: string; // o Date
+  horario: string;
+  costo_inscripcion: string; // o number si conviertes decimal
+  costo_mensualidad: string; // o number
+  costo_documentacion: string; // o number
+  instructor: number[]; // array de IDs
+  modalidad: number;
+  modalidad_nombre: string;
+  imagen_url: string;
+  banner_url: string;
+  modulos: number[]; // array de IDs
+  modulos_obj: ModulosInterface[];
+}
