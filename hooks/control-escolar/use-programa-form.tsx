@@ -13,9 +13,11 @@ import { useAppDispatch } from "@/redux/hooks";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useRetrieveInstitucionesQuery } from "@/redux/features/catalogos/genericosApiSlice";
+import { useRetrieveProgramasQuery } from "@/redux/features/control-escolar/programasApiSlice";
 
 export default function useProgramaForm() {
   const { data: tiposProgramas } = useGetTiposProgramasQuery();
+  const { refetch } = useRetrieveProgramasQuery();
   const { data: modalidades } = useGetModalidadesQuery();
   const { data: instituciones } = useRetrieveInstitucionesQuery();
   const [createProgramas] = useCreateProgramasMutation();
@@ -54,6 +56,7 @@ export default function useProgramaForm() {
           message: "Programa educativo creado con exito.",
         }),
       );
+      refetch();
       router.replace(`/dashboard/control-escolar/programas?ref=${ref}`);
     } catch (error) {
       console.log(error);

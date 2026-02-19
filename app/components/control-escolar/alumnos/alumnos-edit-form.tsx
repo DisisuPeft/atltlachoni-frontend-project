@@ -33,6 +33,9 @@ export default function EstudianteEditPage({ uuid }: Props) {
       "Alerta",
     );
   };
+  const handleCloseModal = (value: boolean) => {
+    setOpen(value);
+  };
   return (
     <div className="bg-gray-50">
       <div className="max-w-8xl mx-auto px-2 sm:px-3 lg:px-4">
@@ -45,7 +48,7 @@ export default function EstudianteEditPage({ uuid }: Props) {
           <div className="px-4">
             <Button onClick={() => setOpen(true)}>Inscribir a programa</Button>
             <Modal show={open} onClose={() => setOpen(false)}>
-              <StepEstudiante estudianteId={uuid} />
+              <StepEstudiante estudianteId={uuid} onClose={handleCloseModal} />
             </Modal>
           </div>
         </div>

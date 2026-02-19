@@ -2,7 +2,7 @@
 
 import useProgramaForm from "@/hooks/control-escolar/use-programa-form";
 import { useFieldArray } from "react-hook-form";
-import { useRetrieveInstitucionesQuery } from "@/redux/features/catalogos/genericosApiSlice";
+// import { useRetrieveInstitucionesQuery } from "@/redux/features/catalogos/genericosApiSlice";
 import Select from "@/app/ui/components/select";
 
 export default function NuevoProgramaPage() {

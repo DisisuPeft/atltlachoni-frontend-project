@@ -12,8 +12,8 @@ export default function Layout({ children }: Children) {
       <div className="h-screen bg-white">
         {/* Navbar */}
         <Navbar />
-        <PlataformaEducativa />
-        <main className="md:ml-[220px] p-8">{children}</main>
+        {/* <PlataformaEducativa /> */}
+        <main className="p-8">{children}</main>
       </div>
     </RequireAuth>
   );

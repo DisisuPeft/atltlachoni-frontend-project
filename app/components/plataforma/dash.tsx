@@ -1,169 +1,306 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 // import { InscriptionDetail } from "@/redux/features/types/alumnos/inscription";
 import { IconBook, IconCheck, IconPlay } from "./iconst";
 import ButtonLink from "../control-escolar/link-button";
 import { useInscriptionAlumnoDetailQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
-
+import { IconPencil, IconX, IconStarOutline, IconInfo } from "./iconst";
 // interface Props {
 //   inscription: InscriptionDetail | undefined;
 //   isLoading?: boolean;
 // }
 
 export default function Dashboard() {
+  const [mostrarBanner, setMostrarBanner] = useState(true);
+  const [mostrarRoles, setMostrarRoles] = useState(true);
+  const [habilidadActiva, setHabilidadActiva] = useState("Todos");
   const { data: user } = useRetrieveUserQuery();
   // console.log(inscription?.programasInscritos);
   const { data: inscription, isLoading } = useInscriptionAlumnoDetailQuery();
   return (
-    <div className="space-y-8 mt-12">
-      {/* Header de bienvenida */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">
-          ¡Hola, {user?.nombre_completo}!
-        </h1>
-        <p className="text-blue-100 text-lg">
-          Continúa aprendiendo y alcanza tus metas.
-        </p>
-      </div>
+    <div className="max-w-9xl mx-auto px-12 py-8">
+      {/* Welcome + Banner row */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Left: Welcome + Goals + Weekly */}
+        <div className="lg:w-[380px] flex-shrink-0">
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">
+            Bienvenido, {user?.nombre_completo}
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Tu meta es{" "}
+            <button className="text-[#0056D2] underline hover:text-[#004BB5] transition-colors">
+              {/* {perfilData.metaCarrera} */}
+            </button>
+            <button className="ml-2 text-gray-400 hover:text-gray-600 transition-colors inline-flex">
+              <IconPencil className="w-4 h-4" />
+            </button>
+          </p>
 
-      {/* Estadísticas rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <IconBook className="w-6 h-6 text-blue-600" />
+          {/* Today's goals */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-500 mb-3">
+              Metas de hoy
+            </h3>
+            <div className="space-y-3">
+              {/* <div className="flex items-center gap-3">
+                <IconStarOutline className="w-5 h-5 text-gray-300 flex-shrink-0" />
+                <span className="text-sm text-gray-700">
+                  <button className="text-[#0056D2] underline hover:text-[#004BB5]">
+                    Completar 3 elementos
+                  </button>{" "}
+                  · 0/3
+                </span>
+              </div> */}
+              {/* <div className="flex items-center gap-3">
+                <IconStarOutline className="w-5 h-5 text-gray-300 flex-shrink-0" />
+                <span className="text-sm text-gray-700">
+                  Completar 3 lecturas · 0/3
+                </span>
+              </div> */}
+              <div className="flex items-center gap-3">
+                <IconStarOutline className="w-5 h-5 text-gray-300 flex-shrink-0" />
+                <span className="text-sm text-gray-700">
+                  Completar un modulo
+                </span>
+              </div>
             </div>
-            <div>
-              <p className="text-gray-500 text-sm">Cursos activos</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {inscription?.countCursos ?? 0}
+          </div>
+
+          <div className="border-t border-gray-200 pt-6">
+            {/* Weekly activity */}
+            <h3 className="text-sm font-semibold text-gray-500 mb-3">
+              Actividad semanal
+            </h3>
+            <div className="flex items-center gap-2 mb-3">
+              <p className="text-sm text-gray-700">
+                Me comprometo a 2 dias de aprendizaje por semana.
               </p>
+              <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                <IconPencil className="w-3.5 h-3.5" />
+              </button>
             </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <IconCheck className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-gray-500 text-sm">Completados</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {inscription?.completados ?? 0}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <IconClock className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-gray-500 text-sm">Horas esta semana</p>
-              <p className="text-2xl font-bold text-gray-900">{totalHoras}</p>
-            </div>
-          </div>
-        </div> */}
-
-        {/* <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <IconAward className="w-6 h-6 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-gray-500 text-sm">Racha de días</p>
-              <p className="text-2xl font-bold text-gray-900">{racha} 🔥</p>
-            </div>
-          </div>
-        </div> */}
-      </div>
-
-      {/* Continuar aprendiendo */}
-      <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          Continúa donde lo dejaste
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {inscription?.programasInscritos?.length === 0 && !isLoading ? (
-            <div>Sin datos</div>
-          ) : (
-            <>
-              {inscription?.programasInscritos?.map((programa) => (
+            <div className="flex items-center gap-2 mb-3">
+              {["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"].map((dia, i) => (
                 <div
-                  key={programa.ref}
-                  className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex"
+                  key={dia}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium border transition-colors ${
+                    i === 2
+                      ? "bg-[#0056D2] text-white border-[#0056D2]"
+                      : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
+                  }`}
                 >
-                  <img
-                    src={programa.imagen_url || "/assets/placeholder.png"}
-                    alt={programa.nombre}
-                    className="w-32 h-full object-cover"
-                    crossOrigin="anonymous"
-                  />
-                  <div className="p-4 flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">
-                      {programa.tipo} en {programa.nombre}
-                    </h3>
-                    <div className="mb-2">
-                      {/* <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-600">Tipo</span>
-                        <span className="text-blue-600 font-medium">
-                          {programa.tipo}
-                        </span>
-                      </div> */}
-                    </div>
-                    <ButtonLink
-                      path={`/plataforma/${programa.tipo}/${programa.ref}`}
-                    >
-                      <IconPlay className="w-4 h-4" />
-                    </ButtonLink>
-                  </div>
+                  {dia}
                 </div>
               ))}
-            </>
+            </div>
+            <p className="text-xs text-gray-500">
+              0 elementos completados · 1 minutos aprendidos
+            </p>
+          </div>
+        </div>
+
+        {/* Right: Banner + Roles */}
+        <div className="flex-1 space-y-4">
+          {/* Info Banner */}
+          {mostrarBanner && (
+            <div className="bg-[#F0F6FF] border border-[#B3D4FF] rounded-lg p-5 relative">
+              <div className="flex gap-3">
+                <IconInfo className="w-6 h-6 text-[#0056D2] flex-shrink-0 mt-0.5" />
+                {/* <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 mb-1">
+                    Plataforma Educativa - Versión Beta
+                  </h3>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    Hemos lanzado nuestra plataforma educativa y trabajamos
+                    constantemente en actualizaciones y mejoras.
+                    <button className="text-[#0056D2] underline mx-1 hover:text-[#004BB5]">
+                      Ver actualizaciones recientes
+                    </button>
+                    o reporta cualquier inconveniente para ayudarnos a mejorar.
+                  </p>
+                </div> */}
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 mb-1">
+                    ¡Bienvenido a nuestra nueva plataforma educativa!
+                  </h3>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    Estamos emocionados de anunciar el lanzamiento oficial de
+                    nuestra plataforma. Continuaremos agregando nuevas
+                    funcionalidades y mejoras de forma constante para brindarte
+                    la mejor experiencia de aprendizaje. ¡Gracias por ser parte
+                    de esta comunidad!
+                  </p>
+                </div>
+                <button
+                  onClick={() => setMostrarBanner(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                >
+                  <IconX className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Role interests card */}
+          {mostrarRoles && (
+            <div className="border border-gray-200 rounded-lg p-5 bg-white relative">
+              <h3 className="font-semibold text-gray-900 mb-4">
+                En que roles estas interesado?
+              </h3>
+              <div className="flex items-center gap-2 flex-wrap mb-4">
+                {/* {rolesInteres.map((rol) => (
+                  <button
+                    key={rol.label}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <span
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: rol.color }}
+                    ></span>
+                    {rol.label}
+                  </button>
+                ))} */}
+                <button className="flex items-center gap-1 px-4 py-2 text-sm text-[#0056D2] hover:text-[#004BB5] font-medium transition-colors">
+                  + Ver mas
+                </button>
+              </div>
+              <button className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
+                Aplicar
+              </button>
+              <button
+                onClick={() => setMostrarRoles(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <IconX className="w-5 h-5" />
+              </button>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Actividad reciente */}
-      <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          Actividad reciente
-        </h2>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm divide-y divide-gray-100">
-          {/* {actividadReciente.map((actividad) => (
-            <div key={actividad.id} className="p-4 flex items-center gap-4">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  actividad.tipo === "leccion"
-                    ? "bg-blue-100"
-                    : actividad.tipo === "quiz"
-                      ? "bg-green-100"
-                      : "bg-yellow-100"
-                }`}
-              >
-                {actividad.tipo === "leccion" && (
-                  <IconPlay className="w-5 h-5 text-blue-600" />
-                )}
-                {actividad.tipo === "quiz" && (
-                  <IconCheck className="w-5 h-5 text-green-600" />
-                )}
-                {actividad.tipo === "certificado" && (
-                  <IconAward className="w-5 h-5 text-yellow-600" />
-                )}
-              </div>
-              <div className="flex-1">
-                <p className="text-gray-900">{actividad.texto}</p>
-                <p className="text-gray-500 text-sm">{actividad.tiempo}</p>
-              </div>
-            </div>
+      {/* Grow your skills section */}
+      <div className="mt-12">
+        <div className="flex items-center gap-4 mb-5">
+          <h2 className="text-xl font-bold text-gray-900">
+            Desarrolla tus habilidades
+          </h2>
+          <button className="text-sm text-[#0056D2] font-medium hover:text-[#004BB5] transition-colors">
+            Editar habilidades
+          </button>
+        </div>
+
+        {/* Skill filter pills */}
+        <div className="flex items-center gap-2 mb-6 flex-wrap">
+          {/* {habilidades.map((h) => (
+            <button
+              key={h}
+              onClick={() => setHabilidadActiva(h)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                habilidadActiva === h
+                  ? "bg-[#0056D2] text-white"
+                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              {h}
+            </button>
           ))} */}
-          <div className="flex justify-center p-5">
-            Sin Actividades recientes
+        </div>
+
+        {/* Course recommendation cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {/* {cursosRecomendados.map((curso) => (
+            <button
+              key={curso.id}
+              onClick={onAbrirCurso}
+              className="text-left bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow group"
+            >
+              <div className="relative h-44 overflow-hidden">
+                <img
+                  src={curso.imagen || "/placeholder.svg"}
+                  alt={curso.titulo}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  crossOrigin="anonymous"
+                />
+                {curso.destacado && (
+                  <span className="absolute bottom-3 right-3 bg-white text-gray-900 text-xs font-semibold px-3 py-1 rounded border border-gray-200">
+                    Recomendacion principal
+                  </span>
+                )}
+              </div>
+              <div className="p-4">
+                <p className="text-xs text-gray-500 mb-1">
+                  {curso.universidad}
+                </p>
+                <h3 className="font-semibold text-gray-900 text-sm mb-2 leading-snug">
+                  {curso.titulo}
+                </h3>
+                <p className="text-xs text-gray-500 mb-3">
+                  <span className="text-gray-700 font-medium">
+                    Habilidades:
+                  </span>{" "}
+                  {curso.habilidades}
+                </p>
+                <div className="flex items-center gap-1 text-sm">
+                  <IconStar className="w-4 h-4 text-[#0056D2]" />
+                  <span className="font-semibold text-gray-900">
+                    {curso.rating}
+                  </span>
+                  <span className="text-gray-500 text-xs ml-1">
+                    · {curso.resenas} resenas
+                  </span>
+                </div>
+              </div>
+            </button>
+          ))} */}
+          <div className="col-span-full flex flex-col items-center justify-center py-16 px-4">
+            {/* Ilustración/Icono */}
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center mb-6">
+              <svg
+                className="w-12 h-12 text-blue-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+            </div>
+
+            {/* Título */}
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              Nuevos programas en camino
+            </h3>
+
+            {/* Descripción */}
+            <p className="text-gray-600 text-center max-w-md mb-6">
+              Estamos trabajando en nuevos programas educativos increíbles.
+              Pronto tendrás acceso a cursos diseñados especialmente para ti.
+            </p>
+
+            {/* Badge informativo */}
+            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-4 py-2 mb-4">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium text-blue-700">
+                Próximamente disponibles
+              </span>
+            </div>
+
+            {/* Opciones adicionales */}
+            {/* <div className="flex gap-3 mt-4">
+              <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                Notificarme
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                Explorar recursos
+              </button>
+            </div> */}
           </div>
         </div>
       </div>

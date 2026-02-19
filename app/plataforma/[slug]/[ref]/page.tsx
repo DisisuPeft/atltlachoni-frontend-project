@@ -1,3 +1,4 @@
+import AsideCurso from "@/app/components/plataforma/aside-left-curso";
 import CursoVista from "@/app/components/plataforma/curso-view";
 
 export default async function Page({
@@ -7,7 +8,8 @@ export default async function Page({
 }) {
   const { ref, slug } = await params;
   return (
-    <div className="space-y-6 mt-12">
+    <div className="">
+      <AsideCurso id={ref} slug={slug} />
       <CursoVista id={ref} tipo={slug} />
     </div>
   );

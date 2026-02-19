@@ -6,7 +6,7 @@ import {
   ProgramaEducativoDetail,
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
-import { MessageResponse } from "../types/reponse";
+import { MessageResponse, SuccessMessage } from "../types/reponse";
 import { InscriptionDetail } from "../types/alumnos/inscription";
 
 const alumnoApiSlice = apiSlice.injectEndpoints({
@@ -35,7 +35,7 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
       }),
     }),
     makeInscription: builder.mutation<
-      MessageResponse,
+      SuccessMessage,
       {
         campania: string | undefined;
         estudianteId: string | undefined;

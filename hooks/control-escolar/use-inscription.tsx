@@ -13,19 +13,21 @@ import { ErrorResponse } from "@/redux/features/types/reponse";
 import { sweetAlert } from "@/sweetalert/sweetalerts";
 
 type Tipo = "success" | "error";
-
-export default function useInscripcionPrograma(
-  estudianteId?: string,
-  campania?: string | undefined,
-  onSuccess?: (value: boolean) => void,
-) {
+interface Props {
+  estudianteId?: string;
+  campania?: string | undefined;
+  onSuccess: (value: boolean) => void | undefined;
+}
+export default function useInscripcionPrograma({
+  estudianteId,
+  campania,
+  onSuccess,
+}: Props) {
   const [steps, setSteps] = useState(1);
   const { data: tipoPago } = useGetTipoPagoQuery();
   const { data: metodoPago } = useGetMetodoPagoQuery();
-  const [mensaje, setMensaje] = useState<string | undefined>("");
-  const [tipo, setTipo] = useState<Tipo>();
   const [makeInscription] = useMakeInscriptionMutation();
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
   const form = useForm<PagoFormData>({
     mode: "onChange",
     defaultValues: InitalPagoForm,
@@ -40,12 +42,6 @@ export default function useInscripcionPrograma(
     formState: { errors },
   } = form;
 
-  const timeOutMessage = () => {
-    setTimeout(() => {
-      setMensaje("");
-    }, 5000);
-  };
-
   const onSubmit = async (data: PagoFormData) => {
     const next = { estudianteId, data, campania };
     try {
@@ -54,16 +50,13 @@ export default function useInscripcionPrograma(
         estudianteId: next.estudianteId,
         formData: next.data,
       }).unwrap();
-      setTipo("success");
-      setMensaje(`${res.data.message}`);
       reset();
+      onSuccess(false);
+      sweetAlert("success", `${res?.message}`, "Exito");
     } catch (error) {
       const e = error as ErrorResponse;
-      // onSuccess(false);
-      setTipo("error");
-      setMensaje(`${e.data.detail}`);
-    } finally {
-      timeOutMessage();
+      onSuccess(false);
+      sweetAlert("error", `${e?.data?.detail}`, "Error");
     }
   };
 
@@ -84,7 +77,5 @@ export default function useInscripcionPrograma(
     steps,
     setSteps,
     control,
-    mensaje,
-    tipo,
   };
 }

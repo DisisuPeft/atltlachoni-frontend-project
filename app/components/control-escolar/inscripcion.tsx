@@ -14,9 +14,14 @@ import { Alert } from "@mui/material";
 export interface Props {
   estudianteId?: string;
   campania?: string;
+  setClose: (value: boolean) => void;
 }
 
-export default function CourseEnrollment({ estudianteId, campania }: Props) {
+export default function CourseEnrollment({
+  estudianteId,
+  campania,
+  setClose,
+}: Props) {
   const {
     handleSubmit,
     onSubmit,
@@ -28,13 +33,15 @@ export default function CourseEnrollment({ estudianteId, campania }: Props) {
     setValue,
     control,
     // onSuccess,
-    mensaje,
-    tipo,
-  } = useInscripcionPrograma(estudianteId, campania);
+  } = useInscripcionPrograma({
+    estudianteId: estudianteId,
+    campania: campania,
+    onSuccess: setClose,
+  });
 
   return (
     <div className="">
-      {mensaje && <Alert severity={tipo}>{`${mensaje}`}.</Alert>}
+      {/* {mensaje && <Alert severity={tipo}>{`${mensaje}`}.</Alert>} */}
       <form onSubmit={handleSubmit(onSubmit)} className="mb-10">
         <div className="bg-white p-4 text-center text-black min-w-[600px]">
           <div className="flex flex-col justify-center p-4 mb-4 space-y-4">
@@ -273,7 +280,7 @@ export default function CourseEnrollment({ estudianteId, campania }: Props) {
           <div className="flex justify-center md:justify-end space-x-4">
             <button
               type="button"
-              // onClick={() => setShow(false)}
+              onClick={() => setClose(false)}
               className="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
             >
               Cancelar

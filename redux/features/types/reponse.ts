@@ -2,7 +2,7 @@ type ErrorMessage = {
   detail: string;
 };
 
-type SuccessMessage = {
+export type SuccessMessage = {
   message: string;
 };
 

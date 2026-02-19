@@ -7,10 +7,14 @@ import CourseEnrollment from "../inscripcion";
 
 interface Props {
   estudianteId: string;
+  onClose: (value: boolean) => void;
 }
 
-export default function StepEstudiante({ estudianteId }: Props) {
-  const { steps, setSteps } = useInscripcionPrograma(estudianteId);
+export default function StepEstudiante({ estudianteId, onClose }: Props) {
+  const { steps, setSteps } = useInscripcionPrograma({
+    estudianteId: estudianteId,
+    onSuccess: onClose,
+  });
   const [campania, setCampania] = useState<string | undefined>(undefined);
   const { data: campanias } = useGetCampaniasQuery();
 
@@ -42,7 +46,11 @@ export default function StepEstudiante({ estudianteId }: Props) {
           </div>
         )}
         {steps === 2 && (
-          <CourseEnrollment estudianteId={estudianteId} campania={campania} />
+          <CourseEnrollment
+            estudianteId={estudianteId}
+            campania={campania}
+            setClose={onClose}
+          />
         )}
       </div>
     </div>
