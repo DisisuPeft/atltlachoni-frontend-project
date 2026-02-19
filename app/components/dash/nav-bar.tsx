@@ -11,6 +11,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Badge from "../plataforma/badge";
 import { IconSearch, IconGlobe, IconBell } from "../plataforma/iconst";
+import { UserMenu } from "../plataforma/drop-down-menu";
 
 type NavItem = {
   id: number;
@@ -120,13 +121,14 @@ export default function Navbar() {
         {/* Right icons */}
         <div className="flex items-center gap-3">
           <Badge />
-          <Link
+          {/* <Link
             href={"#"}
             // onClick={() => onCambiarSeccion("perfil")}
             className="w-8 h-8 rounded-full bg-[#0056D2] flex items-center justify-center text-white text-sm font-bold hover:bg-[#004BB5] transition-colors"
           >
-            D
-          </Link>
+            {user?.nombre_completo[0]}
+          </Link> */}
+          <UserMenu />
         </div>
       </div>
     </header>

@@ -1,61 +1,63 @@
-"use client";
+// "use client";
 
-import { useState } from "react";
-import TabClases from "./tab-class";
-import {
-  IconPlayCircle,
-  IconDocument,
-  IconClipboard,
-  IconChat,
-  IconArrowLeft,
-  IconStar,
-  IconUsers,
-  IconClock,
-  IconPlay,
-  IconChevronUp,
-  IconCalendarEnd,
-  IconMapPin,
-} from "./iconst";
-import Image from "next/image";
-import Link from "next/link";
-import { useProgramaEstudianteQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
+// import { useState } from "react";
+// import TabClases from "./tab-class";
+// import {
+//   IconPlayCircle,
+//   IconDocument,
+//   IconClipboard,
+//   IconChat,
+//   IconArrowLeft,
+//   IconStar,
+//   IconUsers,
+//   IconClock,
+//   IconPlay,
+//   IconChevronUp,
+//   IconCalendarEnd,
+//   IconMapPin,
+// } from "./iconst";
+// import Image from "next/image";
+// import Link from "next/link";
+// import { useProgramaEstudianteQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
 
-interface Props {
-  id: string;
-  tipo: string;
+// interface Props {
+//   id: string;
+//   tipo: string;
+// }
+
+// export default function CursoVista({ id, tipo }: Props) {
+//   const { data: programa } = useProgramaEstudianteQuery(id);
+//   const [moduloActivo, setModuloActivo] = useState(1);
+//   const [sidebarSeccion, setSidebarSeccion] = useState<
+//     "material" | "grades" | "notes"
+//   >("material");
+
+// Calculate remaining time for active module
+// const videosRestantes =
+//   moduloSeleccionado?.items.filter(
+//     (i) => i.tipo === "video" && !i.completada,
+//   ) || [];
+// const lecturasRestantes =
+//   moduloSeleccionado?.items.filter(
+//     (i) => i.tipo === "lectura" && !i.completada,
+//   ) || [];
+// const minVideos = videosRestantes.reduce((acc, i) => {
+//   const m = parseInt(i.duracion) || 0;
+//   return acc + m;
+// }, 0);
+// const minLecturas = lecturasRestantes.reduce((acc, i) => {
+//   const m = parseInt(i.duracion) || 0;
+//   return acc + m;
+// }, 0);
+
+// return (
+// <div className="bg-white">
+{
+  /* Course top bar */
 }
-
-export default function CursoVista({ id, tipo }: Props) {
-  const { data: programa } = useProgramaEstudianteQuery(id);
-  const [moduloActivo, setModuloActivo] = useState(1);
-  const [sidebarSeccion, setSidebarSeccion] = useState<
-    "material" | "grades" | "notes"
-  >("material");
-
-  // Calculate remaining time for active module
-  // const videosRestantes =
-  //   moduloSeleccionado?.items.filter(
-  //     (i) => i.tipo === "video" && !i.completada,
-  //   ) || [];
-  // const lecturasRestantes =
-  //   moduloSeleccionado?.items.filter(
-  //     (i) => i.tipo === "lectura" && !i.completada,
-  //   ) || [];
-  // const minVideos = videosRestantes.reduce((acc, i) => {
-  //   const m = parseInt(i.duracion) || 0;
-  //   return acc + m;
-  // }, 0);
-  // const minLecturas = lecturasRestantes.reduce((acc, i) => {
-  //   const m = parseInt(i.duracion) || 0;
-  //   return acc + m;
-  // }, 0);
-
-  return (
-    <div className="bg-white">
-      {/* Course top bar */}
-      <header className="bg-white border-b border-gray-200">
+{
+  /* <header className="bg-white border-b border-gray-200">
         <div className="flex items-center h-14 px-4 gap-4">
-          {/* Search in course */}
           <div className="flex items-center gap-2 flex-1 max-w-md">
             <input
               type="text"
@@ -67,14 +69,24 @@ export default function CursoVista({ id, tipo }: Props) {
             </button>
           </div>
         </div>
-      </header>
+      </header> */
+}
 
-      <div className="flex">
-        {/* Left Sidebar - Course Navigation */}
+{
+  /* <div className="flex"> */
+}
+{
+  /* Left Sidebar - Course Navigation */
+}
 
-        {/* Center Content */}
-        <main className="flex-1 min-w-0 border-r border-gray-200">
-          {/* {sidebarSeccion === "material" && moduloSeleccionado && (
+{
+  /* Center Content */
+}
+{
+  /* <main className="flex-1 min-w-0 border-r border-gray-200"> */
+}
+{
+  /* {sidebarSeccion === "material" && moduloSeleccionado && (
             <div className="max-w-2xl mx-auto px-6 py-6">
     
               <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -240,14 +252,24 @@ export default function CursoVista({ id, tipo }: Props) {
                 Las notas se guardan automaticamente.
               </p>
             </div>
-          )} */}
-        </main>
+          )} */
+}
+{
+  /* </main> */
+}
 
-        {/* Right Sidebar - Learning Plan + Timeline */}
-        <aside className="w-72 flex-shrink-0 min-h-[calc(100vh-56px)] overflow-y-auto bg-white hidden xl:block">
-          <div className="p-5 space-y-6">
-            {/* Learning plan */}
-            <div className="border border-gray-200 rounded-lg p-4 bg-[#FAFBFF]">
+{
+  /* Right Sidebar - Learning Plan + Timeline */
+}
+{
+  /* <aside className="w-72 flex-shrink-0 min-h-[calc(100vh-56px)] overflow-y-auto bg-white hidden xl:block">
+          <div className="p-5 space-y-6"> */
+}
+{
+  /* Learning plan */
+}
+{
+  /* <div className="border border-gray-200 rounded-lg p-4 bg-[#FAFBFF]">
               <h3 className="font-bold text-gray-900 text-sm mb-2">
                 Plan de aprendizaje
               </h3>
@@ -271,16 +293,24 @@ export default function CursoVista({ id, tipo }: Props) {
               <button className="text-[#0056D2] text-xs font-medium hover:text-[#004BB5] transition-colors">
                 Editar mi plan de aprendizaje
               </button>
-            </div>
+            </div> */
+}
 
-            {/* Course timeline */}
-            <div className="border border-gray-200 rounded-lg p-4">
+{
+  /* Course timeline */
+}
+{
+  /* <div className="border border-gray-200 rounded-lg p-4">
               <h3 className="font-bold text-gray-900 text-sm mb-3">
                 Cronograma del curso
-              </h3>
+              </h3> */
+}
 
-              {/* Status */}
-              <div className="bg-[#F0F6FF] rounded-lg p-3 mb-4">
+{
+  /* Status */
+}
+{
+  /* <div className="bg-[#F0F6FF] rounded-lg p-3 mb-4">
                 <p className="text-sm font-semibold text-gray-900 mb-0.5">
                   Vas bien!
                 </p>
@@ -288,33 +318,57 @@ export default function CursoVista({ id, tipo }: Props) {
                   Estas progresando muy bien. Mantiene el ritmo y alcanzaras tus
                   plazos.
                 </p>
-              </div>
+              </div> */
+}
 
-              {/* Timeline */}
-              <div className="relative pl-6">
-                {/* Vertical dotted line */}
-                <div className="absolute left-2 top-0 bottom-0 w-px border-l-2 border-dashed border-gray-300"></div>
+{
+  /* Timeline */
+}
+{
+  /* <div className="relative pl-6"> */
+}
+{
+  /* Vertical dotted line */
+}
+{
+  /* <div className="absolute left-2 top-0 bottom-0 w-px border-l-2 border-dashed border-gray-300"></div> */
+}
 
-                {/* Start date */}
-                <div className="relative mb-5">
+{
+  /* Start date */
+}
+{
+  /* <div className="relative mb-5">
                   <div className="absolute -left-4 top-0.5">
                     <IconMapPin className="w-4 h-4 text-gray-400" />
-                  </div>
-                  {/* <p className="text-xs text-gray-600">
+                  </div> */
+}
+{
+  /* <p className="text-xs text-gray-600">
                     <span className="font-semibold text-gray-900">
                       Fecha inicio:
                     </span>{" "}
                     Enero 7, 2025
-                  </p> */}
-                </div>
+                  </p> */
+}
+{
+  /* </div> */
+}
 
-                {/* Deadlines header */}
-                <p className="text-xs font-semibold text-gray-500 mb-3">
+{
+  /* Deadlines header */
+}
+{
+  /* <p className="text-xs font-semibold text-gray-500 mb-3">
                   Tus proximos plazos
-                </p>
+                </p> */
+}
 
-                {/* Deadline items */}
-                {/* {deadlines.map((dl, i) => (
+{
+  /* Deadline items */
+}
+{
+  /* {deadlines.map((dl, i) => (
                   <div key={i} className="relative mb-4">
                     <div className="absolute -left-4 top-0.5 w-3 h-3 rounded-full border-2 border-gray-300 bg-white"></div>
                     <button className="text-[#0056D2] text-xs font-medium hover:text-[#004BB5] underline transition-colors block mb-1">
@@ -329,10 +383,14 @@ export default function CursoVista({ id, tipo }: Props) {
                       <span className="text-xs text-gray-500">{dl.tipo}</span>
                     </div>
                   </div>
-                ))} */}
+                ))} */
+}
 
-                {/* End date */}
-                <div className="relative mt-5">
+{
+  /* End date */
+}
+{
+  /* <div className="relative mt-5">
                   <div className="absolute -left-4 top-0.5">
                     <IconCalendarEnd className="w-4 h-4 text-gray-400" />
                   </div>
@@ -350,6 +408,7 @@ export default function CursoVista({ id, tipo }: Props) {
       </div>
     </div>
   );
+} */
 }
 
 // export default function CursoVista({ id, tipo }: Props) {

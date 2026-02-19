@@ -7,7 +7,10 @@ import {
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
 import { MessageResponse, SuccessMessage } from "../types/reponse";
-import { InscriptionDetail } from "../types/alumnos/inscription";
+import {
+  InscriptionDetail,
+  ModulosInterface,
+} from "../types/alumnos/inscription";
 
 const alumnoApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -55,6 +58,13 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
       query: (id) =>
         `/control-escolar/programas-educativos/${id}/programa_estudiante`,
     }),
+    ModuloPrograma: builder.query<
+      ModulosInterface,
+      { id: string; moduloId: number }
+    >({
+      query: ({ id, moduloId }) =>
+        `/control-escolar/programas-educativos/${id}/modulos?modulo=${moduloId}`,
+    }),
   }),
 });
 
@@ -66,4 +76,5 @@ export const {
   useMakeInscriptionMutation,
   useInscriptionAlumnoDetailQuery,
   useProgramaEstudianteQuery,
+  useModuloProgramaQuery,
 } = alumnoApiSlice;
