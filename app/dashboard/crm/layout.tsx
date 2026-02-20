@@ -8,7 +8,7 @@ export default function Layout({ children }: Children) {
   const allowedRoles = ["Administrador", "Vendedor"];
   return (
     <RequireAuth allowedRoles={allowedRoles}>
-      <div className="w-full mt-12">
+      <div className="w-full">
         {/* Client Component solo para las tabs */}
         <TabsPanelWrapper />
 
