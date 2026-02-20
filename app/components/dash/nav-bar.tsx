@@ -31,103 +31,38 @@ const navItems: NavItem[] = [
 
 export default function Navbar() {
   const { data: user } = useRetrieveUserQuery();
-  const pathname = usePathname();
 
   return (
-    // <nav className="h-16 bg-white shadow px-6 flex items-center justify-between fixed z-10 w-full">
-    //   <Link href="/dashboard" className="flex items-center gap-3">
-    //     <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-    //       <Image
-    //         src="/assets/logos/Logo CINFA-01.webp"
-    //         alt="Logo CINFA"
-    //         width={40}
-    //         height={40}
-    //         loading="eager"
-    //       />
-    //     </div>
-    //     <span className="text-foreground font-semibold text-lg tracking-tight">
-    //       CINFA
-    //     </span>
-    //   </Link>
-    //   <div className="flex flex-row items-center p-2 gap-10">
-    //     {pathname.startsWith("/plataforma/") ||
-    //       (pathname === "/plataforma" ? (
-    //         <Badge />
-    //       ) : (
-    //         <div className="text-sm text-gray-800 hidden md:block">
-    //           Bienvenido {user?.email}
-    //         </div>
-    //       ))}
-    //     <Logout></Logout>
-    //   </div>
-    // </nav>
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-      <div className="flex items-center h-16 px-6 gap-6">
+      <div className="flex justify-between items-center h-14 sm:h-16 px-3 sm:px-6 gap-2 sm:gap-6">
         {/* Logo */}
-        <Link href={"/plataforma"}>
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-              <Image
-                src="/assets/logos/Logo CINFA-01.webp"
-                alt="Logo CINFA"
-                width={40}
-                height={40}
-                loading="eager"
-              />
+        <div className="flex items-center min-w-0">
+          <Link href={"/dashboard"}>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0">
+                <Image
+                  src="/assets/logos/Logo CINFA-01.webp"
+                  alt="Logo CINFA"
+                  width={40}
+                  height={40}
+                  loading="eager"
+                />
+              </div>
+              <span className="text-lg sm:text-xl font-bold text-gray-900">
+                CINFA
+              </span>
             </div>
-            <span className="text-xl font-bold text-gray-900">CINFA</span>
-          </div>
-        </Link>
-
-        {/* Nav links */}
-        <nav className="flex items-center gap-1">
-          {/* <button className="flex items-center gap-1 px-3 py-2 text-sm text-gray-700 hover:text-gray-900 transition-colors rounded-md hover:bg-gray-50">
-            Explorar
-            <IconChevronDown className="w-3.5 h-3.5" />
-          </button> */}
-          {navItems.map((item) => {
-            // const Icon = item.icon;
-            return (
-              <Link
-                key={item.id}
-                href={item.nav}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left cursor-pointer ${
-                  pathname === item.nav
-                    ? "bg-blue-50 text-blue-600 font-medium"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {/* <Icon className="w-5 h-5" /> */}
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Search bar */}
-        <div className="flex-1 max-w-lg mx-auto">
-          <div className="relative flex items-center">
-            <input
-              type="text"
-              placeholder="Que quieres aprender?"
-              className="w-full h-10 pl-4 pr-12 rounded-full border border-gray-300 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] bg-white"
-            />
-            <button className="absolute right-1 w-8 h-8 rounded-full bg-[#0056D2] flex items-center justify-center hover:bg-[#004BB5] transition-colors">
-              <IconSearch className="w-4 h-4 text-white" />
+          </Link>
+          <nav className="flex items-center gap-1 ml-4 sm:ml-10 min-w-0">
+            <button className="flex items-center gap-1 px-2 sm:px-3 py-2 text-xs sm:text-sm text-gray-700 hover:text-gray-900 transition-colors rounded-md hover:bg-gray-50 truncate max-w-[120px] sm:max-w-[200px] md:max-w-none">
+              {user?.nombre_completo ?? "Sin configurar perfil"}
             </button>
-          </div>
+          </nav>
         </div>
 
         {/* Right icons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <Badge />
-          {/* <Link
-            href={"#"}
-            // onClick={() => onCambiarSeccion("perfil")}
-            className="w-8 h-8 rounded-full bg-[#0056D2] flex items-center justify-center text-white text-sm font-bold hover:bg-[#004BB5] transition-colors"
-          >
-            {user?.nombre_completo[0]}
-          </Link> */}
           <UserMenu />
         </div>
       </div>

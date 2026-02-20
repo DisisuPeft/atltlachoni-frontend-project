@@ -1,6 +1,5 @@
 import RequireAuth from "../utils/auth/require-auth";
-import Navbar from "../components/dash/nav-bar";
-import PlataformaEducativa from "../components/plataforma/menu";
+import Navbar from "../components/plataforma/nav-bar";
 
 interface Children {
   children: React.ReactNode;

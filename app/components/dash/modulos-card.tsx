@@ -7,7 +7,7 @@ import { DynamicIcon } from "@/app/ui/icon/dynamic-icon";
 export default function ModulosGrid() {
   const { data: user } = useRetrieveUserQuery();
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-[50px] p-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-5">
       {user?.modulos_accesibles?.map((m) => (
         <Link
           key={m.uuid}
