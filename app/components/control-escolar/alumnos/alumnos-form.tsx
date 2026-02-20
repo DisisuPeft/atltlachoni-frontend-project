@@ -16,8 +16,8 @@ export default function EstudianteDetallePage() {
     localidades,
   } = useAlumnoForm();
   return (
-    <div className="bg-gray-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Información Personal */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -327,38 +327,21 @@ export default function EstudianteDetallePage() {
               </div>
             </div>
           </div>
-          <button
-            aria-label="GUardar"
-            className="
-              fixed z-50
-              bottom-4 right-4
-              sm:bottom-[50px] sm:right-[55px]
-
-              flex items-center justify-center
-              rounded-full
-
-              w-14 h-14
-              sm:w-16 sm:h-16
-
-              bg-sky-500 text-white
-              shadow-lg
-
-              hover:bg-blue-700
-              active:scale-95
-              transition-all duration-200 ease-out
-
-              focus:outline-none
-              focus:ring-4 focus:ring-blue-300
-            "
-          >
-            {isSubmitting ? <div>Guardando...</div> : <div>Guardar</div>}
-          </button>
-          {/* Información del Usuario */}
-          {/* <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Configuración de Usuario
-            </h2>
-          </div> */}
+          <div className="flex justify-end gap-4">
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Crear Estudiante
+            </button>
+          </div>
         </form>
       </div>
     </div>
