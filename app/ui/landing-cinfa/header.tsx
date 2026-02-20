@@ -111,13 +111,22 @@ export default function Header() {
                   {item.label}
                 </Link>
               ))}
-              <Link
+              {/* <Link
                 href="https://wa.link/fgv19q"
                 onClick={() => setIsMenuOpen(false)}
                 className="bg-primary text-primary-foreground px-5 py-3 rounded-lg text-sm font-medium text-center mt-2"
               >
                 Contacto
-              </Link>
+              </Link> */}
+              <div className="hidden lg:block">
+                <Link
+                  href="/login"
+                  // target="_blank"
+                  className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Log in
+                </Link>
+              </div>
             </nav>
           </motion.div>
         )}
