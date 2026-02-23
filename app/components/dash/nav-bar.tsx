@@ -55,7 +55,7 @@ export default function Navbar() {
           </Link>
           <nav className="flex items-center gap-1 ml-4 sm:ml-10 min-w-0">
             <button className="flex items-center gap-1 px-2 sm:px-3 py-2 text-xs sm:text-sm text-gray-700 hover:text-gray-900 transition-colors rounded-md hover:bg-gray-50 truncate max-w-[120px] sm:max-w-[200px] md:max-w-none">
-              {user?.nombre_completo ?? "Sin configurar perfil"}
+              {/* {user?.nombre_completo ?? "Sin configurar perfil"} */}
             </button>
           </nav>
         </div>

@@ -7,3 +7,4 @@ export { default as useEditProgramaForm } from "./control-escolar/use-edit-progr
 export { default as useAlumnoEditForm } from "./control-escolar/use-edit-estudiante-form";
 export { default as useInscripcionPrograma } from "./control-escolar/use-inscription";
 export { default as useMyCalender } from "./plataforma/use-my-calender";
+export { default as useChangeUnidad } from "./crm/use-change-unidad";

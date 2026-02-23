@@ -8,7 +8,7 @@ import {
 } from "@/redux/features/auth/authApiSlice";
 import { Pestanias } from "@/redux/features/types/auth/auth-types";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import path from "path";
+// import path from "path";
 
 export default function TabsPanelWrapper() {
   const searchParams = useSearchParams();
