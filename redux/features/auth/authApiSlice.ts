@@ -1,5 +1,6 @@
 import { apiSlice } from "@/redux/services/apiSlice";
 import { Pestanias, User, UserVerifyResponse } from "../types/auth/auth-types";
+import { SuccessMessage } from "../types/reponse";
 
 const authApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({

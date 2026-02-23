@@ -4,6 +4,8 @@ import { useAppDispatch } from "@/redux/hooks";
 import { setAlert } from "@/redux/features/alert/alertSlice";
 import { useRouter } from "next/navigation";
 import { setAuth } from "@/redux/features/auth/authSlice";
+import { sweetAlert } from "@/sweetalert/sweetalerts";
+import { ErrorResponse } from "@/redux/features/types/reponse";
 
 interface LoginForm {
   email: string;
@@ -26,12 +28,11 @@ export default function useLogin() {
     try {
       await login(data).unwrap();
       dispatch(setAuth());
-      dispatch(setAlert({ message: "Bienvenido", type: "success" }));
+      sweetAlert("success", "Inicio exitoso", "Bienvenido");
       router.replace("/dashboard");
-    } catch {
-      dispatch(
-        setAlert({ message: "Revisa tu email y password.", type: "error" })
-      );
+    } catch (error) {
+      const e = error as ErrorResponse;
+      sweetAlert("error", `${e.data.detail}`, "Error");
     }
   };
 
