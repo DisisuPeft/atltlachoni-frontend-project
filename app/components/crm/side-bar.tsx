@@ -49,7 +49,7 @@ export default function Sidebar() {
               return (
                 <Link
                   key={item.id}
-                  href={`${pathname}?ref=${q}`}
+                  href={`${item.href}?ref=${q}`}
                   className={`flex items-center px-4 py-3 text-sm font-medium rounded-md ${
                     isActive
                       ? "bg-sky-500 text-white"
@@ -100,7 +100,7 @@ export default function Sidebar() {
             return (
               <Link
                 key={item.id}
-                href={item.href}
+                href={`${item.href}?ref=${q}`}
                 className={`flex items-center px-4 py-3 text-sm font-medium rounded-md ${
                   isActive
                     ? "bg-sky-500 text-white"

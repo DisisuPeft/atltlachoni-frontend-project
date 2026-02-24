@@ -17,7 +17,7 @@ export default function ButtonLink({ path, title, icon, children }: Props) {
   const ref = searchParams.get("ref");
   return (
     <Link href={`${path}?ref=${ref}`} className="">
-      <Button>
+      <Button variant="primary">
         {title && <>{title}</>}
         {icon && <DynamicIcon iconName={icon} color="white" />}
         {children}

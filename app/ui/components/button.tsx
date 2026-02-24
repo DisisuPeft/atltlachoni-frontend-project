@@ -11,7 +11,7 @@ export default function Button({
   disabled?: boolean;
 }) {
   const variants = {
-    primary: "bg-primary text-primary-foreground hover:bg-primary/90",
+    primary: "bg-sky-500 text-white hover:bg-sky-500/90",
     secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
     danger: "bg-destructive text-white hover:bg-destructive/90",
     ghost: "bg-transparent text-foreground hover:bg-secondary",
