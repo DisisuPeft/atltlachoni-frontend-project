@@ -50,7 +50,7 @@ export default function AsideCurso({ id, slug }: { id: string; slug: string }) {
               {inscripcion?.modulos_obj.map((modulo) => (
                 <Link
                   key={modulo.id}
-                  href={`#`}
+                  href={`/plataforma/${slug}/${id}/modulo/${modulo.id}`}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left text-sm transition-colors ${
                     moduloActivo === modulo.id
                       ? "bg-white font-medium text-gray-900 border-l-3 border-[#0056D2] -ml-px pl-[11px]"
