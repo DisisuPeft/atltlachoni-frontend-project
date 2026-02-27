@@ -48,7 +48,7 @@ export default function AsideCurso({ id, slug }: { id: string; slug: string }) {
           {sidebarSeccion === "material" && (
             <div className="space-y-0.5">
               {inscripcion?.modulos_obj.map((modulo) => {
-                setModuloActivo(modulo.id);
+                // setModuloActivo(modulo.id);
                 return (
                   <Link
                     key={modulo.id}
