@@ -13,7 +13,9 @@ export default function RelocationWrapper({ id, tipo }: Props) {
 
   if (isLoading || !programas) return <Loading />;
 
-  return redirect(
-    `/plataforma/${tipo}/${id}/modulo/${programas?.modulos_obj[0].id}`,
-  );
+  const primerModulo = programas.modulos_obj[0];
+
+  if (!primerModulo) return <div>No hay módulos disponibles</div>;
+
+  redirect(`/plataforma/${tipo}/${id}/modulo/${primerModulo.id}`);
 }

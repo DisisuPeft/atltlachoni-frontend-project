@@ -5,6 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useProgramaEstudianteQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
 // import { usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 
 export default function AsideCurso({ id, slug }: { id: string; slug: string }) {
   const { data: inscripcion } = useProgramaEstudianteQuery(id);
@@ -12,7 +13,9 @@ export default function AsideCurso({ id, slug }: { id: string; slug: string }) {
   const [sidebarSeccion, setSidebarSeccion] = useState<
     "material" | "grades" | "notes"
   >("material");
-  const [moduloActivo, setModuloActivo] = useState(1);
+  // const [moduloActivo, setModuloActivo] = useState(1);
+  const params = useParams();
+  const moduloId = Number(params.id);
   return (
     <>
       <aside className="w-64 flex-shrink-0 border-r border-gray-200 min-h-[calc(100vh-56px)] overflow-y-auto bg-white">
@@ -54,7 +57,7 @@ export default function AsideCurso({ id, slug }: { id: string; slug: string }) {
                     key={modulo.id}
                     href={`/plataforma/${slug}/${id}/modulo/${modulo.id}`}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left text-sm transition-colors ${
-                      moduloActivo === modulo.id
+                      moduloId === modulo.id
                         ? "bg-white font-medium text-gray-900 border-l-3 border-[#0056D2] -ml-px pl-[11px]"
                         : "text-gray-600 hover:bg-gray-50"
                     }`}
