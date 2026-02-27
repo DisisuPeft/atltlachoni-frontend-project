@@ -47,19 +47,22 @@ export default function AsideCurso({ id, slug }: { id: string; slug: string }) {
 
           {sidebarSeccion === "material" && (
             <div className="space-y-0.5">
-              {inscripcion?.modulos_obj.map((modulo) => (
-                <Link
-                  key={modulo.id}
-                  href={`/plataforma/${slug}/${id}/modulo/${modulo.id}`}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left text-sm transition-colors ${
-                    moduloActivo === modulo.id
-                      ? "bg-white font-medium text-gray-900 border-l-3 border-[#0056D2] -ml-px pl-[11px]"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <span className="truncate">{modulo.nombre}</span>
-                </Link>
-              ))}
+              {inscripcion?.modulos_obj.map((modulo) => {
+                setModuloActivo(modulo.id);
+                return (
+                  <Link
+                    key={modulo.id}
+                    href={`/plataforma/${slug}/${id}/modulo/${modulo.id}`}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left text-sm transition-colors ${
+                      moduloActivo === modulo.id
+                        ? "bg-white font-medium text-gray-900 border-l-3 border-[#0056D2] -ml-px pl-[11px]"
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span className="truncate">{modulo.nombre}</span>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>
