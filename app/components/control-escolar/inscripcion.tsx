@@ -133,6 +133,55 @@ export default function CourseEnrollment({
                     })}
                   />
                 </div>
+                <div>
+                  <label
+                    htmlFor="razon_precio_custom"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Número de mensualidades
+                  </label>
+                  <input
+                    id="razon_precio_custom"
+                    type="number"
+                    placeholder="Ej: 4 ó 6 ó 12"
+                    className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:outline focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    {...register("num_mensualidades", {
+                      required: watch("tiene_precio_custom")
+                        ? "Debes especificar el número de mensualidades"
+                        : false,
+                    })}
+                  />
+                  {errors.num_mensualidades && (
+                    <span className="text-sm text-red-500">
+                      {errors.num_mensualidades.message}
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="razon_precio_custom"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Fecha de primera mensualidad
+                  </label>
+                  <input
+                    id="razon_precio_custom"
+                    type="date"
+                    placeholder="Ej: 24/08/1999"
+                    className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:outline focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    {...register("fecha_primera_mensualidad", {
+                      required: watch("tiene_precio_custom")
+                        ? "Debes indicar la fecha de primera mensualidad"
+                        : false,
+                    })}
+                  />
+                  {errors.num_mensualidades && (
+                    <span className="text-sm text-red-500">
+                      {errors.num_mensualidades.message}
+                    </span>
+                  )}
+                </div>
 
                 <div>
                   <label

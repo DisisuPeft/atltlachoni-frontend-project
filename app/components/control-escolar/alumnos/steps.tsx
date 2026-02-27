@@ -16,7 +16,7 @@ export default function StepEstudiante({ estudianteId, onClose }: Props) {
     onSuccess: onClose,
   });
   const [campania, setCampania] = useState<string | undefined>(undefined);
-  const { data: campanias } = useGetCampaniasQuery();
+  const { data: campanias } = useGetCampaniasQuery(estudianteId);
 
   useEffect(() => {
     if (campania) {

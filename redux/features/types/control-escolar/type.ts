@@ -243,6 +243,7 @@ export interface CampaniaPrograma {
   id: number;
   nombre: string;
 }
+
 /**Campanias */
 export type Pago = {
   id: string;
@@ -269,6 +270,8 @@ export interface PagoFormData {
   metodo_pago?: string;
   notas?: string;
   concepto: string;
+  num_mensualidades: number;
+  fecha_primera_mensualidad: string;
   tiene_precio_custom: boolean;
   precios_custom: {
     costo_inscripcion: number | undefined;

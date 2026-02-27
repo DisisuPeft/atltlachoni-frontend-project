@@ -21,8 +21,8 @@ const genericoApiSlice = apiSlice.injectEndpoints({
     getTipoPago: builder.query<TipoPago[], void>({
       query: () => "/control-escolar/genericos/tipo-pago/",
     }),
-    getCampanias: builder.query<CampaniaPrograma[], void>({
-      query: () => "/control-escolar/genericos/campanias/",
+    getCampanias: builder.query<CampaniaPrograma[], string>({
+      query: (id) => `/control-escolar/genericos/campanias/?e=${id}`,
     }),
   }),
 });
