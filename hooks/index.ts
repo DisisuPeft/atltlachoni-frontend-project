@@ -8,3 +8,5 @@ export { default as useAlumnoEditForm } from "./control-escolar/use-edit-estudia
 export { default as useInscripcionPrograma } from "./control-escolar/use-inscription";
 export { default as useMyCalender } from "./plataforma/use-my-calender";
 export { default as useChangeUnidad } from "./crm/use-change-unidad";
+export { default as MisMovimientosHook } from "./crm/use-mismovimientos";
+export { default as useLeadForm } from "./crm/leads/use-lead-form";

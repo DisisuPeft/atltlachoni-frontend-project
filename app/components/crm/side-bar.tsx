@@ -48,7 +48,7 @@ export default function Sidebar() {
               // console.log(isActive)
               return (
                 <Link
-                  key={item.id}
+                  key={item.nombre}
                   href={`${item.href}?ref=${q}`}
                   className={`flex items-center px-4 py-3 text-sm font-medium rounded-md ${
                     isActive
@@ -99,7 +99,7 @@ export default function Sidebar() {
             const isActive = pathname === item.href;
             return (
               <Link
-                key={item.id}
+                key={item.nombre}
                 href={`${item.href}?ref=${q}`}
                 className={`flex items-center px-4 py-3 text-sm font-medium rounded-md ${
                   isActive

@@ -50,7 +50,7 @@ export default function useInscripcionPrograma({
         estudianteId: next.estudianteId,
         formData: next.data,
       }).unwrap();
-      reset();
+      // reset();
       onSuccess(false);
       sweetAlert("success", `${res?.message}`, "Exito");
     } catch (error) {

@@ -15,3 +15,23 @@ export type LeadFormValues = {
   institucion?: number;
   campania?: number;
 };
+
+export interface FiltrosFechas {
+  fecha_inicio: string;
+  fecha_fin: string;
+}
+
+export interface EstatusInterface {
+  id: number;
+  nombre: string;
+}
+
+export interface FuentesInterface {
+  id: number;
+  nombre: string;
+}
+
+export interface EtapasInterface {
+  id: number;
+  nombre: string;
+}
