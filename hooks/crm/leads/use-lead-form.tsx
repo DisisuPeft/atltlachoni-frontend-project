@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import Swal from "sweetalert2";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -11,6 +12,11 @@ import {
   useGetEtapasQuery,
 } from "@/redux/features/crm/genericosApiSlice";
 import { useEffect } from "react";
+import { useCreateLeadMutation } from "@/redux/features/crm/leadsApiSlice";
+import { sweetAlert } from "@/sweetalert/sweetalerts";
+import { ErrorResponse } from "@/redux/features/types/reponse";
+import { useAppSelector } from "@/redux/hooks";
+import { useRouter } from "next/navigation";
 
 const leadSchema = z.object({
   nombre: z
@@ -28,14 +34,15 @@ const leadSchema = z.object({
     .regex(/^\d{10}$/, "El teléfono debe tener exactamente 10 dígitos"),
   fuente: z.string().min(1, "Selecciona una fuente"),
   notas: z.string().optional(),
-  etapa_id: z.string(),
-  estatus_id: z.string(),
-  programa_objetivo_id: z.string().min(1, "Selecciona un programa"),
-  campania_id: z.string().min(1, "Selecciona una campaña"),
+  etapa: z.string(),
+  estatus: z.string(),
+  programa_objetivo: z.string().min(1, "Selecciona un programa"),
+  campania: z.string().min(1, "Selecciona una campaña"),
   contacto_alterno: z.string().optional(),
+  instituto: z.string().min(1, "Selecciona un instituto"),
 });
 
-type LeadFormData = z.infer<typeof leadSchema>;
+export type LeadFormData = z.infer<typeof leadSchema>;
 
 export default function useLeadForm() {
   const { data: campanias } = useGetCampaniasQuery("");
@@ -43,7 +50,9 @@ export default function useLeadForm() {
   const { data: estatus, isLoading: estatusLoading } = useGetEstatusQuery();
   const { data: fuentes } = useGetFuentesQuery();
   const { data: etapas, isLoading: etapasLoading } = useGetEtapasQuery();
-
+  const [createLead] = useCreateLeadMutation();
+  const { unidadId } = useAppSelector((state) => state.changeUnidad);
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -62,25 +71,47 @@ export default function useLeadForm() {
       telefono: "",
       fuente: "",
       notas: "",
-      etapa_id: "",
-      programa_objetivo_id: "",
-      campania_id: "",
-      estatus_id: "",
+      etapa: "",
+      programa_objetivo: "",
+      campania: "",
+      estatus: "",
+      instituto: String(unidadId),
     },
   });
 
   useEffect(() => {
     if (estatus && !estatusLoading && etapas && !estatusLoading) {
-      setValue("estatus_id", String(estatus[0].id));
-      setValue("etapa_id", String(etapas[0].id));
+      setValue("estatus", String(estatus[0].id));
+      setValue("etapa", String(etapas[0].id));
     }
   });
 
   const onSubmit = async (data: LeadFormData) => {
     try {
       console.log(data);
+      const res = await createLead(data).unwrap();
+      // sweetAlert("success", `${res.message}`, "Exito");
+      Swal.fire({
+        title: `${res.message}`,
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: "Agregar otro lead",
+        denyButtonText: `Terminar registro`,
+        cancelButtonText: `Volver al inicio`,
+        denyButtonColor: "#0EA5E9",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          reset();
+        } else if (result.isDenied) {
+          Swal.fire("Changes are not saved", "", "info");
+        } else if (result.isDismissed) {
+          Swal.fire("Back", "", "info");
+        }
+      });
     } catch (error) {
       console.log(error);
+      const e = error as ErrorResponse;
+      sweetAlert("error", `${e.data.detail}`, "Error");
     }
   };
 

@@ -20,10 +20,10 @@ export default function createLead() {
     campanias,
   } = useLeadForm();
   //   console.log(isSubmitting);
-  const programaSeleccionado = watch("programa_objetivo_id");
+  const programaSeleccionado = watch("programa_objetivo");
 
   return (
-    <div className="w-full max-w-4xl p-2">
+    <div className="w-full max-w-7xl p-2">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Nuevo lead</h1>
         <p className="text-gray-600 mt-1">
@@ -117,23 +117,23 @@ export default function createLead() {
               label="Etapa Inicial *"
               options={etapas ?? []}
               placeholder="Selecciona la etapa"
-              register={register("etapa_id")}
-              error={errors.etapa_id?.message}
+              register={register("etapa")}
+              error={errors.etapa?.message}
             />
             <Select
               label="Estatus Inicial *"
               options={estatus ?? []}
               placeholder="Selecciona el estatus"
-              register={register("estatus_id")}
-              error={errors.estatus_id?.message}
+              register={register("estatus")}
+              error={errors.estatus?.message}
             />
 
             <Select
               label="Programa de Interés *"
               options={programas ?? []}
               placeholder="Selecciona el programa"
-              register={register("programa_objetivo_id")}
-              error={errors.programa_objetivo_id?.message}
+              register={register("programa_objetivo")}
+              error={errors.programa_objetivo?.message}
             />
 
             <Select
@@ -144,8 +144,8 @@ export default function createLead() {
                   ? "Selecciona la campaña"
                   : "Primero selecciona un programa"
               }
-              register={register("campania_id")}
-              error={errors.campania_id?.message}
+              register={register("campania")}
+              error={errors.campania?.message}
               disabled={!programaSeleccionado}
             />
 
