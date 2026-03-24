@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
+import { useGetEventosQuery } from "@/redux/features/control-escolar/eventosApiSlice";
 
 export default function useMyCalender() {
   // Estado para el calendario
   const [fechaActual, setFechaActual] = useState(new Date());
-
+  // Eventos del alumno
+  const { data: eventos } = useGetEventosQuery();
   // Funciones para navegar entre meses
   const mesAnterior = () => {
     setFechaActual(
@@ -82,6 +84,10 @@ export default function useMyCalender() {
   });
 
   const diasMes = generarDiasMes();
+  // console.log(diasMes);
+
+  const dia = fechaActual.getDay();
+  // console.log(dia);
 
   return {
     mesAnterior,
@@ -89,5 +95,6 @@ export default function useMyCalender() {
     esDiaActual,
     nombreMes,
     diasMes,
+    dia,
   };
 }

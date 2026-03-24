@@ -11,7 +11,13 @@ interface Props {
 export default function RelocationWrapper({ id, tipo }: Props) {
   const { data: programas, isLoading } = useProgramaEstudianteQuery(id);
 
-  if (isLoading || !programas) return <Loading />;
+  if (isLoading || !programas) {
+    return (
+      <div className="mx-auto">
+        <Loading />
+      </div>
+    );
+  }
 
   const primerModulo = programas.modulos_obj[0];
 

@@ -1,13 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
-// import { InscriptionDetail } from "@/redux/features/types/alumnos/inscription";
-import { IconBook, IconCheck, IconPlay } from "./iconst";
-import ButtonLink from "../control-escolar/link-button";
 import { useInscriptionAlumnoDetailQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { IconPencil, IconX, IconStarOutline, IconInfo } from "./iconst";
+import CalenderStudent from "./calender";
 // interface Props {
 //   inscription: InscriptionDetail | undefined;
 //   isLoading?: boolean;
@@ -16,10 +13,10 @@ import { IconPencil, IconX, IconStarOutline, IconInfo } from "./iconst";
 export default function Dashboard() {
   const [mostrarBanner, setMostrarBanner] = useState(true);
   const [mostrarRoles, setMostrarRoles] = useState(true);
-  const [habilidadActiva, setHabilidadActiva] = useState("Todos");
+  // const [habilidadActiva, setHabilidadActiva] = useState("Todos");
   const { data: user } = useRetrieveUserQuery();
   // console.log(inscription?.programasInscritos);
-  const { data: inscription, isLoading } = useInscriptionAlumnoDetailQuery();
+  // const { data: inscription, isLoading } = useInscriptionAlumnoDetailQuery();
   return (
     <div className="max-w-9xl mx-auto px-12 py-8">
       {/* Welcome + Banner row */}
@@ -71,34 +68,7 @@ export default function Dashboard() {
 
           <div className="border-t border-gray-200 pt-6">
             {/* Weekly activity */}
-            <h3 className="text-sm font-semibold text-gray-500 mb-3">
-              Actividad semanal
-            </h3>
-            <div className="flex items-center gap-2 mb-3">
-              <p className="text-sm text-gray-700">
-                Me comprometo a 2 dias de aprendizaje por semana.
-              </p>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                <IconPencil className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <div className="flex items-center gap-2 mb-3">
-              {["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"].map((dia, i) => (
-                <div
-                  key={dia}
-                  className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium border transition-colors ${
-                    i === 2
-                      ? "bg-[#0056D2] text-white border-[#0056D2]"
-                      : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
-                  }`}
-                >
-                  {dia}
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-gray-500">
-              0 elementos completados · 1 minutos aprendidos
-            </p>
+            <CalenderStudent />
           </div>
         </div>
 

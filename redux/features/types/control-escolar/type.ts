@@ -328,3 +328,15 @@ export interface ProgramaEducativoDetail {
   modulos: number[]; // array de IDs
   modulos_obj: ModulosInterface[];
 }
+
+export interface EventoShowInterface {
+  nombre: string;
+  descripcion: string;
+  campania: string;
+  empresa: string;
+  instituto: string;
+  fecha_inicio: string;
+  fecha_fin: string | null;
+  ubicacion: string;
+  tipo: string;
+}
