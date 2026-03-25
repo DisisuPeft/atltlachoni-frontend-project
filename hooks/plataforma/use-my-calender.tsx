@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useGetEventosQuery } from "@/redux/features/control-escolar/eventosApiSlice";
+import { EventoShowInterface } from "@/redux/features/types/control-escolar/type";
 
 export default function useMyCalender() {
   // Estado para el calendario
@@ -77,6 +78,20 @@ export default function useMyCalender() {
     );
   };
 
+  // Eventos
+  const obtenerEventosDia = (dia: number) => {
+    if (!eventos || dia === 0) return [];
+
+    return eventos.filter((evento: EventoShowInterface) => {
+      const fechaEvento = new Date(evento.fecha_inicio);
+      return (
+        fechaEvento.getDate() === dia &&
+        fechaEvento.getMonth() === fechaActual.getMonth() &&
+        fechaEvento.getFullYear() === fechaActual.getFullYear()
+      );
+    });
+  };
+
   // Obtener nombre del mes
   const nombreMes = fechaActual.toLocaleDateString("es-ES", {
     month: "long",
@@ -94,6 +109,7 @@ export default function useMyCalender() {
     mesSiguiente,
     esDiaActual,
     nombreMes,
+    obtenerEventosDia,
     diasMes,
     dia,
   };

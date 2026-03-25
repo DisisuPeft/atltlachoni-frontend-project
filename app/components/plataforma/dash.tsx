@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
-import { useInscriptionAlumnoDetailQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
+// import { useInscriptionAlumnoDetailQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { IconPencil, IconX, IconStarOutline, IconInfo } from "./iconst";
 import CalenderStudent from "./calender";
+import { useGetEventosQuery } from "@/redux/features/control-escolar/eventosApiSlice";
+import { BannerEvento } from "../control-escolar/eventos/banners/evento-banner";
+// import {useGetEventosQuery}
 // interface Props {
 //   inscription: InscriptionDetail | undefined;
 //   isLoading?: boolean;
@@ -13,8 +16,10 @@ import CalenderStudent from "./calender";
 export default function Dashboard() {
   const [mostrarBanner, setMostrarBanner] = useState(true);
   const [mostrarRoles, setMostrarRoles] = useState(true);
+  const [eventoBanner, setEventoBanner] = useState(true);
   // const [habilidadActiva, setHabilidadActiva] = useState("Todos");
   const { data: user } = useRetrieveUserQuery();
+  const { data: eventos, isLoading } = useGetEventosQuery();
   // console.log(inscription?.programasInscritos);
   // const { data: inscription, isLoading } = useInscriptionAlumnoDetailQuery();
   return (
@@ -115,13 +120,13 @@ export default function Dashboard() {
           )}
 
           {/* Role interests card */}
-          {mostrarRoles && (
+          {/* {mostrarRoles && (
             <div className="border border-gray-200 rounded-lg p-5 bg-white relative">
               <h3 className="font-semibold text-gray-900 mb-4">
                 En que roles estas interesado?
               </h3>
-              <div className="flex items-center gap-2 flex-wrap mb-4">
-                {/* {rolesInteres.map((rol) => (
+              <div className="flex items-center gap-2 flex-wrap mb-4"> */}
+          {/* {rolesInteres.map((rol) => (
                   <button
                     key={rol.label}
                     className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -133,7 +138,7 @@ export default function Dashboard() {
                     {rol.label}
                   </button>
                 ))} */}
-                <button className="flex items-center gap-1 px-4 py-2 text-sm text-[#0056D2] hover:text-[#004BB5] font-medium transition-colors">
+          {/* <button className="flex items-center gap-1 px-4 py-2 text-sm text-[#0056D2] hover:text-[#004BB5] font-medium transition-colors">
                   + Ver mas
                 </button>
               </div>
@@ -147,6 +152,15 @@ export default function Dashboard() {
                 <IconX className="w-5 h-5" />
               </button>
             </div>
+          )} */}
+
+          {/* Mostrar eventos */}
+          {eventos && !isLoading && (
+            <BannerEvento
+              eventos={eventos}
+              onClose={() => setEventoBanner(false)}
+              showClose={false}
+            />
           )}
         </div>
       </div>

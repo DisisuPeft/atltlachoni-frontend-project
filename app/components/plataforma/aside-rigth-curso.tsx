@@ -5,6 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useProgramaEstudianteQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { IconMapPin, IconCalendarEnd } from "./iconst";
+import CalenderStudent from "./calender";
 
 export default function AsideRigthCurso({
   id,
@@ -13,59 +14,14 @@ export default function AsideRigthCurso({
   id: string;
   slug: string;
 }) {
-  const { data: inscripcion } = useProgramaEstudianteQuery(id);
-  // const { mesAnterior, mesSiguiente, esDiaActual, nombreMes, diasMes } =
-  //   useMyCalender();
-  const [diasSeleccionados, setDiasSeleccionados] = useState<number[]>([0, 2]); // L y X por defecto
-  const toggleDia = (index: number) => {
-    setDiasSeleccionados((prev) =>
-      prev.includes(index) ? prev.filter((d) => d !== index) : [...prev, index],
-    );
-  };
+  // const { data: inscripcion } = useProgramaEstudianteQuery(id);
+
   return (
     <>
       <aside className="w-72 flex-shrink-0 min-h-[calc(100vh-56px)] overflow-y-auto bg-white hidden xl:block">
         <div className="p-5 space-y-6">
           {/* Learning plan */}
-          <div className="border border-gray-200 rounded-lg p-4 bg-[#FAFBFF]">
-            <h3 className="font-bold text-gray-900 text-sm mb-2">
-              Plan de aprendizaje para el {slug}
-            </h3>
-            {/* <p className="text-xs text-gray-600 leading-relaxed mb-3">
-              Me comprometo a aprender 2 dias a la semana en edulearn.
-            </p> */}
-            <div className="border border-gray-200 rounded-lg p-4 bg-[#FAFBFF]">
-              <h3 className="font-bold text-gray-900 text-sm mb-2">
-                Plan de aprendizaje
-              </h3>
-              <p className="text-xs text-gray-600 leading-relaxed mb-3">
-                Me comprometo a aprender {diasSeleccionados.length} día
-                {diasSeleccionados.length !== 1 ? "s" : ""} a la semana en
-                edulearn.
-              </p>
-              <div className="flex items-center gap-1.5 mb-3">
-                {["L", "M", "X", "J", "V", "S", "D"].map((d, i) => (
-                  <button
-                    key={d + i}
-                    onClick={() => toggleDia(i)}
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${
-                      diasSeleccionados.includes(i)
-                        ? "bg-[#0056D2] text-white"
-                        : "text-gray-500 hover:bg-gray-100"
-                    }`}
-                  >
-                    {d}
-                  </button>
-                ))}
-              </div>
-              <button className="text-[#0056D2] text-xs font-medium hover:text-[#004BB5] transition-colors">
-                Editar mi plan de aprendizaje
-              </button>
-            </div>
-            <button className="text-[#0056D2] text-xs font-medium hover:text-[#004BB5] transition-colors">
-              Editar mi plan de aprendizaje
-            </button>
-          </div>
+          <CalenderStudent />
 
           {/* Course timeline */}
           <div className="border border-gray-200 rounded-lg p-4">
