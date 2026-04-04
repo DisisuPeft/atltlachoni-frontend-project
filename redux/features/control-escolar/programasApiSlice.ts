@@ -37,6 +37,7 @@ const programasApiSlice = apiSlice.injectEndpoints({
         body: formData,
       }),
     }),
+    // uploadMaterial: builder.query<>
   }),
 });
 

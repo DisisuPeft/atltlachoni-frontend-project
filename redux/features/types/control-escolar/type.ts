@@ -329,6 +329,77 @@ export interface ProgramaEducativoDetail {
   modulos_obj: ModulosInterface[];
 }
 
+export interface PlataformaImparticion {
+  id: number;
+  nombre: string;
+}
+
+export interface EnlaceClase {
+  id: number;
+  programa: number;
+  link: string;
+  fecha_imparticion: string;
+  titulo: string;
+  descripcion: string | null;
+  plataforma_detail: PlataformaImparticion | null;
+  password_platform: string | null;
+  created_at: string;
+}
+
+export interface ComentarioSimple {
+  id: number;
+  comentario: string;
+  padre: number | null;
+  usuario: number;
+  usuario_nombre: string | null;
+  editado: number;
+  status: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Comentario {
+  id: number;
+  comentario: string;
+  diplomado: number | null;
+  diplomado_nombre: string | null;
+  modulo: number | null;
+  modulo_nombre: string | null;
+  usuario: number;
+  usuario_nombre: string | null;
+  padre: number | null;
+  editado: number;
+  status: number;
+  created_at: string;
+  updated_at: string;
+  respuestas: ComentarioSimple[];
+}
+
+export interface Material {
+  id: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  status: number;
+  original_name: string;
+  storage_name: string;
+  mime_type: string;
+  size: number;
+  path: string;
+  file_type: string;
+  description: string | null;
+  is_public: boolean;
+  created_by_id: number | null;
+  deleted_by_id: number | null;
+  edited_by_id: number | null;
+  owner_id: number | null;
+  uploaded_by_id: number | null;
+  modulo_id: number | null;
+  programa_id: string | null;
+  submodulo_id: number | null;
+  campania_id: number | null;
+}
+
 export interface EventoShowInterface {
   nombre: string;
   descripcion: string;

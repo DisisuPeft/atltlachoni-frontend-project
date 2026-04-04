@@ -109,5 +109,6 @@ export default function useEditProgramaForm(uuid: string) {
     instituciones,
     disabled,
     setDisabled,
+    programa,
   };
 }

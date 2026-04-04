@@ -3,9 +3,12 @@
 import { useFieldArray } from "react-hook-form";
 import Select from "@/app/ui/components/select";
 import useEditProgramaForm from "@/hooks/control-escolar/use-edit-programa-form";
-import { PencilIcon } from "lucide-react";
+import { PencilIcon, Upload } from "lucide-react";
 import Button from "@/app/ui/components/button";
 import { sweetAlert } from "@/sweetalert/sweetalerts";
+import { useState } from "react";
+import { Modal } from "@/app/components/common/modal";
+import MaterialUpload from "../../upload-files";
 
 interface Props {
   uuid: string;
@@ -25,15 +28,33 @@ export default function EditProgramaPage({ uuid }: Props) {
     tiposProgramas,
     instituciones,
     disabled,
+    programa,
     // setDisabled,
   } = useEditProgramaForm(uuid);
+  const [openMaterial, setOpenMaterial] = useState(false);
   const handleEdit = () => {
     // setDisabled((prev) => !prev);
     sweetAlert("info", "En breve se podra actualizar el programa", "Alerta");
   };
+  const handleShowUploadMaterial = () => {
+    setOpenMaterial(true);
+  };
   return (
     <div className="p-4 md:p-6 lg:p-8">
       <div className="max-w-5xl mx-auto">
+        <div className="flex justify-start">
+          <Modal show={openMaterial} onClose={() => setOpenMaterial(false)}>
+            <div className="p-4">
+              <MaterialUpload
+                programaId={uuid}
+                modulos={programa?.modulos_obj ?? []}
+              />
+            </div>
+          </Modal>
+          <Button onClick={handleShowUploadMaterial}>
+            <Upload />
+          </Button>
+        </div>
         <div className="flex justify-end">
           <Button onClick={handleEdit}>
             <PencilIcon />

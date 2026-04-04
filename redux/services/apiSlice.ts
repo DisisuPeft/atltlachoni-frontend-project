@@ -13,28 +13,37 @@ const baseQuery = fetchBaseQuery({
   credentials: "include",
 });
 
+const baseQueryUpload = fetchBaseQuery({
+  baseUrl: `${process.env.NEXT_PUBLIC_UPLOAD_HOST}/api`,
+  credentials: "include",
+});
+
+const selectBaseQuery = (args: string | FetchArgs) => {
+  const url = typeof args === "string" ? args : args.url;
+  return url.startsWith("/control-escolar/materiales")
+    ? baseQueryUpload
+    : baseQuery;
+};
+
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   await mutex.waitForUnlock();
-  let result = await baseQuery(args, api, extraOptions);
+  let result = await selectBaseQuery(args)(args, api, extraOptions);
   if (result.error && result.error.status === 401) {
     if (!mutex.isLocked()) {
       const release = await mutex.acquire();
       try {
         const refreshResult = await baseQuery(
-          {
-            url: "/auth/refresh/",
-            method: "POST",
-          },
+          { url: "/auth/refresh/", method: "POST" },
           api,
           extraOptions
         );
         if (refreshResult.data) {
           api.dispatch(setAuth());
-          result = await baseQuery(args, api, extraOptions);
+          result = await selectBaseQuery(args)(args, api, extraOptions);
         } else {
           api.dispatch(logout());
         }

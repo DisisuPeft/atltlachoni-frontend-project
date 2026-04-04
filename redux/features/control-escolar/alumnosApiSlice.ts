@@ -2,6 +2,7 @@ import { apiSlice } from "@/redux/services/apiSlice";
 import {
   EstudiantePerfil,
   EstudiantePerfilForm,
+  Material,
   PagoFormData,
   ProgramaEducativoDetail,
 } from "../types/control-escolar/type";
@@ -65,6 +66,12 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
       query: ({ id, moduloId }) =>
         `/control-escolar/programas-educativos/${id}/modulos?modulo=${moduloId}`,
     }),
+    getMaterialesModulo: builder.query<PaginatedResponse<Material>, number>({
+      query: (moduloId) => `/control-escolar/materiales/?modulo=${moduloId}`,
+    }),
+    getMaterialesPrograma: builder.query<PaginatedResponse<Material>, string>({
+      query: (programaId) => `/control-escolar/materiales/?programa=${programaId}`,
+    }),
   }),
 });
 
@@ -77,4 +84,6 @@ export const {
   useInscriptionAlumnoDetailQuery,
   useProgramaEstudianteQuery,
   useModuloProgramaQuery,
+  useGetMaterialesModuloQuery,
+  useGetMaterialesProgramaQuery,
 } = alumnoApiSlice;
