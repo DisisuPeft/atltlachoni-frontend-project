@@ -23,5 +23,5 @@ export default function RelocationWrapper({ id, tipo }: Props) {
 
   if (!primerModulo) return <div>No hay módulos disponibles</div>;
 
-  redirect(`/plataforma/${tipo}/${id}/modulo/${primerModulo.id}`);
+  redirect(`/plataforma/${tipo}/${id}/bienvenida`);
 }
