@@ -1,88 +1,128 @@
 "use client";
 
-import {
-  useRetrieveProgramasQuery,
-  useHowManyProgramasQuery,
-} from "@/redux/features/control-escolar/programasApiSlice";
+import { useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
+import { useRetrieveProgramasQuery } from "@/redux/features/control-escolar/programasApiSlice";
 import { ProgramaEducativo } from "@/redux/features/types/control-escolar/type";
 import { DataTable } from "@/app/utils/data-table";
 import ButtonLink from "../link-button";
+import { BookOpen } from "lucide-react";
+
+const columns: ColumnDef<ProgramaEducativo>[] = [
+  {
+    id: "nombre",
+    header: "Nombre",
+    cell: ({ row }) => (
+      <div>
+        <p className="text-sm font-medium text-gray-900">
+          {row.original.tipo_nombre} en {row.original.nombre}
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: "instituto",
+    header: "Instituto",
+    cell: ({ row }) => (
+      <span className="text-sm text-gray-600">
+        {row.original.institucion_nombre}
+      </span>
+    ),
+  },
+  {
+    id: "modalidad",
+    header: "Modalidad",
+    cell: ({ row }) => (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-blue-200">
+        {row.original.modalidad_nombre ?? "—"}
+      </span>
+    ),
+  },
+  {
+    id: "acciones",
+    header: "",
+    cell: ({ row }) => (
+      <div className="flex justify-end">
+        <ButtonLink
+          path={`/dashboard/control-escolar/programas/${row.original.ref}`}
+          icon="eye-icon"
+        />
+      </div>
+    ),
+  },
+];
 
 export default function ProgramasView() {
-  const { data: programas } = useRetrieveProgramasQuery();
-  const { data: howManyPrograms } = useHowManyProgramasQuery();
-  const columns: ColumnDef<ProgramaEducativo>[] = [
-    {
-      accessorFn: (row) => `${row.tipo_nombre} en ${row.nombre}`,
-      header: "Nombre",
-    },
-    { accessorKey: "institucion_nombre", header: "Instituto al que pertenece" },
-    { accessorKey: "modalidad_nombre", header: "Modalidad" },
-    {
-      header: "Acciones",
-      cell: ({ row }) => {
-        return (
-          <ButtonLink
-            path={`/dashboard/control-escolar/programas/${row.original.ref}`}
-            icon="eye-icon"
-          />
-        );
-      },
-    },
-  ];
+  const searchParams = useSearchParams();
+
+  const page = Number(searchParams.get("page") ?? "1");
+  const search = searchParams.get("search") ?? "";
+
+  const { data: programas, isLoading } = useRetrieveProgramasQuery({
+    page,
+    search,
+  });
+
   return (
-    <>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Header */}
+      {/* <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Programas Educativos
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Gestiona todos los programas educativos disponibles
+          </p>
+        </div>
+        <ButtonLink
+          path="/dashboard/control-escolar/programas/new"
+          title="+ Nuevo Programa"
+        />
+      </div> */}
+
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="text-2xl font-bold text-gray-900">
-            {howManyPrograms ?? 0}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+          <div className="w-10 h-10 bg-[#F0F6FF] rounded-lg flex items-center justify-center flex-shrink-0">
+            <BookOpen className="w-5 h-5 text-[#0056D2]" />
           </div>
-          <div className="text-sm text-gray-600">Programas Activos</div>
-        </div>
-      </div>
-      {/* Filtros y Búsqueda */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Búsqueda */}
-          <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Buscar
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Nombre o descripción..."
-                // value={busqueda}
-                // onChange={(e) => setBusqueda(e.target.value)}
-                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">
+              {programas?.count ?? "—"}
+            </p>
+            <p className="text-xs text-gray-500">Total programas</p>
           </div>
         </div>
-        {/* Lista de Programas */}
-        <div className="p-1 mt-5">
-          {programas?.results ? (
-            <DataTable columns={columns} data={programas?.results ?? []} />
-          ) : (
-            <div>Sin datos definidos</div>
-          )}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+          <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
+            <span className="text-sm font-bold text-gray-500">#</span>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">
+              {Math.ceil((programas?.count ?? 0) / 10)}
+            </p>
+            <p className="text-xs text-gray-500">Páginas totales</p>
+          </div>
         </div>
       </div>
-    </>
+
+      {/* Table */}
+      <DataTable
+        columns={columns}
+        data={programas?.results ?? []}
+        isLoading={isLoading}
+        count={programas?.count ?? 0}
+        filters={[
+          {
+            type: "search",
+            key: "search",
+            placeholder: "Nombre, tipo o modalidad...",
+          },
+        ]}
+        emptyIcon={BookOpen}
+        emptyMessage="No se encontraron programas educativos"
+      />
+    </div>
   );
 }

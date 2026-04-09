@@ -1,6 +1,64 @@
 "use client";
 
 import { useAlumnoForm } from "@/hooks";
+import { User, Mail, Phone, BookOpen, MapPin } from "lucide-react";
+
+// ── Shared primitives ────────────────────────────────────────────────
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 pb-4 border-b border-gray-100 mb-6">
+      <div className="w-8 h-8 rounded-lg bg-[#F0F6FF] flex items-center justify-center flex-shrink-0 mt-0.5">
+        <Icon className="w-4 h-4 text-[#0056D2]" />
+      </div>
+      <div>
+        <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+        {description && (
+          <p className="text-xs text-gray-400 mt-0.5">{description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  required,
+  error,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">
+        {label}
+        {required && <span className="text-red-400 ml-1">*</span>}
+      </label>
+      {children}
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
+  );
+}
+
+const inputClass =
+  "w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] transition-colors disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed";
+
+const selectClass =
+  "w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] transition-colors";
+
+// ── Main form ────────────────────────────────────────────────────────
 
 export default function EstudianteDetallePage() {
   const {
@@ -8,342 +66,282 @@ export default function EstudianteDetallePage() {
     handleSubmit,
     onSubmit,
     errors,
-    isSubmitting,
+    // isSubmitting,
     generos,
     nivelEducativo,
     instituciones,
     estados,
     localidades,
   } = useAlumnoForm();
+
   return (
-    <div className="">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Información Personal */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Información Personal
-            </h2>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      {/* Page header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Nuevo Estudiante</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Completa los datos para registrar al estudiante en el sistema
+        </p>
+      </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Nombre */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre <span className="text-red-500">*</span>
-                </label>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* ── Información Personal ── */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <SectionHeader
+            icon={User}
+            title="Información Personal"
+            description="Datos de identificación del estudiante"
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <Field
+              label="Nombre"
+              required
+              error={errors.user?.nombre?.message}
+            >
+              <input
+                {...register("user.nombre", {
+                  required: "El nombre es requerido",
+                })}
+                placeholder="Ej. Juan"
+                className={inputClass}
+              />
+            </Field>
+
+            <Field
+              label="Apellido Paterno"
+              required
+              error={errors.user?.apellido_paterno?.message}
+            >
+              <input
+                {...register("user.apellido_paterno", {
+                  required: "El apellido paterno es requerido",
+                })}
+                placeholder="Ej. García"
+                className={inputClass}
+              />
+            </Field>
+
+            <Field
+              label="Apellido Materno"
+              required
+              error={errors.user?.apellido_materno?.message}
+            >
+              <input
+                {...register("user.apellido_materno", {
+                  required: "El apellido materno es requerido",
+                })}
+                placeholder="Ej. López"
+                className={inputClass}
+              />
+            </Field>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-5">
+            <Field
+              label="Género"
+              required
+              error={errors.user?.genero?.message}
+            >
+              <select
+                {...register("user.genero", {
+                  required: "El género es requerido",
+                })}
+                className={selectClass}
+              >
+                <option value="">Seleccionar</option>
+                {generos?.results.map((genero) => (
+                  <option key={genero.id} value={genero.id}>
+                    {genero.nombre}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field
+              label="Fecha de Nacimiento"
+              required
+              error={errors.user?.fecha_nacimiento?.message}
+            >
+              <input
+                type="date"
+                {...register("user.fecha_nacimiento", {
+                  required: "La fecha de nacimiento es requerida",
+                })}
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Edad" error={errors.user?.edad?.message}>
+              <div className="relative">
                 <input
-                  {...register("user.nombre", {
-                    required: "El nombre es requerido",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.user?.nombre && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.nombre.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Apellido Paterno */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Apellido Paterno <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register("user.apellido_paterno", {
-                    required: "El apellido paterno es requerido",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.user?.apellido_paterno && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.apellido_paterno.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Apellido Materno */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Apellido Materno <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register("user.apellido_materno", {
-                    required: "El apellido materno es requerido",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.user?.apellido_materno && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.apellido_materno.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Género */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Género <span className="text-red-500">*</span>
-                </label>
-                <select
-                  {...register("user.genero", {
-                    required: "El género es requerido",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">Seleccionar</option>
-                  {generos?.results.map((genero) => (
-                    <option key={genero.id} value={genero.id}>
-                      {genero.nombre}
-                    </option>
-                  ))}
-                </select>
-                {errors.user?.genero && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.genero.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Fecha de Nacimiento */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fecha de Nacimiento <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  {...register("user.fecha_nacimiento", {
-                    required: "La fecha de nacimiento es requerida",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.user?.fecha_nacimiento && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.fecha_nacimiento.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Edad */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Edad <span className="text-red-500">*</span>
-                </label>
-                <input
-                  disabled={true}
+                  disabled
                   type="number"
                   {...register("user.edad", {
                     required: "La edad es requerida",
                     min: 1,
                   })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  className={inputClass}
                 />
-                {errors.user?.edad && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.edad.message}
-                  </p>
-                )}
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                  años
+                </span>
               </div>
-            </div>
+            </Field>
           </div>
+        </div>
 
-          {/* Información de Contacto */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Información de Contacto
-            </h2>
+        {/* ── Información de Contacto ── */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <SectionHeader
+            icon={Mail}
+            title="Información de Contacto"
+            description="Medios para comunicarse con el estudiante"
+          />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email <span className="text-red-500">*</span>
-                </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Field label="Email" required error={errors.user?.email?.message}>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 <input
                   type="email"
                   {...register("user.email", {
                     required: "El email es requerido",
                     pattern: { value: /^\S+@\S+$/i, message: "Email inválido" },
                   })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  placeholder="correo@ejemplo.com"
+                  className={`${inputClass} pl-10`}
                 />
-                {errors.user?.email && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.email.message}
-                  </p>
-                )}
               </div>
+            </Field>
 
-              {/* Teléfono */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Teléfono <span className="text-red-500">*</span>
-                </label>
+            <Field
+              label="Teléfono"
+              required
+              error={errors.user?.telefono?.message}
+            >
+              <div className="relative">
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 <input
                   type="tel"
                   {...register("user.telefono", {
                     required: "El teléfono es requerido",
                   })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  placeholder="10 dígitos"
+                  className={`${inputClass} pl-10`}
                 />
-                {errors.user?.telefono && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.telefono.message}
-                  </p>
-                )}
               </div>
-            </div>
+            </Field>
           </div>
+        </div>
 
-          {/* Información Académica */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Información Académica
-            </h2>
+        {/* ── Información Académica ── */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <SectionHeader
+            icon={BookOpen}
+            title="Información Académica"
+            description="Datos de ingreso y trayectoria educativa"
+          />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Matrícula */}
-              {/* <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Matrícula <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register("matricula", {
-                    required: "La matrícula es requerida",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.matricula && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.matricula.message}
-                  </p>
-                )}
-              </div> */}
-
-              {/* Especialidad */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Especialidad <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register("especialidad", {
-                    required: "La especialidad es requerida",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.especialidad && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.especialidad.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Fecha de Ingreso */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fecha de Ingreso
-                </label>
-                <input
-                  type="date"
-                  {...register("fecha_ingreso")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-
-              {/* Nivel Educativo */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nivel Educativo
-                </label>
-                <select
-                  {...register("nivel_educativo")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">Seleccionar</option>
-                  {nivelEducativo?.map((niv) => (
-                    <option key={niv.id} value={niv.id}>
-                      {niv.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Institución */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Institución
-                </label>
-                <select
-                  {...register("institucion")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">Seleccionar</option>
-                  {instituciones?.map((ins) => (
-                    <option key={ins.id} value={ins.id}>
-                      {ins.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Estado/País */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Estado
-                </label>
-                <select
-                  {...register("estado_pais")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">Seleccionar</option>
-                  {estados?.map((estado) => (
-                    <option key={estado.id} value={estado.id}>
-                      {estado.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Ciudad */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ciudad
-                </label>
-                <select
-                  {...register("ciudad")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">Seleccionar</option>
-                  {localidades ? (
-                    localidades.map((localidad) => (
-                      <option key={localidad.id} value={localidad.id}>
-                        {localidad.name}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">No data</option>
-                  )}
-                </select>
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={() => window.history.back()}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Field
+              label="Especialidad"
+              required
+              error={errors.especialidad?.message}
             >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              Crear Estudiante
-            </button>
+              <input
+                {...register("especialidad", {
+                  required: "La especialidad es requerida",
+                })}
+                placeholder="Ej. Enfermería"
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Fecha de Ingreso">
+              <input
+                type="date"
+                {...register("fecha_ingreso")}
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Nivel Educativo">
+              <select {...register("nivel_educativo")} className={selectClass}>
+                <option value="">Seleccionar</option>
+                {nivelEducativo?.map((niv) => (
+                  <option key={niv.id} value={niv.id}>
+                    {niv.nombre}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Institución">
+              <select {...register("institucion")} className={selectClass}>
+                <option value="">Seleccionar</option>
+                {instituciones?.map((ins) => (
+                  <option key={ins.id} value={ins.id}>
+                    {ins.nombre}
+                  </option>
+                ))}
+              </select>
+            </Field>
           </div>
-        </form>
-      </div>
+        </div>
+
+        {/* ── Ubicación ── */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <SectionHeader
+            icon={MapPin}
+            title="Ubicación"
+            description="Estado y ciudad de residencia"
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Field label="Estado">
+              <select {...register("estado_pais")} className={selectClass}>
+                <option value="">Seleccionar estado</option>
+                {estados?.map((estado) => (
+                  <option key={estado.id} value={estado.id}>
+                    {estado.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Ciudad">
+              <select {...register("ciudad")} className={selectClass}>
+                <option value="">
+                  {estados ? "Seleccionar ciudad" : "Selecciona un estado primero"}
+                </option>
+                {localidades?.map((localidad) => (
+                  <option key={localidad.id} value={localidad.id}>
+                    {localidad.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </div>
+
+        {/* ── Actions ── */}
+        <div className="flex items-center justify-end gap-3 pt-2 pb-8">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="px-5 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="px-6 py-2.5 text-sm font-medium text-white bg-[#0056D2] rounded-lg hover:bg-[#004BB5] transition-colors"
+          >
+            Crear Estudiante
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

@@ -15,19 +15,19 @@ export default function Tabs({
   pathname,
 }: TabsProps) {
   return (
-    <div className="border-b border-gray-200 ml-[100px]">
-      <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+    <div className="bg-white border-b border-gray-200 px-6">
+      <nav className="-mb-px flex gap-1 overflow-x-auto" aria-label="Tabs">
         {tabs.map((tab) => {
-          const isActive = tab.href === pathname;
+          const isActive = pathname?.includes(tab.href);
           return (
             <button
               key={tab.uuid}
               onClick={() => setActiveTab(tab)}
-              className={`${
+              className={`relative whitespace-nowrap py-3.5 px-4 text-sm font-medium border-b-2 transition-colors duration-150 focus:outline-none cursor-pointer ${
                 isActive
-                  ? "border-primary text-primary"
+                  ? "border-[#0056D2] text-[#0056D2]"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-xl transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-t-md font-serif cursor-pointer`}
+              }`}
               aria-current={isActive ? "page" : undefined}
             >
               {tab.nombre}

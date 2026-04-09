@@ -13,6 +13,16 @@ import {
   ModulosInterface,
 } from "../types/alumnos/inscription";
 
+export interface InscripcionEstudiante {
+  ref: string;
+  programa_nombre: string;
+  campania_nombre: string;
+  fecha_ingreso: string | null;
+  modulo_actual: number;
+  total_modulos: number;
+  status: number;
+}
+
 const alumnoApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     addEstudiantes: builder.mutation({
@@ -22,8 +32,18 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
         body: formData,
       }),
     }),
-    getEstudiantes: builder.query<PaginatedResponse<EstudiantePerfil>, void>({
-      query: () => "/control-escolar/estudiantes/",
+    getEstudiantes: builder.query<
+      PaginatedResponse<EstudiantePerfil>,
+      { page?: number; search?: string; status?: string } | void
+    >({
+      query: (params = {}) => {
+        const { page = 1, search, status } = params as { page?: number; search?: string; status?: string };
+        const qs = new URLSearchParams();
+        qs.set("page", String(page));
+        if (search) qs.set("search", search);
+        if (status && status !== "all") qs.set("status", status);
+        return `/control-escolar/estudiantes/?${qs.toString()}`;
+      },
     }),
     retrieveEstudiante: builder.query<EstudiantePerfilForm, string>({
       query: (uuid) => `/control-escolar/estudiantes/${uuid}/`,
@@ -72,6 +92,9 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
     getMaterialesPrograma: builder.query<PaginatedResponse<Material>, string>({
       query: (programaId) => `/control-escolar/materiales/?programa=${programaId}`,
     }),
+    getInscripcionesEstudiante: builder.query<InscripcionEstudiante[], string>({
+      query: (uuid) => `/control-escolar/estudiantes/${uuid}/inscripciones/`,
+    }),
   }),
 });
 
@@ -86,4 +109,5 @@ export const {
   useModuloProgramaQuery,
   useGetMaterialesModuloQuery,
   useGetMaterialesProgramaQuery,
+  useGetInscripcionesEstudianteQuery,
 } = alumnoApiSlice;

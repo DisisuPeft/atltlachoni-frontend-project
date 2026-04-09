@@ -1,191 +1,158 @@
 "use client";
-import { DataTable } from "@/app/utils/data-table";
+
+import { useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { useGetEstudiantesQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
-import ButtonLink from "../link-button";
 import { EstudiantePerfil } from "@/redux/features/types/control-escolar/type";
-import { Chip } from "@mui/material";
+import { DataTable, StatusBadge } from "@/app/utils/data-table";
+import ButtonLink from "../link-button";
+import { Users } from "lucide-react";
+
+const PAGE_SIZE = 10;
+
+const columns: ColumnDef<EstudiantePerfil>[] = [
+  {
+    id: "matricula",
+    header: "Matrícula",
+    cell: ({ row }) => (
+      <span className="text-xs font-mono text-gray-500">
+        {row.original.matricula}
+      </span>
+    ),
+  },
+  {
+    id: "estudiante",
+    header: "Estudiante",
+    cell: ({ row }) => (
+      <div>
+        <p className="text-sm font-medium text-gray-900">
+          {row.original.user_nombre}
+        </p>
+        <p className="text-xs text-gray-400 mt-0.5">{row.original.user_genero}</p>
+      </div>
+    ),
+  },
+  {
+    id: "instituto",
+    header: "Instituto",
+    cell: ({ row }) => (
+      <span className="text-sm text-gray-600 truncate max-w-[180px] block">
+        {row.original.institucion_nombre ?? "—"}
+      </span>
+    ),
+  },
+  {
+    id: "estado",
+    header: "Estado",
+    cell: ({ row }) => <StatusBadge status={row.original.status} />,
+  },
+  {
+    id: "acciones",
+    header: "",
+    cell: ({ row }) => (
+      <div className="flex justify-end">
+        <ButtonLink
+          icon="eye-icon"
+          path={`/dashboard/control-escolar/alumnos/${row.original.ref}`}
+        />
+      </div>
+    ),
+  },
+];
 
 export default function EstudiantesPage() {
-  const { data: estudiantes } = useGetEstudiantesQuery();
-  const columns: ColumnDef<EstudiantePerfil>[] = [
-    { accessorKey: "matricula", header: "Matricula" },
-    { accessorKey: "user_nombre", header: "Nombre" },
-    { accessorKey: "user_genero", header: "Genero" },
-    { accessorKey: "institucion_nombre", header: "Instituto al que pertenece" },
-    {
-      header: "Estatus",
-      cell: ({ row }) => {
-        const color = row.original.status === 0 ? "error" : "success";
-        const label = row.original.status === 0 ? "Inactivo" : "Activo";
-        return <Chip label={label} color={color} variant="outlined" />;
-      },
-    },
-    {
-      header: "Acciones",
-      cell: ({ row }) => {
-        return (
-          <ButtonLink
-            icon="eye-icon"
-            path={`/dashboard/control-escolar/alumnos/${row.original.ref}`}
-          />
-        );
-      },
-    },
-  ];
+  const searchParams = useSearchParams();
+
+  const page = Number(searchParams.get("page") ?? "1");
+  const search = searchParams.get("search") ?? "";
+  const status = searchParams.get("status") ?? "all";
+
+  const { data: estudiantes, isLoading } = useGetEstudiantesQuery({
+    page,
+    search,
+    status,
+  });
+
+  const activos =
+    estudiantes?.results.filter((e) => e.status === 1).length ?? 0;
+
   return (
-    <div className="">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Estudiantes</h1>
-              <p className="text-gray-600 mt-1">
-                Gestiona y visualiza todos los estudiantes inscritos
-              </p>
-            </div>
-            <ButtonLink
-              path="/dashboard/control-escolar/alumnos/new"
-              title="+ Nuevo Alumno"
-            />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Estudiantes</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Gestiona y visualiza todos los estudiantes inscritos
+          </p>
+        </div>
+        <ButtonLink
+          path="/dashboard/control-escolar/alumnos/new"
+          title="+ Nuevo Alumno"
+        />
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+          <div className="w-10 h-10 bg-[#F0F6FF] rounded-lg flex items-center justify-center flex-shrink-0">
+            <Users className="w-5 h-5 text-[#0056D2]" />
           </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <div className="text-2xl font-bold text-gray-900">
-                {estudiantes?.count}
-              </div>
-              <div className="text-sm text-gray-600">Total Estudiantes</div>
-            </div>
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <div className="text-2xl font-bold text-green-600">
-                {/* {estudiantesActivos} */}
-              </div>
-              <div className="text-sm text-gray-600">Estudiantes Activos</div>
-            </div>
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <div className="text-2xl font-bold text-gray-900">
-                {/* {estudiantesFiltrados.length} */}
-              </div>
-              <div className="text-sm text-gray-600">Resultados Filtrados</div>
-            </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">
+              {estudiantes?.count ?? "—"}
+            </p>
+            <p className="text-xs text-gray-500">Total estudiantes</p>
           </div>
-
-          {/* Filtros y Búsqueda */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Búsqueda */}
-              <div className="md:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Buscar
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Nombre, matrícula o email..."
-                    // value={busqueda}
-                    // onChange={(e) => setBusqueda(e.target.value)}
-                    className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <svg
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Filtro Programa */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Programa
-                </label>
-                <select
-                  //   value={filtroPrograma}
-                  //   onChange={(e) => setFiltroPrograma(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="all">Todos</option>
-                  {/* {programasUnicos.map((programa) => (
-                    <option key={programa} value={programa}>
-                      {programa}
-                    </option>
-                  ))} */}
-                </select>
-              </div>
-
-              {/* Filtro Status */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Estado
-                </label>
-                <select
-                  //   value={filtroStatus}
-                  //   onChange={(e) => setFiltroStatus(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="all">Todos</option>
-                  <option value="Activo">Activo</option>
-                  <option value="Inactivo">Inactivo</option>
-                </select>
-              </div>
-            </div>
-            {/* Tabla de Estudiantes */}
-            {estudiantes?.count === 0 || !estudiantes ? (
-              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-                <svg
-                  className="w-16 h-16 text-gray-400 mx-auto mb-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No se encontraron estudiantes
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  No hay estudiantes que coincidan con los filtros seleccionados
-                </p>
-                <button
-                  //   onClick={() => {
-                  //     setBusqueda("");
-                  //     setFiltroPrograma("all");
-                  //     setFiltroStatus("all");
-                  //   }}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Limpiar filtros
-                </button>
-              </div>
-            ) : (
-              <div className="overflow-hidden">
-                <div className="p-2">
-                  <DataTable
-                    data={estudiantes.results ?? []}
-                    columns={columns}
-                  />
-                </div>
-              </div>
-            )}
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+          <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+            <span className="w-3 h-3 rounded-full bg-emerald-500" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{activos}</p>
+            <p className="text-xs text-gray-500">Activos esta página</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+          <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
+            <span className="text-sm font-bold text-gray-500">#</span>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">
+              {Math.ceil((estudiantes?.count ?? 0) / PAGE_SIZE)}
+            </p>
+            <p className="text-xs text-gray-500">Páginas totales</p>
           </div>
         </div>
       </div>
+
+      {/* Table */}
+      <DataTable
+        columns={columns}
+        data={estudiantes?.results ?? []}
+        isLoading={isLoading}
+        count={estudiantes?.count ?? 0}
+        pageSize={PAGE_SIZE}
+        filters={[
+          {
+            type: "search",
+            key: "search",
+            placeholder: "Nombre, matrícula o email...",
+          },
+          {
+            type: "select",
+            key: "status",
+            options: [
+              { value: "all", label: "Todos los estados" },
+              { value: "1", label: "Activo" },
+              { value: "0", label: "Inactivo" },
+            ],
+          },
+        ]}
+        emptyIcon={Users}
+        emptyMessage="No se encontraron estudiantes"
+      />
     </div>
   );
 }

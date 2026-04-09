@@ -10,8 +10,17 @@ const campaniasApiSlice = apiSlice.injectEndpoints({
         body: formData,
       }),
     }),
-    retrieveCampanias: builder.query<PaginatedResponse<Campania>, void>({
-      query: () => "/control-escolar/campanias/",
+    retrieveCampanias: builder.query<
+      PaginatedResponse<Campania>,
+      { page?: number; search?: string } | void
+    >({
+      query: (params = {}) => {
+        const { page = 1, search } = params as { page?: number; search?: string };
+        const qs = new URLSearchParams();
+        qs.set("page", String(page));
+        if (search) qs.set("search", search);
+        return `/control-escolar/campanias/?${qs.toString()}`;
+      },
     }),
     howManyCampanias: builder.query<number, void>({
       query: () => "/control-escolar/campanias/howmanycampanias/",

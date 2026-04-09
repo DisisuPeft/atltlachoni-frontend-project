@@ -1,18 +1,328 @@
 "use client";
 
-import Button from "@/app/ui/components/button";
+import { useState } from "react";
 import { useAlumnoEditForm } from "@/hooks";
 import { sweetAlert } from "@/sweetalert/sweetalerts";
-import { PencilIcon } from "lucide-react";
+import {
+  useGetInscripcionesEstudianteQuery,
+  useRetrieveEstudianteQuery,
+} from "@/redux/features/control-escolar/alumnosApiSlice";
 import { Modal } from "../../common/modal";
-import { useState } from "react";
 import StepEstudiante from "./steps";
+import {
+  User,
+  Mail,
+  Phone,
+  BookOpen,
+  MapPin,
+  Save,
+  Loader2,
+  PencilIcon,
+  GraduationCap,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 
 interface Props {
   uuid: string;
 }
+
+// ── Primitives (same system as alumnos-form) ─────────────────────────
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 pb-4 border-b border-gray-100 mb-6">
+      <div className="w-8 h-8 rounded-lg bg-[#F0F6FF] flex items-center justify-center flex-shrink-0 mt-0.5">
+        <Icon className="w-4 h-4 text-[#0056D2]" />
+      </div>
+      <div>
+        <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+        {description && (
+          <p className="text-xs text-gray-400 mt-0.5">{description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  required,
+  error,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">
+        {label}
+        {required && <span className="text-red-400 ml-1">*</span>}
+      </label>
+      {children}
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
+  );
+}
+
+const inputClass =
+  "w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed";
+
+const selectClass =
+  "w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed";
+
+// ── Profile header ───────────────────────────────────────────────────
+
+function ProfileHeader({
+  uuid,
+  disabled,
+  onEdit,
+  onInscribir,
+}: {
+  uuid: string;
+  disabled: boolean;
+  onEdit: () => void;
+  onInscribir: () => void;
+}) {
+  const { data: estudiante, isLoading } = useRetrieveEstudianteQuery(uuid);
+
+  const nombre = estudiante
+    ? `${estudiante.user_obj?.nombre ?? ""} ${estudiante.user_obj?.apellido_paterno ?? ""} ${estudiante.user_obj?.apellido_materno ?? ""}`.trim()
+    : "";
+
+  const initials = nombre
+    .split(" ")
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join("")
+    .toUpperCase();
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+        {/* Avatar */}
+        <div className="w-16 h-16 rounded-2xl bg-[#F0F6FF] flex items-center justify-center flex-shrink-0">
+          {isLoading ? (
+            <div className="w-8 h-3 bg-gray-200 rounded animate-pulse" />
+          ) : (
+            <span className="text-xl font-bold text-[#0056D2]">{initials}</span>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          {isLoading ? (
+            <div className="space-y-2">
+              <div className="h-6 w-48 bg-gray-100 rounded animate-pulse" />
+              <div className="h-4 w-32 bg-gray-100 rounded animate-pulse" />
+            </div>
+          ) : (
+            <>
+              <h1 className="text-xl font-bold text-gray-900 truncate">
+                {nombre || "—"}
+              </h1>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+                <span className="text-xs font-mono text-gray-400">
+                  {estudiante?.matricula ?? "—"}
+                </span>
+                {estudiante?.user_obj?.email && (
+                  <span className="flex items-center gap-1 text-xs text-gray-400">
+                    <Mail className="w-3 h-3" />
+                    {estudiante.user_obj.email}
+                  </span>
+                )}
+                {estudiante?.user_obj?.telefono && (
+                  <span className="flex items-center gap-1 text-xs text-gray-400">
+                    <Phone className="w-3 h-3" />
+                    {estudiante.user_obj.telefono}
+                  </span>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Status + actions */}
+        <div className="flex flex-col sm:items-end gap-3 flex-shrink-0">
+          {estudiante && (
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                estudiante.status === 1
+                  ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                  : "bg-red-50 text-red-700 ring-1 ring-red-200"
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${estudiante.status === 1 ? "bg-emerald-500" : "bg-red-500"}`}
+              />
+              {estudiante.status === 1 ? "Activo" : "Inactivo"}
+            </span>
+          )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onEdit}
+              className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg border transition-colors ${
+                !disabled
+                  ? "border-[#0056D2] text-[#0056D2] bg-[#F0F6FF]"
+                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <PencilIcon className="w-3.5 h-3.5" />
+              {disabled ? "Editar" : "Editando"}
+            </button>
+            <button
+              type="button"
+              onClick={onInscribir}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-white bg-[#0056D2] rounded-lg hover:bg-[#004BB5] transition-colors"
+            >
+              <GraduationCap className="w-3.5 h-3.5" />
+              Inscribir
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Inscripciones tab ────────────────────────────────────────────────
+
+function InscripcionesTab({ uuid }: { uuid: string }) {
+  const { data: inscripciones, isLoading } =
+    useGetInscripcionesEstudianteQuery(uuid);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+            <div className="h-4 w-48 bg-gray-100 rounded animate-pulse" />
+            <div className="h-3 w-32 bg-gray-100 rounded animate-pulse" />
+            <div className="h-2 w-full bg-gray-100 rounded-full animate-pulse" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (!inscripciones?.length) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 py-16 text-center">
+        <GraduationCap className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+        <p className="text-sm font-medium text-gray-500">Sin inscripciones registradas</p>
+        <p className="text-xs text-gray-400 mt-1">
+          Usa el botón &quot;Inscribir&quot; para agregar al estudiante a un programa
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {inscripciones.map((ins) => {
+        const pct =
+          ins.total_modulos > 0
+            ? Math.round((ins.modulo_actual / ins.total_modulos) * 100)
+            : 0;
+
+        const StatusIcon =
+          ins.status === 1
+            ? CheckCircle2
+            : ins.status === 0
+              ? Clock
+              : AlertCircle;
+
+        const statusColor =
+          ins.status === 1
+            ? "text-emerald-600"
+            : ins.status === 0
+              ? "text-amber-500"
+              : "text-red-500";
+
+        const barColor =
+          pct >= 100
+            ? "bg-emerald-500"
+            : pct >= 50
+              ? "bg-[#0056D2]"
+              : "bg-amber-400";
+
+        return (
+          <div
+            key={ins.ref}
+            className="bg-white rounded-xl border border-gray-200 p-5 space-y-4"
+          >
+            {/* Header row */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-lg bg-[#F0F6FF] flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <GraduationCap className="w-4 h-4 text-[#0056D2]" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {ins.programa_nombre}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Campaña: {ins.campania_nombre}
+                  </p>
+                </div>
+              </div>
+              <span className={`flex items-center gap-1 text-xs font-medium flex-shrink-0 ${statusColor}`}>
+                <StatusIcon className="w-3.5 h-3.5" />
+                {ins.status === 1 ? "Activo" : ins.status === 0 ? "Pendiente" : "Baja"}
+              </span>
+            </div>
+
+            {/* Progress */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Progreso del programa</span>
+                <span className="font-medium">
+                  Módulo {ins.modulo_actual} de {ins.total_modulos}
+                </span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${barColor}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-400">
+                <span>
+                  {ins.fecha_ingreso
+                    ? `Inicio: ${new Date(ins.fecha_ingreso).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })}`
+                    : "Sin fecha de inicio"}
+                </span>
+                <span className="font-medium text-gray-600">{pct}%</span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────────────
+
+type Tab = "info" | "inscripciones";
+
 export default function EstudianteEditPage({ uuid }: Props) {
   const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>("info");
+
   const {
     register,
     handleSubmit,
@@ -26,6 +336,7 @@ export default function EstudianteEditPage({ uuid }: Props) {
     localidades,
     disabled,
   } = useAlumnoEditForm(uuid);
+
   const handleEdit = () => {
     sweetAlert(
       "info",
@@ -33,382 +344,257 @@ export default function EstudianteEditPage({ uuid }: Props) {
       "Alerta",
     );
   };
-  const handleCloseModal = (value: boolean) => {
-    setOpen(value);
-  };
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: "info", label: "Información personal" },
+    { key: "inscripciones", label: "Inscripciones" },
+  ];
+
   return (
-    <div className="bg-gray-50">
-      <div className="max-w-8xl mx-auto px-2 sm:px-3 lg:px-4">
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] items-center p-3">
-          <div>
-            <Button onClick={handleEdit}>
-              <PencilIcon />
-            </Button>
-          </div>
-          <div className="px-4">
-            <Button onClick={() => setOpen(true)}>Inscribir a programa</Button>
-            <Modal show={open} onClose={() => setOpen(false)}>
-              <StepEstudiante estudianteId={uuid} onClose={handleCloseModal} />
-            </Modal>
-          </div>
-        </div>
-        {/* <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr]"> */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Información Personal */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Información Personal
-            </h2>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-5">
+      {/* Profile header card */}
+      <ProfileHeader
+        uuid={uuid}
+        disabled={disabled}
+        onEdit={handleEdit}
+        onInscribir={() => setOpen(true)}
+      />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Nombre */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre <span className="text-red-500">*</span>
-                </label>
-                <input
-                  disabled={disabled}
-                  {...register("user.nombre", {
-                    required: "El nombre es requerido",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.user?.nombre && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.nombre.message}
-                  </p>
-                )}
-              </div>
+      <Modal show={open} onClose={() => setOpen(false)}>
+        <StepEstudiante estudianteId={uuid} onClose={(v) => setOpen(v)} />
+      </Modal>
 
-              {/* Apellido Paterno */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Apellido Paterno <span className="text-red-500">*</span>
-                </label>
-                <input
-                  disabled={disabled}
-                  {...register("user.apellido_paterno", {
-                    required: "El apellido paterno es requerido",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.user?.apellido_paterno && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.apellido_paterno.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Apellido Materno */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Apellido Materno <span className="text-red-500">*</span>
-                </label>
-                <input
-                  disabled={disabled}
-                  {...register("user.apellido_materno", {
-                    required: "El apellido materno es requerido",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.user?.apellido_materno && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.apellido_materno.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Género */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Género <span className="text-red-500">*</span>
-                </label>
-                <select
-                  disabled={disabled}
-                  {...register("user.genero", {
-                    required: "El género es requerido",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">Seleccionar</option>
-                  {generos?.results.map((genero) => (
-                    <option key={genero.id} value={genero.id}>
-                      {genero.nombre}
-                    </option>
-                  ))}
-                </select>
-                {errors.user?.genero && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.genero.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Fecha de Nacimiento */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fecha de Nacimiento <span className="text-red-500">*</span>
-                </label>
-                <input
-                  disabled={disabled}
-                  type="date"
-                  {...register("user.fecha_nacimiento", {
-                    required: "La fecha de nacimiento es requerida",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.user?.fecha_nacimiento && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.fecha_nacimiento.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Edad */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Edad <span className="text-red-500">*</span>
-                </label>
-                <input
-                  disabled={true}
-                  type="number"
-                  {...register("user.edad", {
-                    required: "La edad es requerida",
-                    min: 1,
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.user?.edad && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.edad.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Información de Contacto */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Información de Contacto
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  disabled={disabled}
-                  type="email"
-                  {...register("user.email", {
-                    required: "El email es requerido",
-                    pattern: {
-                      value: /^\S+@\S+$/i,
-                      message: "Email inválido",
-                    },
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.user?.email && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.email.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Teléfono */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Teléfono <span className="text-red-500">*</span>
-                </label>
-                <input
-                  disabled={disabled}
-                  type="tel"
-                  {...register("user.telefono", {
-                    required: "El teléfono es requerido",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.user?.telefono && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.user.telefono.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Información Académica */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Información Académica
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Matrícula */}
-              {/* <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Matrícula <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register("matricula", {
-                    required: "La matrícula es requerida",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.matricula && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.matricula.message}
-                  </p>
-                )}
-              </div> */}
-
-              {/* Especialidad */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Especialidad <span className="text-red-500">*</span>
-                </label>
-                <input
-                  disabled={disabled}
-                  {...register("especialidad", {
-                    required: "La especialidad es requerida",
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-                {errors.especialidad && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.especialidad.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Fecha de Ingreso */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fecha de Ingreso
-                </label>
-                <input
-                  disabled={disabled}
-                  type="date"
-                  {...register("fecha_ingreso")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-
-              {/* Nivel Educativo */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nivel Educativo
-                </label>
-                <select
-                  disabled={disabled}
-                  {...register("nivel_educativo")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">Seleccionar</option>
-                  {nivelEducativo?.map((niv) => (
-                    <option key={niv.id} value={niv.id}>
-                      {niv.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Institución */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Institución
-                </label>
-                <select
-                  disabled={disabled}
-                  {...register("institucion")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">Seleccionar</option>
-                  {instituciones?.map((ins) => (
-                    <option key={ins.id} value={ins.id}>
-                      {ins.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Estado/País */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Estado
-                </label>
-                <select
-                  disabled={disabled}
-                  {...register("estado_pais")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">Seleccionar</option>
-                  {estados?.map((estado) => (
-                    <option key={estado.id} value={estado.id}>
-                      {estado.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Ciudad */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ciudad
-                </label>
-                <select
-                  disabled={disabled}
-                  {...register("ciudad")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">Seleccionar</option>
-                  {localidades ? (
-                    localidades.map((localidad) => (
-                      <option key={localidad.id} value={localidad.id}>
-                        {localidad.name}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">No data</option>
-                  )}
-                </select>
-              </div>
-            </div>
-          </div>
-          {!disabled && (
+      {/* Tabs */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="flex border-b border-gray-100">
+          {tabs.map((tab) => (
             <button
-              aria-label="GUardar"
-              className="
-              fixed z-50
-              bottom-4 right-4
-              sm:bottom-[50px] sm:right-[55px]
-
-              flex items-center justify-center
-              rounded-full
-
-              w-14 h-14
-              sm:w-16 sm:h-16
-
-              bg-sky-500 text-white
-              shadow-lg
-
-              hover:bg-blue-700
-              active:scale-95
-              transition-all duration-200 ease-out
-
-              focus:outline-none
-              focus:ring-4 focus:ring-blue-300
-            "
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-5 py-3.5 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === tab.key
+                  ? "border-[#0056D2] text-[#0056D2]"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
             >
-              {isSubmitting ? <div>Guardando...</div> : <div>Guardar</div>}
+              {tab.label}
             </button>
+          ))}
+        </div>
+
+        {/* Tab content */}
+        <div className="p-6">
+          {activeTab === "inscripciones" ? (
+            <InscripcionesTab uuid={uuid} />
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Editing banner */}
+              {!disabled && (
+                <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+                  <PencilIcon className="w-4 h-4 flex-shrink-0" />
+                  Modo edición activo — los cambios se guardan al presionar{" "}
+                  <strong>Guardar cambios</strong>
+                </div>
+              )}
+
+              {/* Personal */}
+              <div>
+                <SectionHeader
+                  icon={User}
+                  title="Información Personal"
+                  description="Datos de identificación del estudiante"
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                  <Field label="Nombre" required error={errors.user?.nombre?.message}>
+                    <input
+                      disabled={disabled}
+                      {...register("user.nombre", { required: "El nombre es requerido" })}
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label="Apellido Paterno" required error={errors.user?.apellido_paterno?.message}>
+                    <input
+                      disabled={disabled}
+                      {...register("user.apellido_paterno", { required: "El apellido paterno es requerido" })}
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label="Apellido Materno" required error={errors.user?.apellido_materno?.message}>
+                    <input
+                      disabled={disabled}
+                      {...register("user.apellido_materno", { required: "El apellido materno es requerido" })}
+                      className={inputClass}
+                    />
+                  </Field>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-5">
+                  <Field label="Género" required error={errors.user?.genero?.message}>
+                    <select
+                      disabled={disabled}
+                      {...register("user.genero", { required: "El género es requerido" })}
+                      className={selectClass}
+                    >
+                      <option value="">Seleccionar</option>
+                      {generos?.results.map((g) => (
+                        <option key={g.id} value={g.id}>{g.nombre}</option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Fecha de Nacimiento" required error={errors.user?.fecha_nacimiento?.message}>
+                    <input
+                      disabled={disabled}
+                      type="date"
+                      {...register("user.fecha_nacimiento", { required: "La fecha de nacimiento es requerida" })}
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label="Edad" error={errors.user?.edad?.message}>
+                    <div className="relative">
+                      <input
+                        disabled
+                        type="number"
+                        {...register("user.edad", { required: "La edad es requerida", min: 1 })}
+                        className={inputClass}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">años</span>
+                    </div>
+                  </Field>
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div>
+                <SectionHeader
+                  icon={Mail}
+                  title="Información de Contacto"
+                  description="Medios para comunicarse con el estudiante"
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <Field label="Email" required error={errors.user?.email?.message}>
+                    <div className="relative">
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      <input
+                        disabled={disabled}
+                        type="email"
+                        {...register("user.email", {
+                          required: "El email es requerido",
+                          pattern: { value: /^\S+@\S+$/i, message: "Email inválido" },
+                        })}
+                        className={`${inputClass} pl-10`}
+                      />
+                    </div>
+                  </Field>
+                  <Field label="Teléfono" required error={errors.user?.telefono?.message}>
+                    <div className="relative">
+                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      <input
+                        disabled={disabled}
+                        type="tel"
+                        {...register("user.telefono", { required: "El teléfono es requerido" })}
+                        className={`${inputClass} pl-10`}
+                      />
+                    </div>
+                  </Field>
+                </div>
+              </div>
+
+              {/* Academic */}
+              <div>
+                <SectionHeader
+                  icon={BookOpen}
+                  title="Información Académica"
+                  description="Datos de ingreso y trayectoria educativa"
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <Field label="Especialidad" required error={errors.especialidad?.message}>
+                    <input
+                      disabled={disabled}
+                      {...register("especialidad", { required: "La especialidad es requerida" })}
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label="Fecha de Ingreso">
+                    <input
+                      disabled={disabled}
+                      type="date"
+                      {...register("fecha_ingreso")}
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label="Nivel Educativo">
+                    <select disabled={disabled} {...register("nivel_educativo")} className={selectClass}>
+                      <option value="">Seleccionar</option>
+                      {nivelEducativo?.map((niv) => (
+                        <option key={niv.id} value={niv.id}>{niv.nombre}</option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Institución">
+                    <select disabled={disabled} {...register("institucion")} className={selectClass}>
+                      <option value="">Seleccionar</option>
+                      {instituciones?.map((ins) => (
+                        <option key={ins.id} value={ins.id}>{ins.nombre}</option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div>
+                <SectionHeader
+                  icon={MapPin}
+                  title="Ubicación"
+                  description="Estado y ciudad de residencia"
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <Field label="Estado">
+                    <select disabled={disabled} {...register("estado_pais")} className={selectClass}>
+                      <option value="">Seleccionar estado</option>
+                      {estados?.map((e) => (
+                        <option key={e.id} value={e.id}>{e.name}</option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Ciudad">
+                    <select disabled={disabled} {...register("ciudad")} className={selectClass}>
+                      <option value="">
+                        {estados ? "Seleccionar ciudad" : "Selecciona un estado primero"}
+                      </option>
+                      {localidades?.map((l) => (
+                        <option key={l.id} value={l.id}>{l.name}</option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+              </div>
+
+              {/* Sticky save bar */}
+              {!disabled && (
+                <div className="sticky bottom-0 -mx-6 -mb-6 px-6 py-4 bg-white border-t border-gray-200 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-[#0056D2] rounded-lg hover:bg-[#004BB5] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Guardando...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Guardar cambios
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </form>
           )}
-        </form>
-        {/* <div className="px-4">Inscripcion</div> */}
-        {/* </div> */}
+        </div>
       </div>
     </div>
   );

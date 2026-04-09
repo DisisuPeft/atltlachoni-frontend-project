@@ -17,9 +17,15 @@ const programasApiSlice = apiSlice.injectEndpoints({
     }),
     retrieveProgramas: builder.query<
       PaginatedResponse<ProgramaEducativo>,
-      void
+      { page?: number; search?: string } | void
     >({
-      query: () => "/control-escolar/programas-educativos/",
+      query: (params = {}) => {
+        const { page = 1, search } = params as { page?: number; search?: string };
+        const qs = new URLSearchParams();
+        qs.set("page", String(page));
+        if (search) qs.set("search", search);
+        return `/control-escolar/programas-educativos/?${qs.toString()}`;
+      },
     }),
     howManyProgramas: builder.query<number, void>({
       query: () => "/control-escolar/programas-educativos/howmanyprograms/",

@@ -1,90 +1,129 @@
 "use client";
+
+import { useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/app/utils/data-table";
 import { Campania } from "@/redux/features/types/control-escolar/type";
-import {
-  useRetrieveCampaniasQuery,
-  useHowManyCampaniasQuery,
-} from "@/redux/features/control-escolar/campaniasApiSlice";
+import { useRetrieveCampaniasQuery } from "@/redux/features/control-escolar/campaniasApiSlice";
 import { formatCurrency } from "@/lib/format-currency";
+import { Megaphone } from "lucide-react";
+// import ButtonLink from "../link-button";
+
+const columns: ColumnDef<Campania>[] = [
+  {
+    id: "nombre",
+    header: "Nombre",
+    cell: ({ row }) => (
+      <p className="text-sm font-medium text-gray-900">{row.original.nombre}</p>
+    ),
+  },
+  {
+    id: "institucion",
+    header: "Institución",
+    cell: ({ row }) => (
+      <span className="text-sm text-gray-600">
+        {row.original.institucion_nombre}
+      </span>
+    ),
+  },
+  {
+    id: "fecha_inicio",
+    header: "Inicio",
+    cell: ({ row }) => (
+      <span className="text-sm text-gray-600">
+        {row.original.fecha_inicio.split("-").reverse().join("/")}
+      </span>
+    ),
+  },
+  {
+    id: "fecha_fin",
+    header: "Fin",
+    cell: ({ row }) => (
+      <span className="text-sm text-gray-600">
+        {row.original.fecha_fin.split("-").reverse().join("/")}
+      </span>
+    ),
+  },
+  {
+    id: "costo",
+    header: "Costo asignado",
+    cell: ({ row }) => (
+      <span className="text-sm font-medium text-gray-900">
+        {formatCurrency(parseInt(row.original.costo_asignado))}
+      </span>
+    ),
+  },
+];
 
 export default function CampaniasView() {
-  const { data: howManyCampanias } = useHowManyCampaniasQuery();
-  const { data: campanias } = useRetrieveCampaniasQuery();
-  const headers: ColumnDef<Campania>[] = [
-    {
-      header: "Nombre",
-      accessorKey: "nombre",
-    },
-    {
-      header: "Institucion",
-      accessorKey: "institucion_nombre",
-    },
-    {
-      header: "Fecha de inicio",
-      accessorFn: (row) => row.fecha_inicio.split("-").reverse().join("/"),
-    },
-    {
-      header: "Fecha de finalizacion",
-      accessorFn: (row) => row.fecha_fin.split("-").reverse().join("/"),
-    },
-    {
-      header: "Costo asignado",
-      accessorFn: (row) => formatCurrency(parseInt(row.costo_asignado)),
-    },
-  ];
+  const searchParams = useSearchParams();
+
+  const page = Number(searchParams.get("page") ?? "1");
+  const search = searchParams.get("search") ?? "";
+
+  const { data: campanias, isLoading } = useRetrieveCampaniasQuery({
+    page,
+    search,
+  });
+
   return (
-    <>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Header */}
+      {/* <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Campañas</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Gestiona las campañas de inscripción activas
+          </p>
+        </div>
+        <ButtonLink
+          path="/dashboard/control-escolar/campanias/new"
+          title="+ Nueva Campaña"
+        />
+      </div> */}
+
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="text-2xl font-bold text-gray-900">
-            {howManyCampanias ?? 0}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+          <div className="w-10 h-10 bg-[#F0F6FF] rounded-lg flex items-center justify-center flex-shrink-0">
+            <Megaphone className="w-5 h-5 text-[#0056D2]" />
           </div>
-          <div className="text-sm text-gray-600">Campañas Activas</div>
-        </div>
-      </div>
-      {/* Filtros y Búsqueda */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Búsqueda */}
-          <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Buscar
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Nombre o descripción..."
-                // value={busqueda}
-                // onChange={(e) => setBusqueda(e.target.value)}
-                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">
+              {campanias?.count ?? "—"}
+            </p>
+            <p className="text-xs text-gray-500">Total campañas</p>
           </div>
         </div>
-        {/* Lista de Campanias */}
-        <div className="p-1 mt-5">
-          {campanias?.results ? (
-            <DataTable columns={headers} data={campanias?.results ?? []} />
-          ) : (
-            <div>Sin datos definidos</div>
-          )}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+          <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
+            <span className="text-sm font-bold text-gray-500">#</span>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">
+              {Math.ceil((campanias?.count ?? 0) / 10)}
+            </p>
+            <p className="text-xs text-gray-500">Páginas totales</p>
+          </div>
         </div>
       </div>
-    </>
+
+      {/* Table */}
+      <DataTable
+        columns={columns}
+        data={campanias?.results ?? []}
+        isLoading={isLoading}
+        count={campanias?.count ?? 0}
+        filters={[
+          {
+            type: "search",
+            key: "search",
+            placeholder: "Nombre o institución...",
+          },
+        ]}
+        emptyIcon={Megaphone}
+        emptyMessage="No se encontraron campañas"
+      />
+    </div>
   );
 }

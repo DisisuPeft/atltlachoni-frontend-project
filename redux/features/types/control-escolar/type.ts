@@ -25,6 +25,7 @@ export interface ProgramaEducativo extends BaseModel {
   tipo_nombre: string | null;
   institucion_nombre?: string | null;
   modalidad?: string | null;
+  modalidad_nombre: string | null;
 
   duracion_horas?: number | null;
   duracion_meses?: number | null;
