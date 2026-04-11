@@ -5,7 +5,7 @@ interface Children {
   children: React.ReactNode;
 }
 export default function Layout({ children }: Children) {
-  const allowedRoles = ["Administrador", "Vendedor"];
+  const allowedRoles = ["Administrador", "Tutor"];
   return (
     <RequireAuth allowedRoles={allowedRoles}>
       <div className="w-full">

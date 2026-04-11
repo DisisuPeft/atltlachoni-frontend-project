@@ -1,9 +1,64 @@
 "use client";
 
 import { useLeadForm } from "@/hooks";
-import Input from "@/app/ui/components/input";
-import Select from "@/app/ui/components/select";
-import Textarea from "@/app/ui/components/textarea";
+import { User, Mail, Phone, Briefcase, FileText, Loader2 } from "lucide-react";
+
+// ── Shared primitives ────────────────────────────────────────────────
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 pb-4 border-b border-gray-100 mb-5">
+      <div className="w-8 h-8 rounded-lg bg-[#F0F6FF] flex items-center justify-center flex-shrink-0 mt-0.5">
+        <Icon className="w-4 h-4 text-[#0056D2]" />
+      </div>
+      <div>
+        <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+        {description && (
+          <p className="text-xs text-gray-400 mt-0.5">{description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  required,
+  error,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">
+        {label}
+        {required && <span className="text-red-400 ml-1">*</span>}
+      </label>
+      {children}
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+    </div>
+  );
+}
+
+const inputClass =
+  "w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] transition-colors disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed";
+
+const selectClass =
+  "w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] transition-colors disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed";
+
+// ── Form ─────────────────────────────────────────────────────────────
 
 export default function createLead() {
   const {
@@ -19,201 +74,197 @@ export default function createLead() {
     programas,
     campanias,
   } = useLeadForm();
-  //   console.log(isSubmitting);
+
   const programaSeleccionado = watch("programa_objetivo");
 
   return (
-    <div className="w-full max-w-7xl p-2">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Nuevo lead</h1>
-        <p className="text-gray-600 mt-1">
-          Debes ingresar la información del prospecto para registrarlo en el
-          sistema.
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Nuevo Lead</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Registra los datos del prospecto para iniciar el seguimiento
         </p>
       </div>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Sección: Datos Personales */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-            Datos Personales
-          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Nombre *"
-              placeholder="Ej: Juan"
-              register={register("nombre")}
-              error={errors.nombre?.message}
-            />
-
-            <Input
-              label="Apellido Paterno *"
-              placeholder="Ej: Pérez"
-              register={register("apellido_paterno")}
-              error={errors.apellido_paterno?.message}
-            />
-
-            <Input
-              label="Apellido Materno "
-              placeholder="Ej: García"
-              register={register("apellido_materno")}
-              error={errors.apellido_materno?.message}
-            />
-          </div>
-        </div>
-
-        {/* Sección: Datos de Contacto */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-            Datos de Contacto
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Email *"
-              type="email"
-              placeholder="Ej: juan.perez@email.com"
-              register={register("correo")}
-              error={errors.correo?.message}
-            />
-
-            <Input
-              label="Teléfono (10 dígitos) *"
-              type="tel"
-              placeholder="Ej: 9612345678"
-              register={register("telefono")}
-              error={errors.telefono?.message}
-              maxLength={10}
-            />
-            <Input
-              label="Medio de contacto adicional Teléfono (10 dígitos) *"
-              type="tel"
-              placeholder="Ej: 9612345678"
-              register={register("contacto_alterno")}
-              error={errors.contacto_alterno?.message}
-              maxLength={10}
-            />
-          </div>
-        </div>
-
-        {/* Sección: Información Comercial */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-            Información Comercial
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select
-              label="Fuente *"
-              options={fuentes ?? []}
-              valueKey="id"
-              labelKey="nombre"
-              placeholder="Canal de ingreso"
-              register={register("fuente")}
-              error={errors.fuente?.message}
-            />
-
-            <Select
-              label="Etapa Inicial *"
-              options={etapas ?? []}
-              placeholder="Selecciona la etapa"
-              register={register("etapa")}
-              error={errors.etapa?.message}
-            />
-            <Select
-              label="Estatus Inicial *"
-              options={estatus ?? []}
-              placeholder="Selecciona el estatus"
-              register={register("estatus")}
-              error={errors.estatus?.message}
-            />
-
-            <Select
-              label="Programa de Interés *"
-              options={programas ?? []}
-              placeholder="Selecciona el programa"
-              register={register("programa_objetivo")}
-              error={errors.programa_objetivo?.message}
-            />
-
-            <Select
-              label="Campaña *"
-              options={campanias ?? []}
-              placeholder={
-                programaSeleccionado
-                  ? "Selecciona la campaña"
-                  : "Primero selecciona un programa"
-              }
-              register={register("campania")}
-              error={errors.campania?.message}
-              disabled={!programaSeleccionado}
-            />
-
-            {/* <div className="md:col-span-2">
-              <Select
-                label="Vendedor Asignado *"
-                options={VENDEDORES}
-                placeholder="Selecciona el vendedor responsable"
-                register={register("vendedor_id")}
-                error={errors.vendedor_id?.message}
-              />
-            </div> */}
-          </div>
-        </div>
-
-        {/* Sección: Notas */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-            Notas Adicionales
-          </h2>
-
-          <Textarea
-            label="Notas (opcional)"
-            placeholder="Agrega cualquier información adicional relevante sobre el prospecto..."
-            register={register("notas")}
-            error={errors.notas?.message}
-            rows={4}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Datos personales */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <SectionHeader
+            icon={User}
+            title="Datos Personales"
+            description="Nombre completo del prospecto"
           />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <Field label="Nombre" required error={errors.nombre?.message}>
+              <input
+                {...register("nombre")}
+                placeholder="Ej. Juan"
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Apellido Paterno" required error={errors.apellido_paterno?.message}>
+              <input
+                {...register("apellido_paterno")}
+                placeholder="Ej. Pérez"
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Apellido Materno" error={errors.apellido_materno?.message}>
+              <input
+                {...register("apellido_materno")}
+                placeholder="Ej. García"
+                className={inputClass}
+              />
+            </Field>
+          </div>
         </div>
 
-        {/* Botón Submit */}
-        <div className="flex justify-end gap-3 pt-4">
+        {/* Datos de contacto */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <SectionHeader
+            icon={Mail}
+            title="Datos de Contacto"
+            description="Medios para comunicarse con el prospecto"
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Field label="Email" required error={errors.correo?.message}>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input
+                  type="email"
+                  {...register("correo")}
+                  placeholder="correo@ejemplo.com"
+                  className={`${inputClass} pl-10`}
+                />
+              </div>
+            </Field>
+            <Field label="Teléfono (10 dígitos)" required error={errors.telefono?.message}>
+              <div className="relative">
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input
+                  type="tel"
+                  {...register("telefono")}
+                  placeholder="9612345678"
+                  maxLength={10}
+                  className={`${inputClass} pl-10`}
+                />
+              </div>
+            </Field>
+            <Field label="Contacto alterno" error={errors.contacto_alterno?.message}>
+              <div className="relative">
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input
+                  type="tel"
+                  {...register("contacto_alterno")}
+                  placeholder="Teléfono adicional"
+                  maxLength={10}
+                  className={`${inputClass} pl-10`}
+                />
+              </div>
+            </Field>
+          </div>
+        </div>
+
+        {/* Información comercial */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <SectionHeader
+            icon={Briefcase}
+            title="Información Comercial"
+            description="Clasificación y asignación del lead en el pipeline"
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Field label="Fuente" required error={errors.fuente?.message}>
+              <select {...register("fuente")} className={selectClass}>
+                <option value="">Canal de ingreso</option>
+                {fuentes?.map((f) => (
+                  <option key={f.id} value={f.id}>{f.nombre}</option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Etapa inicial" required error={errors.etapa?.message}>
+              <select {...register("etapa")} className={selectClass}>
+                <option value="">Selecciona la etapa</option>
+                {etapas?.map((e) => (
+                  <option key={e.id} value={e.id}>{e.nombre}</option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Estatus inicial" required error={errors.estatus?.message}>
+              <select {...register("estatus")} className={selectClass}>
+                <option value="">Selecciona el estatus</option>
+                {estatus?.map((e) => (
+                  <option key={e.id} value={e.id}>{e.nombre}</option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Programa de interés" required error={errors.programa_objetivo?.message}>
+              <select {...register("programa_objetivo")} className={selectClass}>
+                <option value="">Selecciona el programa</option>
+                {programas?.map((p) => (
+                  <option key={p.id} value={p.id}>{p.nombre}</option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Campaña" required error={errors.campania?.message}>
+              <select
+                {...register("campania")}
+                disabled={!programaSeleccionado}
+                className={selectClass}
+              >
+                <option value="">
+                  {programaSeleccionado
+                    ? "Selecciona la campaña"
+                    : "Primero selecciona un programa"}
+                </option>
+                {campanias?.map((c) => (
+                  <option key={c.id} value={c.id}>{c.nombre}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </div>
+
+        {/* Notas */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <SectionHeader
+            icon={FileText}
+            title="Notas Adicionales"
+            description="Información complementaria sobre el prospecto"
+          />
+          <textarea
+            {...register("notas")}
+            rows={4}
+            placeholder="Agrega cualquier información relevante sobre el prospecto..."
+            className={inputClass}
+          />
+          {errors.notas && (
+            <p className="text-xs text-red-500 mt-1">{errors.notas.message}</p>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-3 pt-2 pb-8">
           <button
             type="button"
             onClick={() => window.history.back()}
             disabled={isSubmitting}
-            className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-5 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
           >
             Cancelar
           </button>
-
           <button
             type="submit"
             disabled={isSubmitting}
-            className="cursor-pointer px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-[#0056D2] rounded-lg hover:bg-[#004BB5] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? (
               <>
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
+                <Loader2 className="w-4 h-4 animate-spin" />
                 Creando...
               </>
             ) : (

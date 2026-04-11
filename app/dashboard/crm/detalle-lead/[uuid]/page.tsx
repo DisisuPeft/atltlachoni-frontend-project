@@ -1,7 +1,14 @@
-export default function Page({
+import LeadDetailView from "@/app/components/crm/lead-detail/lead-detail-view";
+
+export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ uuid: string }>;
+  searchParams: Promise<{ ref?: string }>;
 }) {
-  return <div>detalle lead</div>;
+  const { uuid } = await params;
+  const { ref } = await searchParams;
+
+  return <LeadDetailView uuid={uuid} refParam={ref} />;
 }

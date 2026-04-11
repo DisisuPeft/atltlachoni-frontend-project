@@ -1,5 +1,5 @@
 import RequireAuth from "@/app/utils/auth/require-auth";
-import TabsPanelWrapper from "@/app/components/dash/menu-tabs";
+// import TabsPanelWrapper from "@/app/components/dash/menu-tabs";
 import Sidebar from "@/app/components/crm/side-bar";
 
 interface Children {
