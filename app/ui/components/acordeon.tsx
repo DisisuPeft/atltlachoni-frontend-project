@@ -9,6 +9,7 @@ interface AcordeonProps {
   title: string;
   children: ReactNode;
   className?: string;
+  defaultOpen?: boolean;
 }
 
 function ChevronDownIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -34,8 +35,9 @@ export default function Acordeon({
   title,
   children,
   className,
+  defaultOpen = false,
 }: AcordeonProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
     <div
@@ -45,6 +47,7 @@ export default function Acordeon({
       )}
     >
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex justify-between items-center p-6 text-left font-semibold text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-200"
         aria-expanded={isOpen}

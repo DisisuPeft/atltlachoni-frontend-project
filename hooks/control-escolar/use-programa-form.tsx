@@ -30,7 +30,7 @@ export default function useProgramaForm() {
     register,
     control,
     handleSubmit,
-    // watch,
+    watch,
     reset,
     formState: { errors },
   } = useForm<ProgramaEducativoForm>({
@@ -78,6 +78,7 @@ export default function useProgramaForm() {
     appendModulo,
     removeModulo,
     control,
+    watch,
     tiposProgramas,
     modalidades,
     instituciones,

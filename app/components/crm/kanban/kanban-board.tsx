@@ -5,13 +5,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAppSelector } from "@/redux/hooks";
 import { useGetPipelinesQuery } from "@/redux/features/crm/catalogosCrmApiSlice";
-import {
-  useGetLeadsQuery,
-  useUpdateLeadMutation,
-} from "@/redux/features/crm/leadsApiSlice";
+import { useGetLeadsQuery } from "@/redux/features/crm/leadsApiSlice";
 import { Lead, Etapa } from "@/redux/features/types/crm/lead-types";
 import {
-  ChevronDown,
   Plus,
   Phone,
   Mail,
@@ -19,7 +15,6 @@ import {
   Thermometer,
   Snowflake,
   Search,
-  // LayoutKanban,
 } from "lucide-react";
 
 // ── Temperature icon ─────────────────────────────────────────────────
@@ -52,18 +47,7 @@ function initials(name: string) {
 
 // ── Lead card ────────────────────────────────────────────────────────
 
-function LeadCard({
-  lead,
-  etapas,
-  onMove,
-  refParam,
-}: {
-  lead: Lead;
-  etapas: Etapa[];
-  onMove: (uuid: string, etapaId: number) => void;
-  refParam: string | null;
-}) {
-  const [menuOpen, setMenuOpen] = useState(false);
+function LeadCard({ lead, refParam }: { lead: Lead; refParam: string | null }) {
   const temp = lead.temperatura_actual;
   const tempColor = temp?.color ?? "#94a3b8";
 
@@ -127,46 +111,9 @@ function LeadCard({
         )}
       </div>
 
-      {/* Footer: date + move */}
-      <div className="flex items-center justify-between pt-1 border-t border-gray-100">
-        <span className="text-xs text-gray-400">
-          {timeAgo(lead.created_at)}
-        </span>
-
-        <div className="relative">
-          <button
-            onClick={() => setMenuOpen((v) => !v)}
-            className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#0056D2] transition-colors px-2 py-1 rounded-md hover:bg-[#F0F6FF]"
-          >
-            Mover
-            <ChevronDown className="w-3 h-3" />
-          </button>
-
-          {menuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setMenuOpen(false)}
-              />
-              <div className="absolute right-0 bottom-full mb-1 z-20 bg-white rounded-lg border border-gray-200 shadow-lg py-1 min-w-[160px]">
-                {etapas
-                  .filter((e) => e.id !== lead.etapa)
-                  .map((etapa) => (
-                    <button
-                      key={etapa.id}
-                      onClick={() => {
-                        onMove(lead.uuid, etapa.id);
-                        setMenuOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      → {etapa.nombre}
-                    </button>
-                  ))}
-              </div>
-            </>
-          )}
-        </div>
+      {/* Footer: date */}
+      <div className="pt-1 border-t border-gray-100">
+        <span className="text-xs text-gray-400">{timeAgo(lead.created_at)}</span>
       </div>
     </div>
   );
@@ -177,14 +124,10 @@ function LeadCard({
 function KanbanColumn({
   etapa,
   leads,
-  allEtapas,
-  onMove,
   refParam,
 }: {
   etapa: Etapa;
   leads: Lead[];
-  allEtapas: Etapa[];
-  onMove: (uuid: string, etapaId: number) => void;
   refParam: string | null;
 }) {
   return (
@@ -215,13 +158,7 @@ function KanbanColumn({
           </div>
         ) : (
           leads.map((lead) => (
-            <LeadCard
-              key={lead.uuid}
-              lead={lead}
-              etapas={allEtapas}
-              onMove={onMove}
-              refParam={refParam}
-            />
+            <LeadCard key={lead.uuid} lead={lead} refParam={refParam} />
           ))
         )}
       </div>
@@ -238,17 +175,14 @@ export default function KanbanBoard() {
 
   const { unidadId } = useAppSelector((state) => state.changeUnidad);
 
-  const { data: pipelines, isLoading: loadingPipelines } =
-    useGetPipelinesQuery();
-  const {
-    data: leadsData,
-    isLoading: loadingLeads,
-    refetch,
-  } = useGetLeadsQuery(unidadId ? { empresa: unidadId } : undefined);
+  const { data: pipelines, isLoading: loadingPipelines } = useGetPipelinesQuery(
+    unidadId ? { instituto: unidadId } : undefined,
+  );
+  const { data: leadsData, isLoading: loadingLeads } = useGetLeadsQuery(
+    unidadId ? { instituto: unidadId } : undefined,
+  );
 
-  const [updateLead] = useUpdateLeadMutation();
-
-  const pipeline = pipelines?.[0];
+  const pipeline = pipelines?.results?.[0];
   const etapas = pipeline?.etapas ?? [];
 
   const leads = (leadsData?.results ?? []).filter((l) => {
@@ -266,15 +200,6 @@ export default function KanbanBoard() {
     acc[etapa.id] = leads.filter((l) => l.etapa === etapa.id);
     return acc;
   }, {});
-
-  const handleMove = async (uuid: string, etapaId: number) => {
-    try {
-      await updateLead({ uuid, data: { etapa: etapaId } }).unwrap();
-      refetch();
-    } catch {
-      // silent — user sees no change
-    }
-  };
 
   const isLoading = loadingPipelines || loadingLeads;
 
@@ -299,7 +224,6 @@ export default function KanbanBoard() {
   if (!pipeline) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        {/* <LayoutKanban className="w-12 h-12 text-gray-300 mb-4" /> */}
         <p className="text-sm font-medium text-gray-500">
           No hay un pipeline configurado
         </p>
@@ -339,8 +263,6 @@ export default function KanbanBoard() {
             key={etapa.id}
             etapa={etapa}
             leads={leadsByEtapa[etapa.id] ?? []}
-            allEtapas={etapas}
-            onMove={handleMove}
             refParam={refParam}
           />
         ))}

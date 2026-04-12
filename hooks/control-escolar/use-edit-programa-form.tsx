@@ -10,6 +10,7 @@ import {
 import {
   useUpdateProgramasMutation,
   useRetrieveProgramaQuery,
+  useRetrieveProgramasQuery,
 } from "@/redux/features/control-escolar/programasApiSlice";
 import { setAlert } from "@/redux/features/alert/alertSlice";
 import { useAppDispatch } from "@/redux/hooks";
@@ -18,7 +19,8 @@ import { ErrorResponse } from "@/redux/features/types/reponse";
 import { useEffect, useState } from "react";
 
 export default function useEditProgramaForm(uuid: string) {
-  const { data: programa, isLoading } = useRetrieveProgramaQuery(uuid);
+  const { data: programa, isLoading, refetch: refetchPrograma } = useRetrieveProgramaQuery(uuid);
+  const { refetch: refetchLista } = useRetrieveProgramasQuery();
   const { data: tiposProgramas } = useGetTiposProgramasQuery();
   const { data: modalidades } = useGetModalidadesQuery();
   const { data: instituciones } = useRetrieveInstitucionesQuery();
@@ -30,7 +32,7 @@ export default function useEditProgramaForm(uuid: string) {
     register,
     control,
     handleSubmit,
-    // watch,
+    watch,
     reset,
     formState: { errors },
   } = useForm<ProgramaEducativoForm>({
@@ -76,11 +78,13 @@ export default function useEditProgramaForm(uuid: string) {
   const onSubmit = async (data: ProgramaEducativoForm) => {
     try {
       await updateProgramas({ uuid: uuid, formData: data }).unwrap();
-      reset();
+      await refetchPrograma();
+      refetchLista();
+      setDisabled(true);
       dispatch(
         setAlert({
           type: "success",
-          message: "Programa educativo creado con exito.",
+          message: "Programa educativo actualizado con éxito.",
         }),
       );
     } catch (error) {
@@ -89,7 +93,7 @@ export default function useEditProgramaForm(uuid: string) {
       dispatch(
         setAlert({
           type: "error",
-          message: "Programa educativo no se creo debido a un error.",
+          message: "No se pudo actualizar el programa educativo.",
         }),
       );
     }
@@ -104,6 +108,7 @@ export default function useEditProgramaForm(uuid: string) {
     appendModulo,
     removeModulo,
     control,
+    watch,
     tiposProgramas,
     modalidades,
     instituciones,

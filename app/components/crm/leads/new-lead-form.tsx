@@ -60,7 +60,7 @@ const selectClass =
 
 // ── Form ─────────────────────────────────────────────────────────────
 
-export default function createLead() {
+export default function NewLeadForm() {
   const {
     register,
     watch,
@@ -78,7 +78,7 @@ export default function createLead() {
   const programaSeleccionado = watch("programa_objetivo");
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Nuevo Lead</h1>
@@ -103,14 +103,21 @@ export default function createLead() {
                 className={inputClass}
               />
             </Field>
-            <Field label="Apellido Paterno" required error={errors.apellido_paterno?.message}>
+            <Field
+              label="Apellido Paterno"
+              required
+              error={errors.apellido_paterno?.message}
+            >
               <input
                 {...register("apellido_paterno")}
                 placeholder="Ej. Pérez"
                 className={inputClass}
               />
             </Field>
-            <Field label="Apellido Materno" error={errors.apellido_materno?.message}>
+            <Field
+              label="Apellido Materno"
+              error={errors.apellido_materno?.message}
+            >
               <input
                 {...register("apellido_materno")}
                 placeholder="Ej. García"
@@ -139,7 +146,11 @@ export default function createLead() {
                 />
               </div>
             </Field>
-            <Field label="Teléfono (10 dígitos)" required error={errors.telefono?.message}>
+            <Field
+              label="Teléfono (10 dígitos)"
+              required
+              error={errors.telefono?.message}
+            >
               <div className="relative">
                 <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 <input
@@ -151,7 +162,10 @@ export default function createLead() {
                 />
               </div>
             </Field>
-            <Field label="Contacto alterno" error={errors.contacto_alterno?.message}>
+            <Field
+              label="Contacto alterno"
+              error={errors.contacto_alterno?.message}
+            >
               <div className="relative">
                 <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 <input
@@ -177,8 +191,10 @@ export default function createLead() {
             <Field label="Fuente" required error={errors.fuente?.message}>
               <select {...register("fuente")} className={selectClass}>
                 <option value="">Canal de ingreso</option>
-                {fuentes?.map((f) => (
-                  <option key={f.id} value={f.id}>{f.nombre}</option>
+                {fuentes?.results.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.nombre}
+                  </option>
                 ))}
               </select>
             </Field>
@@ -186,26 +202,43 @@ export default function createLead() {
             <Field label="Etapa inicial" required error={errors.etapa?.message}>
               <select {...register("etapa")} className={selectClass}>
                 <option value="">Selecciona la etapa</option>
-                {etapas?.map((e) => (
-                  <option key={e.id} value={e.id}>{e.nombre}</option>
+                {etapas?.results?.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.nombre}
+                  </option>
                 ))}
               </select>
             </Field>
 
-            <Field label="Estatus inicial" required error={errors.estatus?.message}>
+            <Field
+              label="Estatus inicial"
+              required
+              error={errors.estatus?.message}
+            >
               <select {...register("estatus")} className={selectClass}>
                 <option value="">Selecciona el estatus</option>
-                {estatus?.map((e) => (
-                  <option key={e.id} value={e.id}>{e.nombre}</option>
+                {estatus?.results?.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.nombre}
+                  </option>
                 ))}
               </select>
             </Field>
 
-            <Field label="Programa de interés" required error={errors.programa_objetivo?.message}>
-              <select {...register("programa_objetivo")} className={selectClass}>
+            <Field
+              label="Programa de interés"
+              required
+              error={errors.programa_objetivo?.message}
+            >
+              <select
+                {...register("programa_objetivo")}
+                className={selectClass}
+              >
                 <option value="">Selecciona el programa</option>
                 {programas?.map((p) => (
-                  <option key={p.id} value={p.id}>{p.nombre}</option>
+                  <option key={p.id} value={p.id}>
+                    {p.nombre}
+                  </option>
                 ))}
               </select>
             </Field>
@@ -222,7 +255,9 @@ export default function createLead() {
                     : "Primero selecciona un programa"}
                 </option>
                 {campanias?.map((c) => (
-                  <option key={c.id} value={c.id}>{c.nombre}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.nombre}
+                  </option>
                 ))}
               </select>
             </Field>

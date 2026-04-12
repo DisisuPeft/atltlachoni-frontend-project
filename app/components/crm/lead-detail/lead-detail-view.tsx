@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useAppSelector } from "@/redux/hooks";
 import Link from "next/link";
 import {
   useGetLeadQuery,
-  useUpdateLeadMutation,
   useGetInteraccionesQuery,
   useCreateInteraccionMutation,
   useGetSeguimientosQuery,
@@ -29,13 +29,14 @@ import {
   Plus,
   CheckCircle2,
   Clock,
-  // ChevronDown,
-  // ChevronUp,
   MessageSquare,
   CalendarClock,
   GitBranch,
   Loader2,
   Save,
+  Check,
+  ImagePlus,
+  X,
 } from "lucide-react";
 import {
   InteraccionForm,
@@ -119,25 +120,98 @@ function initials(name: string) {
 
 // ── Info tab ─────────────────────────────────────────────────────────
 
+function EtapasProgress({
+  etapas,
+  currentEtapaId,
+}: {
+  etapas: { id: number; nombre: string; orden?: number }[];
+  currentEtapaId: number;
+}) {
+  const currentIndex = etapas.findIndex((e) => e.id === currentEtapaId);
+
+  return (
+    <div className="w-full overflow-x-auto pb-1">
+      <div className="flex items-center min-w-max gap-0">
+        {etapas.map((etapa, index) => {
+          const isDone = index < currentIndex;
+          const isCurrent = index === currentIndex;
+
+          return (
+            <div key={etapa.id} className="flex items-center">
+              {/* Step */}
+              <div className="flex flex-col items-center gap-1.5">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                    isDone
+                      ? "bg-[#0056D2] text-white"
+                      : isCurrent
+                        ? "bg-[#0056D2] text-white ring-4 ring-[#0056D2]/20"
+                        : "bg-gray-100 text-gray-400"
+                  }`}
+                >
+                  {isDone ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    <span className="text-xs font-semibold">{index + 1}</span>
+                  )}
+                </div>
+                <span
+                  className={`text-xs font-medium whitespace-nowrap max-w-[80px] text-center leading-tight ${
+                    isCurrent
+                      ? "text-[#0056D2]"
+                      : isDone
+                        ? "text-gray-500"
+                        : "text-gray-400"
+                  }`}
+                >
+                  {etapa.nombre}
+                </span>
+              </div>
+
+              {/* Connector */}
+              {index < etapas.length - 1 && (
+                <div
+                  className={`h-0.5 w-10 mx-1 mb-5 flex-shrink-0 transition-all ${
+                    index < currentIndex ? "bg-[#0056D2]" : "bg-gray-200"
+                  }`}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function InfoTab({ uuid }: { uuid: string }) {
+  const { unidadId } = useAppSelector((state) => state.changeUnidad);
   const { data: lead } = useGetLeadQuery(uuid);
-  const { data: pipelines } = useGetPipelinesQuery();
-  const [updateLead, { isLoading }] = useUpdateLeadMutation();
-  const [etapaId, setEtapaId] = useState<number | undefined>();
+  const { data: pipelines } = useGetPipelinesQuery(
+    unidadId ? { instituto: unidadId } : undefined,
+  );
 
-  const etapas = pipelines?.[0]?.etapas ?? [];
-
-  const handleMoveEtapa = async (newEtapaId: number) => {
-    await updateLead({ uuid, data: { etapa: newEtapaId } });
-    setEtapaId(undefined);
-  };
+  const etapas = pipelines?.results?.[0]?.etapas ?? [];
 
   if (!lead) return null;
 
   return (
     <div className="space-y-6">
+      {/* Progreso de etapa */}
+      {etapas.length > 0 && (
+        <div>
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+            Progreso en el pipeline
+          </h3>
+          <EtapasProgress etapas={etapas} currentEtapaId={lead.etapa} />
+          <p className="text-xs text-gray-400 mt-3">
+            La etapa avanza automáticamente según las interacciones registradas.
+          </p>
+        </div>
+      )}
+
       {/* Datos personales */}
-      <div>
+      <div className="border-t border-gray-100 pt-6">
         <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
           Datos personales
         </h3>
@@ -197,40 +271,6 @@ function InfoTab({ uuid }: { uuid: string }) {
         </div>
       </div>
 
-      {/* Mover etapa */}
-      <div className="border-t border-gray-100 pt-6">
-        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-          Mover de etapa
-        </h3>
-        <div className="flex items-center gap-3">
-          <select
-            className={`${selectClass} max-w-xs`}
-            value={etapaId ?? lead.etapa}
-            onChange={(e) => setEtapaId(Number(e.target.value))}
-          >
-            {etapas.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.nombre}
-              </option>
-            ))}
-          </select>
-          {etapaId && etapaId !== lead.etapa && (
-            <button
-              onClick={() => handleMoveEtapa(etapaId)}
-              disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-[#0056D2] rounded-lg hover:bg-[#004BB5] disabled:opacity-60 transition-colors"
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              Confirmar
-            </button>
-          )}
-        </div>
-      </div>
-
       {lead.notas && (
         <div className="border-t border-gray-100 pt-6">
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
@@ -247,27 +287,57 @@ function InfoTab({ uuid }: { uuid: string }) {
 
 // ── Interacciones tab ─────────────────────────────────────────────────
 
-function InteraccionesTab({ leadId, uuid }: { leadId: number; uuid?: string }) {
+function InteraccionesTab({ leadId }: { leadId: number; uuid?: string }) {
+  const { unidadId } = useAppSelector((state) => state.changeUnidad);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<InteraccionForm>>({});
+  const [evidencia, setEvidencia] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
 
   const {
     data: interacciones,
     isLoading,
     refetch,
   } = useGetInteraccionesQuery({ lead: leadId });
-  const { data: tipos } = useGetTiposInteraccionQuery();
-  const { data: estados } = useGetEstadosInteraccionQuery();
-  const { data: temperaturas } = useGetNivelesTemperaturaQuery();
+  const { data: tipos } = useGetTiposInteraccionQuery(
+    unidadId ? { instituto: unidadId } : undefined,
+  );
+  const { data: estados } = useGetEstadosInteraccionQuery(
+    unidadId ? { instituto: unidadId } : undefined,
+  );
+  const { data: temperaturas } = useGetNivelesTemperaturaQuery(
+    unidadId ? { instituto: unidadId } : undefined,
+  );
   const [createInteraccion, { isLoading: isCreating }] =
     useCreateInteraccionMutation();
 
-  const tipoActual = tipos?.find((t) => t.id === Number(form.tipo));
+  const tipoActual = tipos?.results?.find((t) => t.id === Number(form.tipo));
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setEvidencia(file);
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setPreview(url);
+    } else {
+      setPreview(null);
+    }
+  };
+
+  const clearFile = () => {
+    setEvidencia(null);
+    setPreview(null);
+  };
 
   const handleSubmit = async () => {
     if (!form.tipo || !form.estado || !form.asunto || !form.contenido) return;
-    await createInteraccion({ ...form, lead: leadId } as InteraccionForm);
+    await createInteraccion({
+      ...form,
+      lead: leadId,
+      ...(evidencia ? { evidencia } : {}),
+    } as InteraccionForm);
     setForm({});
+    clearFile();
     setOpen(false);
     refetch();
   };
@@ -298,7 +368,7 @@ function InteraccionesTab({ leadId, uuid }: { leadId: number; uuid?: string }) {
                 }
               >
                 <option value="">Seleccionar</option>
-                {tipos?.map((t) => (
+                {tipos?.results?.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.icono} {t.nombre}
                   </option>
@@ -317,7 +387,7 @@ function InteraccionesTab({ leadId, uuid }: { leadId: number; uuid?: string }) {
                 }
               >
                 <option value="">Seleccionar</option>
-                {estados?.map((e) => (
+                {estados?.results?.map((e) => (
                   <option key={e.id} value={e.id}>
                     {e.nombre}
                   </option>
@@ -398,9 +468,9 @@ function InteraccionesTab({ leadId, uuid }: { leadId: number; uuid?: string }) {
                 }
               >
                 <option value="">Sin cambio</option>
-                {temperaturas?.map((t) => (
+                {temperaturas?.results?.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.icono} {t.nombre}
+                    {t.nombre}
                   </option>
                 ))}
               </select>
@@ -417,6 +487,43 @@ function InteraccionesTab({ leadId, uuid }: { leadId: number; uuid?: string }) {
                 }
                 placeholder="Ej: Llamar el viernes"
               />
+            </div>
+
+            {/* Evidencia */}
+            <div className="space-y-1.5 sm:col-span-2">
+              <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Evidencia (imagen)
+              </label>
+              {preview ? (
+                <div className="relative inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={preview}
+                    alt="Evidencia"
+                    className="h-32 w-auto rounded-lg border border-gray-200 object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={clearFile}
+                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center gap-2 h-24 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-[#0056D2] hover:bg-[#F0F6FF] transition-colors">
+                  <ImagePlus className="w-5 h-5 text-gray-400" />
+                  <span className="text-xs text-gray-400">
+                    Haz clic para adjuntar una imagen
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </label>
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
@@ -452,14 +559,14 @@ function InteraccionesTab({ leadId, uuid }: { leadId: number; uuid?: string }) {
             />
           ))}
         </div>
-      ) : !interacciones?.length ? (
+      ) : !interacciones?.results?.length ? (
         <div className="py-12 text-center border-2 border-dashed border-gray-200 rounded-xl">
           <MessageSquare className="w-8 h-8 text-gray-300 mx-auto mb-2" />
           <p className="text-sm text-gray-400">Sin interacciones registradas</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {interacciones.map((interaccion) => (
+          {interacciones.results.map((interaccion) => (
             <div
               key={interaccion.id}
               className="bg-white rounded-xl border border-gray-200 p-4"
@@ -507,6 +614,7 @@ function InteraccionesTab({ leadId, uuid }: { leadId: number; uuid?: string }) {
 // ── Seguimientos tab ──────────────────────────────────────────────────
 
 function SeguimientosTab({ leadId }: { leadId: number }) {
+  const { unidadId } = useAppSelector((state) => state.changeUnidad);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<SeguimientoForm>>({});
 
@@ -515,7 +623,9 @@ function SeguimientosTab({ leadId }: { leadId: number }) {
     isLoading,
     refetch,
   } = useGetSeguimientosQuery({ lead: leadId, completado: false });
-  const { data: tipos } = useGetTiposSeguimientoQuery();
+  const { data: tipos } = useGetTiposSeguimientoQuery(
+    unidadId ? { instituto: unidadId } : undefined,
+  );
   const [createSeguimiento, { isLoading: isCreating }] =
     useCreateSeguimientoMutation();
   const [completar] = useCompletarSeguimientoMutation();
@@ -558,7 +668,7 @@ function SeguimientosTab({ leadId }: { leadId: number }) {
                 }
               >
                 <option value="">Seleccionar</option>
-                {tipos?.map((t) => (
+                {tipos?.results?.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.icono} {t.nombre}
                   </option>

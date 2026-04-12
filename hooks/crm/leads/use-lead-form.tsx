@@ -10,13 +10,13 @@ import {
   useGetFuentesQuery,
   useGetEstatusQuery,
   useGetEtapasQuery,
-} from "@/redux/features/crm/genericosApiSlice";
+} from "@/redux/features/crm/catalogosCrmApiSlice";
 import { useEffect } from "react";
 import { useCreateLeadMutation } from "@/redux/features/crm/leadsApiSlice";
 import { sweetAlert } from "@/sweetalert/sweetalerts";
 import { ErrorResponse } from "@/redux/features/types/reponse";
 import { useAppSelector } from "@/redux/hooks";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 
 const leadSchema = z.object({
   nombre: z
@@ -28,7 +28,7 @@ const leadSchema = z.object({
     .min(2, "El apellido paterno debe tener al menos 2 caracteres")
     .max(100, "El apellido paterno no puede exceder 100 caracteres"),
   apellido_materno: z.string().optional(),
-  correo: z.string().email("Ingresa un email válido"),
+  correo: z.string().optional(),
   telefono: z
     .string()
     .regex(/^\d{10}$/, "El teléfono debe tener exactamente 10 dígitos"),
@@ -52,7 +52,7 @@ export default function useLeadForm() {
   const { data: etapas, isLoading: etapasLoading } = useGetEtapasQuery();
   const [createLead] = useCreateLeadMutation();
   const { unidadId } = useAppSelector((state) => state.changeUnidad);
-  const router = useRouter();
+  // const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -80,9 +80,9 @@ export default function useLeadForm() {
   });
 
   useEffect(() => {
-    if (estatus && !estatusLoading && etapas && !estatusLoading) {
-      setValue("estatus", String(estatus[0].id));
-      setValue("etapa", String(etapas[0].id));
+    if (estatus && !estatusLoading && etapas && !etapasLoading) {
+      setValue("estatus", String(estatus.results[0].id));
+      setValue("etapa", String(etapas.results[0].id));
     }
   });
 

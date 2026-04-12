@@ -5,18 +5,19 @@ import {
 import { useForm } from "react-hook-form";
 import { useGetProgramasGenericoQuery } from "@/redux/features/control-escolar/genericosApiSlice";
 import { useRetrieveInstitucionesQuery } from "@/redux/features/catalogos/genericosApiSlice";
-import { useCreateCampaniasMutation } from "@/redux/features/control-escolar/campaniasApiSlice";
-import { useAppDispatch } from "@/redux/hooks";
-import { setAlert } from "@/redux/features/alert/alertSlice";
+import {
+  useCreateCampaniasMutation,
+  useRetrieveCampaniasQuery,
+} from "@/redux/features/control-escolar/campaniasApiSlice";
 import { ErrorResponse } from "@/redux/features/types/reponse";
-import { useState } from "react";
+import { sweetAlert } from "@/sweetalert/sweetalerts";
 
-export default function useFormCampania() {
+export default function useFormCampania(onSuccess?: () => void) {
   const [createCampanias] = useCreateCampaniasMutation();
   const { data: programas } = useGetProgramasGenericoQuery();
   const { data: institutos } = useRetrieveInstitucionesQuery();
-  const [errorMessage, setErrorMessage] = useState("");
-  const dispatch = useAppDispatch();
+  const { refetch } = useRetrieveCampaniasQuery();
+
   const {
     register,
     handleSubmit,
@@ -31,16 +32,16 @@ export default function useFormCampania() {
     try {
       await createCampanias(data).unwrap();
       reset();
-      setErrorMessage("");
-      dispatch(
-        setAlert({
-          type: "success",
-          message: "La campaña fue creada con exito",
-        }),
-      );
+      refetch();
+      onSuccess?.();
+      sweetAlert("success", "La campaña fue creada con éxito", "¡Listo!");
     } catch (error) {
       const e = error as ErrorResponse;
-      setErrorMessage(e?.data.detail);
+      sweetAlert(
+        "error",
+        e?.data?.detail ?? "No se pudo crear la campaña",
+        "Error",
+      );
     }
   };
 
@@ -52,6 +53,5 @@ export default function useFormCampania() {
     isSubmitting,
     programas,
     institutos,
-    errorMessage,
   };
 }

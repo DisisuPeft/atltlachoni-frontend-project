@@ -56,6 +56,24 @@ export interface TipoSeguimiento {
   orden: number;
 }
 
+export interface FuenteLead {
+  id: number;
+  nombre: string;
+  codigo: string;
+  descripcion?: string;
+  activo: boolean;
+  orden: number;
+}
+
+export interface EstatusLead {
+  id: number;
+  nombre: string;
+  codigo: string;
+  color?: string;
+  es_final: boolean;
+  orden: number;
+}
+
 // ─── Lead ────────────────────────────────────────────────────────────
 
 export interface Lead {
@@ -90,7 +108,7 @@ export interface Lead {
 }
 
 export interface LeadQueryParams {
-  empresa?: number;
+  instituto?: number;
   etapa?: number;
   estatus?: number;
   vendedor?: number;
@@ -132,6 +150,7 @@ export interface InteraccionForm {
   numero_telefono?: string;
   temperatura_post?: number;
   proximo_paso?: string;
+  evidencia?: File;
 }
 
 // ─── Seguimientos ────────────────────────────────────────────────────

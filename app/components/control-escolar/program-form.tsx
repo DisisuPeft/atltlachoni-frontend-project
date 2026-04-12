@@ -1,9 +1,11 @@
 "use client";
 
 import useProgramaForm from "@/hooks/control-escolar/use-programa-form";
-import { useFieldArray } from "react-hook-form";
+import { useFieldArray, useWatch, UseFormRegister, Control } from "react-hook-form";
+import type { ProgramaEducativoForm } from "@/redux/features/types/control-escolar/type";
 // import { useRetrieveInstitucionesQuery } from "@/redux/features/catalogos/genericosApiSlice";
 import Select from "@/app/ui/components/select";
+import Acordeon from "@/app/ui/components/acordeon";
 
 export default function NuevoProgramaPage() {
   const {
@@ -18,7 +20,11 @@ export default function NuevoProgramaPage() {
     modalidades,
     tiposProgramas,
     instituciones,
+    watch,
   } = useProgramaForm();
+
+  const modulosWatch = watch("modulos");
+
   return (
     <div className="p-4 md:p-6 lg:p-8">
       <div className="max-w-5xl mx-auto">
@@ -255,16 +261,27 @@ export default function NuevoProgramaPage() {
               </button>
             </div>
 
-            <div className="space-y-6">
-              {modulosFields.map((modulo, moduloIndex) => (
-                <ModuloSection
-                  key={modulo.id}
-                  moduloIndex={moduloIndex}
-                  register={register}
-                  control={control}
-                  removeModulo={removeModulo}
-                />
-              ))}
+            <div className="space-y-3">
+              {modulosFields.map((modulo, moduloIndex) => {
+                const nombre = modulosWatch?.[moduloIndex]?.nombre;
+                const titulo = nombre?.trim()
+                  ? `Módulo ${moduloIndex + 1}: ${nombre}`
+                  : `Módulo ${moduloIndex + 1}`;
+                return (
+                  <Acordeon
+                    key={modulo.id}
+                    title={titulo}
+                    defaultOpen={moduloIndex === 0}
+                  >
+                    <ModuloSection
+                      moduloIndex={moduloIndex}
+                      register={register}
+                      control={control}
+                      removeModulo={removeModulo}
+                    />
+                  </Acordeon>
+                );
+              })}
             </div>
           </section>
 
@@ -292,8 +309,8 @@ export default function NuevoProgramaPage() {
 
 interface ModuloSectionProps {
   moduloIndex: number;
-  register: any;
-  control: any;
+  register: UseFormRegister<ProgramaEducativoForm>;
+  control: Control<ProgramaEducativoForm>;
   removeModulo: (index: number) => void;
 }
 
@@ -312,13 +329,15 @@ function ModuloSection({
     name: `modulos.${moduloIndex}.submodulos`,
   });
 
+  const submodulosWatch = useWatch({
+    control,
+    name: `modulos.${moduloIndex}.submodulos`,
+  });
+
   return (
-    <div className="border border-gray-300 rounded-lg p-6 bg-gray-50">
-      <div className="flex items-start justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Módulo {moduloIndex + 1}
-        </h3>
-        {moduloIndex > 0 && (
+    <div className="space-y-4">
+      {moduloIndex > 0 && (
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={() => removeModulo(moduloIndex)}
@@ -326,8 +345,8 @@ function ModuloSection({
           >
             Eliminar Módulo
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="md:col-span-2">
@@ -418,74 +437,77 @@ function ModuloSection({
           </button>
         </div>
 
-        <div className="space-y-4">
-          {submodulosFields.map((submodulo, submoduloIndex) => (
-            <div
-              key={submodulo.id}
-              className="bg-white rounded-lg p-4 border border-gray-200"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <span className="text-sm font-medium text-gray-600">
-                  Submódulo {submoduloIndex + 1}
-                </span>
-                {submoduloIndex > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => removeSubmodulo(submoduloIndex)}
-                    className="text-red-600 hover:text-red-700 text-xs font-medium"
-                  >
-                    Eliminar
-                  </button>
-                )}
-              </div>
+        <div className="space-y-2">
+          {submodulosFields.map((submodulo, submoduloIndex) => {
+            const titulo = submodulosWatch?.[submoduloIndex]?.titulo?.trim()
+              ? `Submódulo ${submoduloIndex + 1}: ${submodulosWatch[submoduloIndex].titulo}`
+              : `Submódulo ${submoduloIndex + 1}`;
+            return (
+              <Acordeon
+                key={submodulo.id}
+                title={titulo}
+                defaultOpen={submoduloIndex === 0}
+              >
+                <div className="space-y-3">
+                  {submoduloIndex > 0 && (
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => removeSubmodulo(submoduloIndex)}
+                        className="text-red-600 hover:text-red-700 text-xs font-medium"
+                      >
+                        Eliminar Submódulo
+                      </button>
+                    </div>
+                  )}
 
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Título *
-                  </label>
-                  <input
-                    {...register(
-                      `modulos.${moduloIndex}.submodulos.${submoduloIndex}.titulo`,
-                      { required: true },
-                    )}
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    placeholder="Ej: Introducción a HTML"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Título *
+                    </label>
+                    <input
+                      {...register(
+                        `modulos.${moduloIndex}.submodulos.${submoduloIndex}.titulo`,
+                        { required: true },
+                      )}
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      placeholder="Ej: Introducción a HTML"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Descripción
-                  </label>
-                  <textarea
-                    {...register(
-                      `modulos.${moduloIndex}.submodulos.${submoduloIndex}.descripcion`,
-                    )}
-                    rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    placeholder="Describe el contenido..."
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Descripción
+                    </label>
+                    <textarea
+                      {...register(
+                        `modulos.${moduloIndex}.submodulos.${submoduloIndex}.descripcion`,
+                      )}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      placeholder="Describe el contenido..."
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Orden
-                  </label>
-                  <input
-                    {...register(
-                      `modulos.${moduloIndex}.submodulos.${submoduloIndex}.orden`,
-                      { valueAsNumber: true },
-                    )}
-                    type="number"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    placeholder="1"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Orden
+                    </label>
+                    <input
+                      {...register(
+                        `modulos.${moduloIndex}.submodulos.${submoduloIndex}.orden`,
+                        { valueAsNumber: true },
+                      )}
+                      type="number"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      placeholder="1"
+                    />
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              </Acordeon>
+            );
+          })}
         </div>
       </div>
     </div>

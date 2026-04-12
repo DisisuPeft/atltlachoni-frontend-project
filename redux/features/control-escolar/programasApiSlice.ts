@@ -38,7 +38,7 @@ const programasApiSlice = apiSlice.injectEndpoints({
       { uuid: string; formData: ProgramaEducativoForm }
     >({
       query: ({ uuid, formData }) => ({
-        url: `/control-escolar/programas-educativos/${uuid}`,
+        url: `/control-escolar/programas-educativos/${uuid}/`,
         method: "PATCH",
         body: formData,
       }),

@@ -19,7 +19,7 @@ const leadsApiSlice = apiSlice.injectEndpoints({
     getLeads: builder.query<PaginatedResponse<Lead>, LeadQueryParams | void>({
       query: (params = {}) => {
         const {
-          empresa,
+          instituto,
           etapa,
           estatus,
           vendedor,
@@ -29,7 +29,7 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         } = params as LeadQueryParams;
         const qs = new URLSearchParams();
         qs.set("page", String(page));
-        if (empresa) qs.set("empresa", String(empresa));
+        if (instituto) qs.set("instituto", String(instituto));
         if (etapa) qs.set("etapa", String(etapa));
         if (estatus) qs.set("estatus", String(estatus));
         if (vendedor) qs.set("vendedor", String(vendedor));
@@ -68,21 +68,36 @@ const leadsApiSlice = apiSlice.injectEndpoints({
 
     // ─── Interacciones ────────────────────────────────────────────────
 
-    getInteracciones: builder.query<InteraccionLead[], { lead: number }>({
-      query: ({ lead }) => `/crm/leads/interacciones/?lead=${lead}`,
+    getInteracciones: builder.query<
+      PaginatedResponse<InteraccionLead>,
+      { lead: number }
+    >({
+      query: ({ lead }) => `/crm/interacciones/?lead=${lead}`,
     }),
 
     createInteraccion: builder.mutation<InteraccionLead, InteraccionForm>({
-      query: (data) => ({
-        url: "/crm/leads/interacciones/",
-        method: "POST",
-        body: data,
-      }),
+      query: (data) => {
+        if (data.evidencia instanceof File) {
+          const formData = new FormData();
+          (Object.entries(data) as [string, unknown][]).forEach(
+            ([key, value]) => {
+              if (value === undefined || value === null) return;
+              if (value instanceof File) {
+                formData.append(key, value);
+              } else {
+                formData.append(key, String(value));
+              }
+            },
+          );
+          return { url: "/crm/interacciones/", method: "POST", body: formData };
+        }
+        return { url: "/crm/interacciones/", method: "POST", body: data };
+      },
     }),
 
     deleteInteraccion: builder.mutation<void, number>({
       query: (id) => ({
-        url: `/crm/leads/interacciones/${id}/`,
+        url: `/crm/interacciones/${id}/`,
         method: "DELETE",
       }),
     }),
@@ -97,14 +112,14 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         const qs = new URLSearchParams();
         if (lead) qs.set("lead", String(lead));
         if (completado !== undefined) qs.set("completado", String(completado));
-        return `/crm/leads/seguimientos/?${qs.toString()}`;
+        return `/crm/seguimientos/?${qs.toString()}`;
       },
     }),
 
     createSeguimiento: builder.mutation<SeguimientoProgramado, SeguimientoForm>(
       {
         query: (data) => ({
-          url: "/crm/leads/seguimientos/",
+          url: "/crm/seguimientos/",
           method: "POST",
           body: data,
         }),
@@ -113,7 +128,7 @@ const leadsApiSlice = apiSlice.injectEndpoints({
 
     completarSeguimiento: builder.mutation<void, number>({
       query: (id) => ({
-        url: `/crm/leads/seguimientos/${id}/completar/`,
+        url: `/crm/seguimientos/${id}/completar/`,
         method: "POST",
       }),
     }),
@@ -121,7 +136,7 @@ const leadsApiSlice = apiSlice.injectEndpoints({
     // ─── Historial etapas ─────────────────────────────────────────────
 
     getHistorialEtapas: builder.query<HistorialEtapa[], { lead: number }>({
-      query: ({ lead }) => `/crm/leads/historial-etapas/?lead=${lead}`,
+      query: ({ lead }) => `/crm/historial-etapas/?lead=${lead}`,
     }),
   }),
 });
