@@ -6,7 +6,10 @@ const sistemaApiSlice = apiSlice.injectEndpoints({
     getEmpresa: builder.query<Empresa[], string>({
       query: (slug) => `/sistema/empresa/?slug=${slug}`,
     }),
+    getEmpresas: builder.query<Empresa[], void>({
+      query: () => `/sistema/empresa/`,
+    }),
   }),
 });
 
-export const { useGetEmpresaQuery } = sistemaApiSlice;
+export const { useGetEmpresaQuery, useGetEmpresasQuery } = sistemaApiSlice;

@@ -74,6 +74,14 @@ export interface EstatusLead {
   orden: number;
 }
 
+// ─── Vendedor ────────────────────────────────────────────────────────
+
+export interface Vendedor {
+  id: number;
+  nombre_completo: string;
+  email?: string;
+}
+
 // ─── Lead ────────────────────────────────────────────────────────────
 
 export interface Lead {
@@ -119,6 +127,15 @@ export interface LeadQueryParams {
 
 // ─── Interacciones ───────────────────────────────────────────────────
 
+export interface ArchivoInteraccion {
+  id: number;
+  original_name: string;
+  mime_type: string;
+  size_formatted: string;
+  file_type: string;
+  preview_url: string;
+}
+
 export interface InteraccionLead {
   id: number;
   lead: number;
@@ -138,6 +155,7 @@ export interface InteraccionLead {
   proximo_paso?: string;
   temperatura_post?: number;
   temperatura_post_detail?: NivelTemperatura;
+  archivos_detail?: ArchivoInteraccion[] | [];
 }
 
 export interface InteraccionForm {
@@ -151,6 +169,8 @@ export interface InteraccionForm {
   temperatura_post?: number;
   proximo_paso?: string;
   evidencia?: File;
+  mensaje_enviado?: 0 | 1;
+  mensaje_recibido?: 0 | 1;
 }
 
 // ─── Seguimientos ────────────────────────────────────────────────────
@@ -174,6 +194,85 @@ export interface SeguimientoForm {
   fecha_programada: string;
   descripcion: string;
   responsable?: number;
+}
+
+// ─── Plan de Pago ────────────────────────────────────────────────────
+
+export interface OrigenPago {
+  id: number;
+  nombre: string;
+  slug: string;
+}
+
+export interface EstadoPlan {
+  id: number;
+  nombre: string;
+}
+
+export interface PlanPagoDetalle {
+  id: number;
+  lead: number;
+  campania: number;
+  origen: number;
+  origen_detail: { id: number; nombre: string; slug: string } | null;
+  estado_plan: number;
+  estado_plan_detail: { id: number; nombre: string } | null;
+  estudiante_existente: number | null;
+  inscripcion_monto: string;
+  mensualidad_monto: string;
+  num_mensualidades: number;
+  documentacion_monto: string;
+  fecha_primera_mensualidad: string;
+  tiene_beca: boolean;
+  tipo_beca: string | null;
+  notas_vendedor: string | null;
+  creado_por: number;
+  aprobado_por: number | null;
+  fecha_aprobacion: string | null;
+  status: number;
+  created_at: string;
+}
+
+export interface CreatePlanPagoPayload {
+  lead: number;
+  campania: number;
+  origen: number;
+  estado_plan: number;
+  inscripcion_monto: number;
+  mensualidad_monto: number;
+  num_mensualidades: number;
+  documentacion_monto?: number;
+  fecha_primera_mensualidad: string;
+  tiene_beca: boolean;
+  tipo_beca?: string;
+  notas_vendedor?: string;
+  estudiante_existente?: number;
+  instituto: number;
+  empresa: number;
+}
+
+export interface Validacion {
+  id: number;
+  plan_pago: number;
+  comprobante_pago: string;
+  monto_pagado: string;
+  fecha_pago: string;
+  subido_por: number;
+  subido_por_nombre: string | null;
+  fecha_subida: string;
+  validado_por: number | null;
+  validado_por_nombre: string | null;
+  fecha_validacion: string | null;
+  motivo_rechazo: string | null;
+  notas_internas: string | null;
+}
+
+export interface CreateValidacionPayload {
+  plan_pago: number;
+  comprobante_pago: File;
+  monto_pagado: number;
+  fecha_pago: string;
+  notas_internas?: string;
 }
 
 // ─── Historial ───────────────────────────────────────────────────────

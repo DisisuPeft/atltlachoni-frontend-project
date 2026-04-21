@@ -8,6 +8,8 @@ import {
   NivelTemperatura,
   FuenteLead,
   EstatusLead,
+  OrigenPago,
+  EstadoPlan,
 } from "../types/crm/lead-types";
 import { PaginatedResponse } from "../types/paginated";
 
@@ -109,6 +111,14 @@ const catalogosCrmApiSlice = apiSlice.injectEndpoints({
         return `/crm/catalogos/estatus/?${qs.toString()}`;
       },
     }),
+
+    getOrigenesPago: builder.query<PaginatedResponse<OrigenPago>, void>({
+      query: () => `/crm/catalogos/origenes-pago/`,
+    }),
+
+    getEstadosPlan: builder.query<PaginatedResponse<EstadoPlan>, void>({
+      query: () => `/crm/catalogos/estados-plan/`,
+    }),
   }),
 });
 
@@ -122,4 +132,6 @@ export const {
   useGetEstadosInteraccionQuery,
   useGetTiposSeguimientoQuery,
   useGetNivelesTemperaturaQuery,
+  useGetOrigenesPagoQuery,
+  useGetEstadosPlanQuery,
 } = catalogosCrmApiSlice;

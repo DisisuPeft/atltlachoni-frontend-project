@@ -9,6 +9,11 @@ import {
   SeguimientoProgramado,
   SeguimientoForm,
   HistorialEtapa,
+  Vendedor,
+  PlanPagoDetalle,
+  CreatePlanPagoPayload,
+  Validacion,
+  CreateValidacionPayload,
 } from "../types/crm/lead-types";
 import { PaginatedResponse } from "../types/paginated";
 
@@ -95,6 +100,17 @@ const leadsApiSlice = apiSlice.injectEndpoints({
       },
     }),
 
+    updateInteraccion: builder.mutation<
+      InteraccionLead,
+      { id: number; data: Partial<InteraccionForm> }
+    >({
+      query: ({ id, data }) => ({
+        url: `/crm/interacciones/${id}/`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+
     deleteInteraccion: builder.mutation<void, number>({
       query: (id) => ({
         url: `/crm/interacciones/${id}/`,
@@ -105,7 +121,7 @@ const leadsApiSlice = apiSlice.injectEndpoints({
     // ─── Seguimientos ─────────────────────────────────────────────────
 
     getSeguimientos: builder.query<
-      SeguimientoProgramado[],
+      PaginatedResponse<SeguimientoProgramado>,
       { lead?: number; completado?: boolean }
     >({
       query: ({ lead, completado }) => {
@@ -126,6 +142,17 @@ const leadsApiSlice = apiSlice.injectEndpoints({
       },
     ),
 
+    updateSeguimiento: builder.mutation<
+      SeguimientoProgramado,
+      { id: number; data: Partial<SeguimientoForm> }
+    >({
+      query: ({ id, data }) => ({
+        url: `/crm/seguimientos/${id}/`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+
     completarSeguimiento: builder.mutation<void, number>({
       query: (id) => ({
         url: `/crm/seguimientos/${id}/completar/`,
@@ -135,8 +162,114 @@ const leadsApiSlice = apiSlice.injectEndpoints({
 
     // ─── Historial etapas ─────────────────────────────────────────────
 
-    getHistorialEtapas: builder.query<HistorialEtapa[], { lead: number }>({
+    getHistorialEtapas: builder.query<
+      PaginatedResponse<HistorialEtapa>,
+      { lead: number }
+    >({
       query: ({ lead }) => `/crm/historial-etapas/?lead=${lead}`,
+    }),
+
+    // ─── Vendedores ───────────────────────────────────────────────────
+
+    getVendedores: builder.query<Vendedor[], void>({
+      query: () => `/crm/leads/vendedores/`,
+    }),
+
+    asignarVendedor: builder.mutation<Lead, { uuid: string; vendedor: number }>(
+      {
+        query: ({ uuid, vendedor }) => ({
+          url: `/crm/leads/${uuid}/asignar-vendedor/`,
+          method: "POST",
+          body: { vendedor },
+        }),
+      },
+    ),
+
+    desasignarVendedor: builder.mutation<Lead, string>({
+      query: (uuid) => ({
+        url: `/crm/leads/${uuid}/desasignar-vendedor/`,
+        method: "POST",
+      }),
+    }),
+
+    // ─── Planes de pago ───────────────────────────────────────────────
+
+    getPlanesPago: builder.query<
+      PaginatedResponse<PlanPagoDetalle>,
+      { lead?: number; estado_plan?: number; instituto?: number; empresa?: number }
+    >({
+      query: (params) => {
+        const qs = new URLSearchParams();
+        if (params.lead) qs.set("lead", String(params.lead));
+        if (params.estado_plan) qs.set("estado_plan", String(params.estado_plan));
+        if (params.instituto) qs.set("instituto", String(params.instituto));
+        if (params.empresa) qs.set("empresa", String(params.empresa));
+        return `/crm/planes-pago/?${qs.toString()}`;
+      },
+    }),
+
+    getPlanPago: builder.query<PlanPagoDetalle, number>({
+      query: (id) => `/crm/planes-pago/${id}/`,
+    }),
+
+    createPlanPago: builder.mutation<PlanPagoDetalle, CreatePlanPagoPayload>({
+      query: (data) => ({
+        url: "/crm/planes-pago/",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    aprobarPlanPago: builder.mutation<{ detail: string }, number>({
+      query: (id) => ({
+        url: `/crm/planes-pago/${id}/aprobar/`,
+        method: "POST",
+      }),
+    }),
+
+    // ─── Validaciones ─────────────────────────────────────────────────
+
+    getValidaciones: builder.query<
+      PaginatedResponse<Validacion>,
+      { plan_pago?: number }
+    >({
+      query: ({ plan_pago }) => {
+        const qs = new URLSearchParams();
+        if (plan_pago) qs.set("plan_pago", String(plan_pago));
+        return `/crm/validaciones/?${qs.toString()}`;
+      },
+    }),
+
+    createValidacion: builder.mutation<Validacion, CreateValidacionPayload>({
+      query: (data) => {
+        const formData = new FormData();
+        formData.append("plan_pago", String(data.plan_pago));
+        formData.append("comprobante_pago", data.comprobante_pago);
+        formData.append("monto_pagado", String(data.monto_pagado));
+        formData.append("fecha_pago", data.fecha_pago);
+        if (data.notas_internas) {
+          formData.append("notas_internas", data.notas_internas);
+        }
+        return { url: "/crm/validaciones/", method: "POST", body: formData };
+      },
+    }),
+
+    validarValidacion: builder.mutation<{ detail: string }, number>({
+      query: (id) => ({
+        url: `/crm/validaciones/${id}/validar/`,
+        method: "POST",
+      }),
+    }),
+
+    rechazarValidacion: builder.mutation<
+      { detail: string },
+      { id: number; motivo_rechazo: string }
+    >({
+      query: ({ id, motivo_rechazo }) => ({
+        url: `/crm/validaciones/${id}/rechazar/`,
+        method: "POST",
+        body: { motivo_rechazo },
+      }),
     }),
   }),
 });
@@ -149,9 +282,22 @@ export const {
   useDeleteLeadMutation,
   useGetInteraccionesQuery,
   useCreateInteraccionMutation,
+  useUpdateInteraccionMutation,
   useDeleteInteraccionMutation,
   useGetSeguimientosQuery,
   useCreateSeguimientoMutation,
+  useUpdateSeguimientoMutation,
   useCompletarSeguimientoMutation,
   useGetHistorialEtapasQuery,
+  useGetVendedoresQuery,
+  useAsignarVendedorMutation,
+  useDesasignarVendedorMutation,
+  useGetPlanesPagoQuery,
+  useGetPlanPagoQuery,
+  useCreatePlanPagoMutation,
+  useAprobarPlanPagoMutation,
+  useGetValidacionesQuery,
+  useCreateValidacionMutation,
+  useValidarValidacionMutation,
+  useRechazarValidacionMutation,
 } = leadsApiSlice;
