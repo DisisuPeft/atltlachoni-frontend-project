@@ -92,6 +92,12 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
     getMaterialesPrograma: builder.query<PaginatedResponse<Material>, string>({
       query: (programaId) => `/control-escolar/materiales/?programa=${programaId}`,
     }),
+    deleteMaterial: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/control-escolar/materiales/${id}/`,
+        method: "DELETE",
+      }),
+    }),
     getInscripcionesEstudiante: builder.query<InscripcionEstudiante[], string>({
       query: (uuid) => `/control-escolar/estudiantes/${uuid}/inscripciones/`,
     }),
@@ -109,5 +115,6 @@ export const {
   useModuloProgramaQuery,
   useGetMaterialesModuloQuery,
   useGetMaterialesProgramaQuery,
+  useDeleteMaterialMutation,
   useGetInscripcionesEstudianteQuery,
 } = alumnoApiSlice;

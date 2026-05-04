@@ -47,8 +47,8 @@ export default function BienvenidaView({ programaId, slug }: Props) {
   const { data: programa } = useProgramaEstudianteQuery(programaId);
   const { data: materiales } = useGetMaterialesProgramaQuery(programaId);
 
-  const videoMaterial = materiales?.results?.find((m) =>
-    m.mime_type.startsWith("video/"),
+  const videoMaterial = materiales?.results?.find(
+    (m) => m.mime_type.startsWith("video/") && m.modulo === null,
   );
 
   const primerModuloId = programa?.modulos_obj?.[0]?.id;

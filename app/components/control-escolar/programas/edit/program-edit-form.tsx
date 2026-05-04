@@ -9,12 +9,13 @@ import {
 import type { ProgramaEducativoForm } from "@/redux/features/types/control-escolar/type";
 import Select from "@/app/ui/components/select";
 import useEditProgramaForm from "@/hooks/control-escolar/use-edit-programa-form";
-import { PencilIcon, Upload } from "lucide-react";
+import { PencilIcon } from "lucide-react";
 import Button from "@/app/ui/components/button";
 import { useState } from "react";
-import { Modal } from "@/app/components/common/modal";
-import MaterialUpload from "../../upload-files";
 import Acordeon from "@/app/ui/components/acordeon";
+import ProgramMaterialesTab from "./program-materiales-tab";
+
+type Tab = "programa" | "materiales";
 
 interface Props {
   uuid: string;
@@ -39,36 +40,52 @@ export default function EditProgramaPage({ uuid }: Props) {
     programa,
   } = useEditProgramaForm(uuid);
 
-  const [openMaterial, setOpenMaterial] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>("programa");
   const modulosWatch = watch("modulos");
-
-  const handleEdit = () => {
-    setDisabled((prev) => !prev);
-  };
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
       <div className="max-w-5xl mx-auto">
-        {/* Toolbar */}
-        <div className="flex justify-between mb-4">
-          <Button onClick={() => setOpenMaterial(true)}>
-            <Upload />
-          </Button>
-          <Button onClick={handleEdit}>
-            <PencilIcon />
-          </Button>
+        {/* Tabs */}
+        <div className="bg-white border border-gray-200 rounded-t-lg border-b-0">
+          <div className="flex items-center justify-between px-6 border-b border-gray-200">
+            <nav className="-mb-px flex gap-1">
+              {(["programa", "materiales"] as Tab[]).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab)}
+                  className={`whitespace-nowrap py-4 px-4 text-sm font-medium border-b-2 transition-colors focus:outline-none capitalize ${
+                    activeTab === tab
+                      ? "border-blue-600 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  {tab === "programa" ? "Información" : "Materiales"}
+                </button>
+              ))}
+            </nav>
+            {activeTab === "programa" && (
+              <Button onClick={() => setDisabled((prev) => !prev)}>
+                <PencilIcon className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
         </div>
 
-        <Modal show={openMaterial} onClose={() => setOpenMaterial(false)}>
-          <div className="p-4">
-            <MaterialUpload
+        {/* Tab: Materiales */}
+        {activeTab === "materiales" && (
+          <div className="bg-white border border-gray-200 border-t-0 rounded-b-lg p-6">
+            <ProgramMaterialesTab
               programaId={uuid}
               modulos={programa?.modulos_obj ?? []}
             />
           </div>
-        </Modal>
+        )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        {/* Tab: Información */}
+        {activeTab === "programa" && (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           {/* Información General */}
           <section className="bg-white rounded-lg border border-gray-200 p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-6">
@@ -327,7 +344,7 @@ export default function EditProgramaPage({ uuid }: Props) {
           </section>
 
           {/* Acciones */}
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-end gap-4 px-6 py-4 bg-white border border-gray-200 border-t-0 rounded-b-lg">
             <button
               type="button"
               onClick={() => window.history.back()}
@@ -344,6 +361,7 @@ export default function EditProgramaPage({ uuid }: Props) {
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

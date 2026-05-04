@@ -395,9 +395,9 @@ export interface Material {
   edited_by_id: number | null;
   owner_id: number | null;
   uploaded_by_id: number | null;
-  modulo_id: number | null;
+  modulo: number | null;
   programa_id: string | null;
-  submodulo_id: number | null;
+  submodulo: number | null;
   campania_id: number | null;
 }
 
