@@ -104,7 +104,7 @@ export interface Lead {
   vendedor_asignado?: number;
   vendedor_nombre?: string;
   campania?: number;
-  campania_nombre?: string;
+  campania_nombre?: { id: number; nombre: string; instituto_id: number } | string;
   programa_objetivo?: number;
   programa_nombre?: string;
   temperatura_actual?: NivelTemperatura;
@@ -212,6 +212,7 @@ export interface EstadoPlan {
 export interface PlanPagoDetalle {
   id: number;
   lead: number;
+  lead_nombre?: string;
   campania: number;
   origen: number;
   origen_detail: { id: number; nombre: string; slug: string } | null;
@@ -254,7 +255,8 @@ export interface CreatePlanPagoPayload {
 export interface Validacion {
   id: number;
   plan_pago: number;
-  comprobante_pago: string;
+  comprobante_pago: string | null;
+  comprobante_url: string | null;
   monto_pagado: string;
   fecha_pago: string;
   subido_por: number;

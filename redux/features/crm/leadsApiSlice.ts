@@ -71,6 +71,21 @@ const leadsApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
+    apagarLead: builder.mutation<Lead, { uuid: string; motivo: string }>({
+      query: ({ uuid, motivo }) => ({
+        url: `/crm/leads/${uuid}/apagar/`,
+        method: "POST",
+        body: { motivo },
+      }),
+    }),
+
+    reactivarLead: builder.mutation<Lead, string>({
+      query: (uuid) => ({
+        url: `/crm/leads/${uuid}/reactivar/`,
+        method: "POST",
+      }),
+    }),
+
     // ─── Interacciones ────────────────────────────────────────────────
 
     getInteracciones: builder.query<
@@ -300,4 +315,6 @@ export const {
   useCreateValidacionMutation,
   useValidarValidacionMutation,
   useRechazarValidacionMutation,
+  useApagarLeadMutation,
+  useReactivarLeadMutation,
 } = leadsApiSlice;

@@ -6,8 +6,8 @@ const sistemaApiSlice = apiSlice.injectEndpoints({
     getEmpresa: builder.query<Empresa[], string>({
       query: (slug) => `/sistema/empresa/?slug=${slug}`,
     }),
-    getEmpresas: builder.query<Empresa[], void>({
-      query: () => `/sistema/empresa/`,
+    getEmpresas: builder.query<Empresa[], string>({
+      query: (company) => `/sistema/empresa/?slug=${company}`,
     }),
   }),
 });

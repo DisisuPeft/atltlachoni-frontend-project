@@ -45,6 +45,7 @@ export interface ProgramaEducativo extends BaseModel {
   banner_url?: string | null;
 
   modulos_obj: ModuloEducativoForm[];
+  id: number;
 }
 
 export interface ProgramaEducativoForm extends BaseModel {
@@ -231,6 +232,7 @@ export const initialCampaniaFormValues: CampaniaFormFields = {
 };
 
 export interface Campania {
+  id: number;
   nombre: string;
   fecha_inicio: string;
   fecha_fin: string;
@@ -342,9 +344,19 @@ export interface EnlaceClase {
   fecha_imparticion: string;
   titulo: string;
   descripcion: string | null;
+  plataforma: number | null;
   plataforma_detail: PlataformaImparticion | null;
   password_platform: string | null;
   created_at: string;
+}
+
+export interface EnlaceClaseBody {
+  programa: string;
+  titulo: string;
+  link: string;
+  fecha_imparticion: string;
+  descripcion?: string | null;
+  password_platform?: string | null;
 }
 
 export interface ComentarioSimple {

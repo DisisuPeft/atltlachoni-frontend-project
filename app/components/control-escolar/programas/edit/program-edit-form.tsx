@@ -14,8 +14,9 @@ import Button from "@/app/ui/components/button";
 import { useState } from "react";
 import Acordeon from "@/app/ui/components/acordeon";
 import ProgramMaterialesTab from "./program-materiales-tab";
+import ProgramEnlacesTab from "./program-enlaces-tab";
 
-type Tab = "programa" | "materiales";
+type Tab = "programa" | "materiales" | "clases";
 
 interface Props {
   uuid: string;
@@ -50,18 +51,18 @@ export default function EditProgramaPage({ uuid }: Props) {
         <div className="bg-white border border-gray-200 rounded-t-lg border-b-0">
           <div className="flex items-center justify-between px-6 border-b border-gray-200">
             <nav className="-mb-px flex gap-1">
-              {(["programa", "materiales"] as Tab[]).map((tab) => (
+              {(["programa", "materiales", "clases"] as Tab[]).map((tab) => (
                 <button
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className={`whitespace-nowrap py-4 px-4 text-sm font-medium border-b-2 transition-colors focus:outline-none capitalize ${
+                  className={`whitespace-nowrap py-4 px-4 text-sm font-medium border-b-2 transition-colors focus:outline-none ${
                     activeTab === tab
                       ? "border-blue-600 text-blue-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  {tab === "programa" ? "Información" : "Materiales"}
+                  {tab === "programa" ? "Información" : tab === "materiales" ? "Materiales" : "Clases en Vivo"}
                 </button>
               ))}
             </nav>
@@ -80,6 +81,13 @@ export default function EditProgramaPage({ uuid }: Props) {
               programaId={uuid}
               modulos={programa?.modulos_obj ?? []}
             />
+          </div>
+        )}
+
+        {/* Tab: Clases en Vivo */}
+        {activeTab === "clases" && (
+          <div className="bg-white border border-gray-200 border-t-0 rounded-b-lg p-6">
+            <ProgramEnlacesTab programaId={uuid} />
           </div>
         )}
 
