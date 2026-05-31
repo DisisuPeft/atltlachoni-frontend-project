@@ -4,43 +4,42 @@ import {
   useGetMaterialesProgramaQuery,
   useProgramaEstudianteQuery,
 } from "@/redux/features/control-escolar/alumnosApiSlice";
-import { useMaterialStream } from "@/hooks";
+import { VideoPlayer } from "@/app/components/plataforma/video-player";
 import { Loader2, AlertCircle, PlayCircle } from "lucide-react";
 import Link from "next/link";
+
+const UPLOAD_HOST = process.env.NEXT_PUBLIC_UPLOAD_HOST;
+
+function VideoStatus({ hls_status, materialId }: { hls_status: "pending" | "processing" | "failed" | null; materialId: number }) {
+  if (hls_status === "failed") {
+    return (
+      <div className="aspect-video w-full bg-gray-950 rounded-xl flex flex-col items-center justify-center gap-3">
+        <div className="flex items-center gap-2 text-red-400">
+          <AlertCircle className="w-5 h-5" />
+          <span className="text-sm">Error al procesar el video</span>
+        </div>
+        <a
+          href={`${UPLOAD_HOST}/api/control-escolar/materiales/${materialId}/stream/`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-3 py-1.5 rounded-lg bg-gray-800 text-gray-200 text-xs hover:bg-gray-700 transition-colors"
+        >
+          Ver video de respaldo
+        </a>
+      </div>
+    );
+  }
+  return (
+    <div className="aspect-video w-full bg-gray-950 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400">
+      <Loader2 className="w-8 h-8 animate-spin" />
+      <p className="text-sm">{hls_status === "processing" ? "Preparando video…" : "En cola…"}</p>
+    </div>
+  );
+}
 
 interface Props {
   programaId: string;
   slug: string;
-}
-
-function VideoStream({ materialId }: { materialId: number }) {
-  const { url, isLoading, error } = useMaterialStream(materialId);
-
-  return (
-    <div className="aspect-video w-full bg-gray-950 rounded-xl overflow-hidden flex items-center justify-center">
-      {isLoading && (
-        <div className="flex flex-col items-center gap-2 text-gray-400">
-          <Loader2 className="w-8 h-8 animate-spin" />
-          <p className="text-sm">Cargando video...</p>
-        </div>
-      )}
-      {error && (
-        <div className="flex items-center gap-2 text-xs text-red-400">
-          <AlertCircle className="w-4 h-4" />
-          {error}
-        </div>
-      )}
-      {url && (
-        <video
-          src={url}
-          controls
-          autoPlay
-          className="w-full h-full object-contain"
-          controlsList="nodownload"
-        />
-      )}
-    </div>
-  );
 }
 
 export default function BienvenidaView({ programaId, slug }: Props) {
@@ -48,7 +47,7 @@ export default function BienvenidaView({ programaId, slug }: Props) {
   const { data: materiales } = useGetMaterialesProgramaQuery(programaId);
 
   const videoMaterial = materiales?.results?.find(
-    (m) => m.mime_type.startsWith("video/") && m.modulo === null,
+    (m) => m.file_type === "video" && m.modulo === null,
   );
 
   const primerModuloId = programa?.modulos_obj?.[0]?.id;
@@ -68,7 +67,16 @@ export default function BienvenidaView({ programaId, slug }: Props) {
       </div>
 
       {videoMaterial ? (
-        <VideoStream materialId={videoMaterial.id!} />
+        videoMaterial.hls_status === "ready" ? (
+          <div className="aspect-video w-full bg-black rounded-xl overflow-hidden">
+            <VideoPlayer materialId={videoMaterial.id} />
+          </div>
+        ) : (
+          <VideoStatus
+            hls_status={videoMaterial.hls_status as "pending" | "processing" | "failed" | null}
+            materialId={videoMaterial.id}
+          />
+        )
       ) : (
         <div className="aspect-video w-full bg-gray-100 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400">
           <PlayCircle className="w-10 h-10" />

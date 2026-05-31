@@ -1,19 +1,27 @@
 import { apiSlice } from "@/redux/services/apiSlice";
 import {
+  ComprobantePago,
   EstudiantePerfil,
   EstudiantePerfilForm,
+  InscripcionBody,
   Material,
-  PagoFormData,
+  MiInscripcionPagos,
   ProgramaEducativoDetail,
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
-import { MessageResponse, SuccessMessage } from "../types/reponse";
+import { MessageResponse } from "../types/reponse";
 import {
   InscriptionDetail,
   ModulosInterface,
 } from "../types/alumnos/inscription";
 
+export interface InscripcionCreatedResponse {
+  message: string;
+  id: number;
+}
+
 export interface InscripcionEstudiante {
+  id: number;
   ref: string;
   programa_nombre: string;
   campania_nombre: string;
@@ -59,11 +67,11 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
       }),
     }),
     makeInscription: builder.mutation<
-      SuccessMessage,
+      InscripcionCreatedResponse,
       {
         campania: string | undefined;
         estudianteId: string | undefined;
-        formData: PagoFormData;
+        formData: InscripcionBody;
       }
     >({
       query: ({ campania, estudianteId, formData }) => ({
@@ -71,6 +79,28 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: formData,
       }),
+      invalidatesTags: (_result, _error, { estudianteId }) =>
+        estudianteId ? [{ type: "Inscripciones" as const, id: estudianteId }] : [],
+    }),
+    subirComprobanteInscripcion: builder.mutation<
+      ComprobantePago,
+      { inscripcionId: number; formData: FormData }
+    >({
+      query: ({ inscripcionId, formData }) => ({
+        url: `/control-escolar/inscripciones/${inscripcionId}/comprobantes/`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: (_result, _error, { inscripcionId }) => [
+        { type: "Comprobantes" as const, id: inscripcionId },
+      ],
+    }),
+    getComprobantesInscripcion: builder.query<ComprobantePago[], number>({
+      query: (inscripcionId) =>
+        `/control-escolar/inscripciones/${inscripcionId}/comprobantes/lista/`,
+      providesTags: (_result, _error, inscripcionId) => [
+        { type: "Comprobantes" as const, id: inscripcionId },
+      ],
     }),
     inscriptionAlumnoDetail: builder.query<InscriptionDetail, void>({
       query: () => `/control-escolar/inscripciones/inscription_details_alumno/`,
@@ -98,8 +128,12 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
         method: "DELETE",
       }),
     }),
-    getInscripcionesEstudiante: builder.query<InscripcionEstudiante[], string>({
+    getInscripcionesEstudiante: builder.query<MiInscripcionPagos[], string>({
       query: (uuid) => `/control-escolar/estudiantes/${uuid}/inscripciones/`,
+      providesTags: (_result, _error, uuid) => [{ type: "Inscripciones" as const, id: uuid }],
+    }),
+    getMisPagos: builder.query<MiInscripcionPagos[], void>({
+      query: () => `/control-escolar/inscripciones/mis_pagos/`,
     }),
   }),
 });
@@ -117,4 +151,7 @@ export const {
   useGetMaterialesProgramaQuery,
   useDeleteMaterialMutation,
   useGetInscripcionesEstudianteQuery,
+  useSubirComprobanteInscripcionMutation,
+  useGetComprobantesInscripcionQuery,
+  useGetMisPagosQuery,
 } = alumnoApiSlice;

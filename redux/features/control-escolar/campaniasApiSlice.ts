@@ -25,6 +25,18 @@ const campaniasApiSlice = apiSlice.injectEndpoints({
     howManyCampanias: builder.query<number, void>({
       query: () => "/control-escolar/campanias/howmanycampanias/",
     }),
+    activarCampania: builder.mutation<Campania, number>({
+      query: (id) => ({
+        url: `/control-escolar/campanias/${id}/activar/`,
+        method: "POST",
+      }),
+    }),
+    desactivarCampania: builder.mutation<Campania, number>({
+      query: (id) => ({
+        url: `/control-escolar/campanias/${id}/desactivar/`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
@@ -32,4 +44,6 @@ export const {
   useCreateCampaniasMutation,
   useRetrieveCampaniasQuery,
   useHowManyCampaniasQuery,
+  useActivarCampaniaMutation,
+  useDesactivarCampaniaMutation,
 } = campaniasApiSlice;

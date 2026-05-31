@@ -20,7 +20,8 @@ const baseQueryUpload = fetchBaseQuery({
 
 const selectBaseQuery = (args: string | FetchArgs) => {
   const url = typeof args === "string" ? args : args.url;
-  return url.startsWith("/control-escolar/materiales")
+  return url.startsWith("/control-escolar/materiales") ||
+    url.startsWith("/control-escolar/comunidad")
     ? baseQueryUpload
     : baseQuery;
 };
@@ -61,5 +62,6 @@ const baseQueryWithReauth: BaseQueryFn<
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
+  tagTypes: ["Inscripciones", "Comprobantes", "Programas"],
   endpoints: (builder) => ({}),
 });

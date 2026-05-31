@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
-import { IconBook, IconDashboard, IconUser } from "./iconst";
+import { IconBook, IconCreditCard, IconDashboard, IconUser } from "./iconst";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -16,7 +16,8 @@ type NavItem = {
 const navItems: NavItem[] = [
   { id: 1, nav: "/plataforma", label: "Dashboard", icon: IconDashboard },
   { id: 2, nav: "/plataforma/educacion", label: "Mis Cursos", icon: IconBook },
-  { id: 3, nav: "perfil", label: "Mi Perfil", icon: IconUser },
+  { id: 3, nav: "/plataforma/mis-pagos", label: "Mis Pagos", icon: IconCreditCard },
+  { id: 4, nav: "perfil", label: "Mi Perfil", icon: IconUser },
 ];
 
 // interface Props {

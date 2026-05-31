@@ -1,7 +1,6 @@
 "use client";
 
 import { useGetAlumnosRecientesQuery } from "@/redux/features/control-escolar/dashboardApiSlice";
-import { StatusBadge } from "@/app/utils/data-table";
 import Link from "next/link";
 import { ArrowRight, Users } from "lucide-react";
 
@@ -15,7 +14,7 @@ function Skeleton() {
             <div className="h-3.5 w-32 bg-gray-100 rounded animate-pulse" />
             <div className="h-3 w-24 bg-gray-100 rounded animate-pulse" />
           </div>
-          <div className="h-5 w-14 bg-gray-100 rounded-full animate-pulse" />
+          <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
         </div>
       ))}
     </div>
@@ -23,8 +22,9 @@ function Skeleton() {
 }
 
 function Initials({ nombre }: { nombre: string }) {
-  const parts = nombre.trim().split(" ");
-  const letters = parts
+  const letters = nombre
+    .trim()
+    .split(" ")
     .slice(0, 2)
     .map((p) => p[0])
     .join("")
@@ -41,7 +41,6 @@ export default function AlumnosRecientes() {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <Users className="w-4 h-4 text-gray-400" />
@@ -58,7 +57,6 @@ export default function AlumnosRecientes() {
         </Link>
       </div>
 
-      {/* List */}
       <div className="px-5 py-2">
         {isLoading ? (
           <Skeleton />
@@ -81,17 +79,21 @@ export default function AlumnosRecientes() {
                     {alumno.nombre}
                   </p>
                   <p className="text-xs text-gray-400 truncate">
-                    {alumno.programa_nombre}
+                    {alumno.programa}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                  <StatusBadge status={alumno.status} />
                   <span className="text-xs text-gray-400">
                     {new Date(alumno.fecha_inscripcion).toLocaleDateString(
                       "es-MX",
                       { day: "numeric", month: "short" },
                     )}
                   </span>
+                  {alumno.campania && (
+                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-[#F0F6FF] text-[#0056D2] max-w-[120px] truncate">
+                      {alumno.campania}
+                    </span>
+                  )}
                 </div>
               </Link>
             ))}

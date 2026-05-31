@@ -14,18 +14,25 @@ const programasApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: formData,
       }),
+      invalidatesTags: [{ type: "Programas" as const, id: "LIST" }],
     }),
     retrieveProgramas: builder.query<
       PaginatedResponse<ProgramaEducativo>,
-      { page?: number; search?: string } | void
+      { page?: number; search?: string; status?: string } | void
     >({
       query: (params = {}) => {
-        const { page = 1, search } = params as { page?: number; search?: string };
+        const { page = 1, search, status } = params as {
+          page?: number;
+          search?: string;
+          status?: string;
+        };
         const qs = new URLSearchParams();
         qs.set("page", String(page));
         if (search) qs.set("search", search);
+        if (status !== undefined && status !== "") qs.set("status", status);
         return `/control-escolar/programas-educativos/?${qs.toString()}`;
       },
+      providesTags: [{ type: "Programas" as const, id: "LIST" }],
     }),
     howManyProgramas: builder.query<number, void>({
       query: () => "/control-escolar/programas-educativos/howmanyprograms/",
@@ -42,8 +49,22 @@ const programasApiSlice = apiSlice.injectEndpoints({
         method: "PATCH",
         body: formData,
       }),
+      invalidatesTags: [{ type: "Programas" as const, id: "LIST" }],
     }),
-    // uploadMaterial: builder.query<>
+    activarPrograma: builder.mutation<{ message: string }, string>({
+      query: (ref) => ({
+        url: `/control-escolar/programas-educativos/${ref}/activar/`,
+        method: "POST",
+      }),
+      invalidatesTags: [{ type: "Programas" as const, id: "LIST" }],
+    }),
+    desactivarPrograma: builder.mutation<{ message: string }, string>({
+      query: (ref) => ({
+        url: `/control-escolar/programas-educativos/${ref}/desactivar/`,
+        method: "POST",
+      }),
+      invalidatesTags: [{ type: "Programas" as const, id: "LIST" }],
+    }),
   }),
 });
 
@@ -53,4 +74,6 @@ export const {
   useHowManyProgramasQuery,
   useRetrieveProgramaQuery,
   useUpdateProgramasMutation,
+  useActivarProgramaMutation,
+  useDesactivarProgramaMutation,
 } = programasApiSlice;

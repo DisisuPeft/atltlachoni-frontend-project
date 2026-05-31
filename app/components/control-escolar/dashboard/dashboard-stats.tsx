@@ -1,8 +1,7 @@
 "use client";
 
 import { useGetDashboardResumenQuery } from "@/redux/features/control-escolar/dashboardApiSlice";
-import { Users, BookOpen, Megaphone, TrendingUp } from "lucide-react";
-import { formatCurrency } from "@/lib/format-currency";
+import { Users, BookOpen, Megaphone, ClipboardList } from "lucide-react";
 
 interface StatItemProps {
   label: string;
@@ -47,11 +46,11 @@ export default function DashboardStats() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <StatItem
-        label="Estudiantes inscritos"
-        value={resumen?.estudiantes_total ?? 0}
+        label="Total alumnos"
+        value={resumen?.total_alumnos ?? 0}
         sub={
-          resumen?.estudiantes_nuevos_mes
-            ? `+${resumen.estudiantes_nuevos_mes} este mes`
+          resumen?.nuevos_este_mes
+            ? `+${resumen.nuevos_este_mes} este mes`
             : undefined
         }
         icon={<Users className="w-5 h-5 text-[#0056D2]" />}
@@ -59,28 +58,29 @@ export default function DashboardStats() {
         isLoading={isLoading}
       />
       <StatItem
-        label="Programas activos"
-        value={resumen?.programas_activos ?? 0}
-        icon={<BookOpen className="w-5 h-5 text-violet-600" />}
+        label="Total inscripciones"
+        value={resumen?.total_inscripciones ?? 0}
+        icon={<ClipboardList className="w-5 h-5 text-violet-600" />}
         accent="bg-violet-50"
+        isLoading={isLoading}
+      />
+      <StatItem
+        label="Programas activos"
+        value={resumen?.total_programas_activos ?? 0}
+        icon={<BookOpen className="w-5 h-5 text-emerald-600" />}
+        accent="bg-emerald-50"
         isLoading={isLoading}
       />
       <StatItem
         label="Campañas activas"
         value={resumen?.campanias_activas ?? 0}
+        sub={
+          resumen?.campanias_proximas
+            ? `${resumen.campanias_proximas} próximas`
+            : undefined
+        }
         icon={<Megaphone className="w-5 h-5 text-amber-600" />}
         accent="bg-amber-50"
-        isLoading={isLoading}
-      />
-      <StatItem
-        label="Ingresos del mes"
-        value={
-          resumen?.ingresos_mes !== undefined
-            ? formatCurrency(resumen.ingresos_mes)
-            : "$—"
-        }
-        icon={<TrendingUp className="w-5 h-5 text-emerald-600" />}
-        accent="bg-emerald-50"
         isLoading={isLoading}
       />
     </div>

@@ -224,8 +224,7 @@ export interface PlanPagoDetalle {
   num_mensualidades: number;
   documentacion_monto: string;
   fecha_primera_mensualidad: string;
-  tiene_beca: boolean;
-  tipo_beca: string | null;
+  motivo_descuento: string | null;
   notas_vendedor: string | null;
   creado_por: number;
   aprobado_por: number | null;
@@ -244,8 +243,7 @@ export interface CreatePlanPagoPayload {
   num_mensualidades: number;
   documentacion_monto?: number;
   fecha_primera_mensualidad: string;
-  tiene_beca: boolean;
-  tipo_beca?: string;
+  motivo_descuento?: string;
   notas_vendedor?: string;
   estudiante_existente?: number;
   instituto: number;

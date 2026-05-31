@@ -1,29 +1,32 @@
 import { apiSlice } from "@/redux/services/apiSlice";
 
 export interface DashboardResumen {
-  estudiantes_total: number;
-  programas_activos: number;
+  total_alumnos: number;
+  nuevos_este_mes: number;
+  total_inscripciones: number;
+  total_programas_activos: number;
   campanias_activas: number;
-  ingresos_mes: number;
-  estudiantes_nuevos_mes: number;
+  campanias_proximas: number;
 }
 
 export interface AlumnoReciente {
   ref: string;
   nombre: string;
   matricula: string;
-  programa_nombre: string;
   fecha_inscripcion: string;
-  status: number;
+  programa: string;
+  campania: string;
+  campania_id: number;
 }
 
 export interface CampaniaProxima {
-  ref: string;
+  id: number;
   nombre: string;
+  programa: string;
+  fecha_inicio: string;
   fecha_fin: string;
-  inscritos: number;
-  cupo_maximo: number;
-  programa_nombre: string;
+  total_inscritos: number;
+  costo_asignado: number;
 }
 
 const dashboardApiSlice = apiSlice.injectEndpoints({

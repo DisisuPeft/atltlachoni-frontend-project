@@ -1,58 +1,33 @@
 import { useForm } from "react-hook-form";
-// import { setAlert } from "@/redux/features/alert/a lertSlice";
-import { useState } from "react";
-import { useAppDispatch } from "@/redux/hooks";
-import {
-  InitalPagoForm,
-  PagoFormData,
-} from "@/redux/features/types/control-escolar/type";
-import { useGetTipoPagoQuery } from "@/redux/features/control-escolar/genericosApiSlice";
-import { useGetMetodoPagoQuery } from "@/redux/features/catalogos/genericosApiSlice";
+import { InscripcionBody } from "@/redux/features/types/control-escolar/type";
 import { useMakeInscriptionMutation } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { ErrorResponse } from "@/redux/features/types/reponse";
 import { sweetAlert } from "@/sweetalert/sweetalerts";
 
-type Tipo = "success" | "error";
 interface Props {
   estudianteId?: string;
   campania?: string | undefined;
   onSuccess: (value: boolean) => void | undefined;
 }
-export default function useInscripcionPrograma({
-  estudianteId,
-  campania,
-  onSuccess,
-}: Props) {
-  const [steps, setSteps] = useState(1);
-  const { data: tipoPago } = useGetTipoPagoQuery();
-  const { data: metodoPago } = useGetMetodoPagoQuery();
-  const [makeInscription] = useMakeInscriptionMutation();
-  // const dispatch = useAppDispatch();
-  const form = useForm<PagoFormData>({
-    mode: "onChange",
-    defaultValues: InitalPagoForm,
-  });
-  const {
-    register,
-    handleSubmit,
-    reset,
-    watch,
-    setValue,
-    control,
-    formState: { errors },
-  } = form;
 
-  const onSubmit = async (data: PagoFormData) => {
-    const next = { estudianteId, data, campania };
+const defaultValues: InscripcionBody = {
+  monto_inicial: 0,
+  fecha_primera_mensualidad: "",
+  notas: "",
+};
+
+export default function useInscripcionPrograma({ estudianteId, campania, onSuccess }: Props) {
+  const [makeInscription] = useMakeInscriptionMutation();
+
+  const form = useForm<InscripcionBody>({ mode: "onChange", defaultValues });
+  const { register, handleSubmit, reset, watch, setValue, control, formState: { errors } } = form;
+
+  const onSubmit = async (data: InscripcionBody) => {
     try {
-      const res = await makeInscription({
-        campania: next.campania,
-        estudianteId: next.estudianteId,
-        formData: next.data,
-      }).unwrap();
-      // reset();
+      const res = await makeInscription({ campania, estudianteId, formData: data }).unwrap();
+      reset();
       onSuccess(false);
-      sweetAlert("success", `${res?.message}`, "Exito");
+      sweetAlert("success", `${res?.message}`, "Éxito");
     } catch (error) {
       const e = error as ErrorResponse;
       onSuccess(false);
@@ -60,22 +35,5 @@ export default function useInscripcionPrograma({
     }
   };
 
-  return {
-    // isMorePages,
-    // diplomados,
-    errors,
-    register,
-    onSubmit,
-    handleSubmit,
-    tipoPago,
-    reset,
-    metodoPago,
-    // control,
-    setValue,
-    watch,
-    onSuccess,
-    steps,
-    setSteps,
-    control,
-  };
+  return { errors, register, onSubmit, handleSubmit, reset, setValue, watch, control };
 }

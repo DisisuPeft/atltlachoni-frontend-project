@@ -19,12 +19,12 @@ import {
   CalendarDays,
   Upload,
   XCircle,
-  GraduationCap,
   Loader2,
   FileImage,
   CheckCircle2,
   AlertCircle,
   Clock,
+  Tag,
 } from "lucide-react";
 import { useComprobanteStream } from "@/hooks";
 import { X } from "lucide-react";
@@ -213,8 +213,7 @@ export default function PlanPagoTab({
     num_mensualidades: 0,
     documentacion_monto: 0,
     fecha_primera_mensualidad: "",
-    tiene_beca: false,
-    tipo_beca: "",
+    motivo_descuento: "",
     notas_vendedor: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -249,8 +248,6 @@ export default function PlanPagoTab({
       errs.fecha_primera_mensualidad = "Requerida";
     else if (new Date(form.fecha_primera_mensualidad) <= new Date())
       errs.fecha_primera_mensualidad = "Debe ser una fecha futura";
-    if (form.tiene_beca && !form.tipo_beca)
-      errs.tipo_beca = "Requerido cuando tiene beca";
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -536,42 +533,20 @@ export default function PlanPagoTab({
               )}
             </div>
 
-            {/* Beca */}
-            <div className="space-y-3">
-              <label className="flex items-center gap-2.5 cursor-pointer w-fit">
+            {/* Motivo de descuento */}
+            <div className="space-y-1.5">
+              <FieldLabel label="Motivo de descuento (opcional)" />
+              <div className="relative">
+                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-gray-300 text-[#0056D2] focus:ring-[#0056D2]"
-                  checked={form.tiene_beca}
+                  className={`${inputClass} pl-9`}
+                  value={form.motivo_descuento ?? ""}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, tiene_beca: e.target.checked }))
+                    setForm((f) => ({ ...f, motivo_descuento: e.target.value }))
                   }
+                  placeholder="Ej. Beca excelencia, Promoción verano..."
                 />
-                <span className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                  <GraduationCap className="w-4 h-4 text-gray-500" />
-                  Tiene beca
-                </span>
-              </label>
-
-              {form.tiene_beca && (
-                <div className="space-y-1.5 pl-6">
-                  <FieldLabel label="Tipo de beca" required />
-                  <input
-                    className={`${inputClass} max-w-xs`}
-                    value={form.tipo_beca ?? ""}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, tipo_beca: e.target.value }))
-                    }
-                    placeholder="Ej. Beca académica 50%"
-                  />
-                  {formErrors.tipo_beca && (
-                    <p className="text-xs text-red-500 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {formErrors.tipo_beca}
-                    </p>
-                  )}
-                </div>
-              )}
+              </div>
             </div>
 
             {/* Notas */}
@@ -711,7 +686,7 @@ export default function PlanPagoTab({
           </div>
         </div>
 
-        {/* Fecha + beca */}
+        {/* Fecha + descuento */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-gray-100">
           <div>
             <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
@@ -725,14 +700,14 @@ export default function PlanPagoTab({
               )}
             </p>
           </div>
-          {plan.tiene_beca && (
+          {plan.motivo_descuento && (
             <div>
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
-                Beca
+                Motivo de descuento
               </p>
               <p className="text-sm text-gray-700 flex items-center gap-1.5">
-                <GraduationCap className="w-3.5 h-3.5 text-gray-400" />
-                {plan.tipo_beca ?? "—"}
+                <Tag className="w-3.5 h-3.5 text-gray-400" />
+                {plan.motivo_descuento}
               </p>
             </div>
           )}

@@ -22,6 +22,7 @@ export interface ProgramaEducativo extends BaseModel {
   nombre: string;
   descripcion?: string | null;
   ref: string | null;
+  status: number; // 1 = activo, 0 = inactivo
   tipo_nombre: string | null;
   institucion_nombre?: string | null;
   modalidad?: string | null;
@@ -400,6 +401,7 @@ export interface Material {
   size: number;
   path: string;
   file_type: string;
+  hls_status: "pending" | "processing" | "ready" | "failed" | null;
   description: string | null;
   is_public: boolean;
   created_by_id: number | null;
@@ -411,6 +413,57 @@ export interface Material {
   programa_id: string | null;
   submodulo: number | null;
   campania_id: number | null;
+}
+
+export interface InscripcionBody {
+  monto_inicial: number;
+  fecha_primera_mensualidad: string;
+  notas?: string;
+  tieme_precio_custom?: {
+    costo_inscripcion?: number;
+    costo_mensualidad?: number;
+    costo_documentacion?: number;
+  };
+  razon_precio_custom?: string;
+}
+
+export interface ComprobantePago {
+  id: number;
+  inscripcion: number;
+  pago: number | null;
+  archivo_url: string;
+  original_name: string;
+  mime_type: string;
+  size: number;
+  monto_visible: string | null;
+  banco_origen: string | null;
+  referencia: string | null;
+  notas: string | null;
+  subido_por: number;
+  subido_por_nombre: string | null;
+  created_at: string;
+}
+
+export interface MiPagoItem {
+  id: number;
+  concepto: string;
+  tipo_pago: "Inscripcion" | "Documentacion" | "Mensualidad" | string;
+  monto: string;
+  estado: "completado" | "pendiente" | string;
+  fecha_vencimiento: string | null;
+  fecha_pago: string | null;
+  numero_pago: number | null;
+  periodo: string | null;
+}
+
+export interface MiInscripcionPagos {
+  inscripcion_id: number;
+  programa: string;
+  campania: string;
+  total: string;
+  pagado: string;
+  pendiente: string;
+  pagos: MiPagoItem[];
 }
 
 export interface EventoShowInterface {

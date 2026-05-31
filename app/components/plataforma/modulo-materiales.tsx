@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useGetMaterialesModuloQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
+import { Material } from "@/redux/features/types/control-escolar/type";
+import { VideoPlayer } from "@/app/components/plataforma/video-player";
 import {
   FileText,
   File,
@@ -13,7 +15,6 @@ import {
   ChevronUp,
   AlertCircle,
 } from "lucide-react";
-import useMaterialStream from "@/hooks/plataforma/use-material-stream";
 
 interface Props {
   moduloId: number;
@@ -26,58 +27,49 @@ function formatBytes(bytes: number) {
 
 const UPLOAD_HOST = process.env.NEXT_PUBLIC_UPLOAD_HOST;
 
-// ── Video stream player ───────────────────────────────────────────────
+// ── Video HLS status placeholder ──────────────────────────────────────
 
-function VideoStream({ materialId }: { materialId: number }) {
-  const { url, isLoading, error } = useMaterialStream(materialId);
-
-  if (isLoading) {
+function VideoStatusPlaceholder({
+  status,
+  materialId,
+}: {
+  status: "pending" | "processing" | "failed" | null;
+  materialId: number;
+}) {
+  if (status === "failed") {
     return (
-      <div className="flex items-center justify-center gap-2 py-8 bg-gray-950 rounded-b-lg">
-        <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
-        <span className="text-sm text-gray-400">Cargando video…</span>
+      <div className="flex flex-col items-center justify-center gap-3 py-8 bg-gray-950 rounded-b-lg">
+        <div className="flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-red-400" />
+          <span className="text-sm text-red-400">Error al procesar el video</span>
+        </div>
+        <a
+          href={`${UPLOAD_HOST}/api/control-escolar/materiales/${materialId}/stream/`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 text-gray-200 text-xs hover:bg-gray-700 transition-colors"
+        >
+          <Play className="w-3 h-3" />
+          Ver video de respaldo
+        </a>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center gap-2 py-6 bg-gray-950 rounded-b-lg">
-        <AlertCircle className="w-4 h-4 text-red-400" />
-        <span className="text-sm text-red-400">{error}</span>
-      </div>
-    );
-  }
-
-  if (!url) return null;
-
   return (
-    <div className="bg-black rounded-b-lg overflow-hidden">
-      <video
-        src={url}
-        controls
-        className="w-full max-h-80 object-contain"
-        autoPlay={false}
-      />
+    <div className="flex items-center justify-center gap-2 py-8 bg-gray-950 rounded-b-lg">
+      <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+      <span className="text-sm text-gray-400">
+        {status === "processing" ? "Preparando video…" : "En cola…"}
+      </span>
     </div>
   );
 }
 
 // ── Material row ─────────────────────────────────────────────────────
 
-function MaterialRow({
-  material,
-}: {
-  material: {
-    id: number;
-    original_name: string;
-    description?: string | null;
-    mime_type: string;
-    size: number;
-  };
-}) {
+function MaterialRow({ material }: { material: Material }) {
   const [expanded, setExpanded] = useState(false);
-  const isVideo = material.mime_type.startsWith("video/");
+  const isVideo = material.file_type === "video";
 
   const icon = isVideo ? (
     <Video className="w-5 h-5 text-[#0056D2]" />
@@ -90,6 +82,8 @@ function MaterialRow({
   );
 
   if (isVideo) {
+    const hlsReady = material.hls_status === "ready";
+
     return (
       <div className="border-b last:border-b-0 border-gray-100">
         <button
@@ -125,7 +119,18 @@ function MaterialRow({
           </div>
         </button>
 
-        {expanded && <VideoStream materialId={material.id} />}
+        {expanded && (
+          <div className="bg-black rounded-b-lg overflow-hidden">
+            {hlsReady ? (
+              <VideoPlayer materialId={material.id} />
+            ) : (
+              <VideoStatusPlaceholder
+                status={material.hls_status as "pending" | "processing" | "failed" | null}
+                materialId={material.id}
+              />
+            )}
+          </div>
+        )}
       </div>
     );
   }

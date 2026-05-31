@@ -397,9 +397,9 @@ function PlanRow({ plan, isExpanded, onToggle, canAdmin, onAprobarSuccess }: Pla
                 <BadgeCheck className="w-3.5 h-3.5" /> Aprobado
               </span>
             )}
-            {plan.tiene_beca && (
+            {plan.motivo_descuento && (
               <span className="inline-flex items-center gap-1 text-xs text-violet-600">
-                <GraduationCap className="w-3.5 h-3.5" /> Beca
+                <GraduationCap className="w-3.5 h-3.5" /> {plan.motivo_descuento}
               </span>
             )}
             {isExpanded && pendientesCount > 0 && (
@@ -512,14 +512,14 @@ function PlanRow({ plan, isExpanded, onToggle, canAdmin, onAprobarSuccess }: Pla
                 <p className="text-sm text-gray-700">{plan.origen_detail.nombre}</p>
               </div>
             )}
-            {plan.tipo_beca && (
+            {plan.motivo_descuento && (
               <div>
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
-                  Beca
+                  Motivo de descuento
                 </p>
                 <p className="text-sm text-gray-700 flex items-center gap-1.5">
                   <GraduationCap className="w-3.5 h-3.5 text-gray-400" />
-                  {plan.tipo_beca}
+                  {plan.motivo_descuento}
                 </p>
               </div>
             )}
