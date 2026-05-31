@@ -69,16 +69,39 @@ export default function EstudiantesPage() {
   const [page, setPage] = useState(1);
   const [prevSearch, setPrevSearch] = useState(search);
   const [prevStatus, setPrevStatus] = useState(status);
+  // Tracks the real last page once the backend confirms it (next === null)
+  const [lastKnownPage, setLastKnownPage] = useState<number | null>(null);
 
-  // React "derived state" pattern: reset page when filters change (during render, not in effect)
-  if (prevSearch !== search) { setPrevSearch(search); setPage(1); }
-  if (prevStatus !== status) { setPrevStatus(status); setPage(1); }
+  // Derived state: reset everything when filters change
+  if (prevSearch !== search) { setPrevSearch(search); setPage(1); setLastKnownPage(null); }
+  if (prevStatus !== status) { setPrevStatus(status); setPage(1); setLastKnownPage(null); }
 
   const { data: estudiantes, isLoading } = useGetEstudiantesQuery({
     page,
     search,
     status,
   });
+
+  const hasNext = !!estudiantes?.next;
+  const resultsLength = estudiantes?.results?.length ?? 0;
+
+  // Derived state: discover the real last page when backend says next === null
+  if (!isLoading && estudiantes !== undefined && !hasNext && resultsLength > 0) {
+    if (lastKnownPage === null || page < lastKnownPage) setLastKnownPage(page);
+  }
+  // Derived state: auto-correct if we landed on an empty phantom page
+  if (!isLoading && resultsLength === 0 && page > 1) {
+    const target = lastKnownPage ?? page - 1;
+    if (page !== target) setPage(Math.max(1, target));
+  }
+
+  // Use data.length to infer the backend's real page size (may differ from PAGE_SIZE)
+  // Only when hasNext=true (not on last page), so we get a full-page sample
+  const inferredPageSize = hasNext && resultsLength > 0 ? resultsLength : PAGE_SIZE;
+  // Effective count: once we know the last page, cap pagination to avoid phantom pages
+  const effectiveCount = lastKnownPage !== null
+    ? lastKnownPage * inferredPageSize
+    : (estudiantes?.count ?? 0);
 
   const activos =
     estudiantes?.results.filter((e) => e.status === 1).length ?? 0;
@@ -127,7 +150,7 @@ export default function EstudiantesPage() {
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">
-              {Math.ceil((estudiantes?.count ?? 0) / PAGE_SIZE)}
+              {Math.ceil(effectiveCount / inferredPageSize)}
             </p>
             <p className="text-xs text-gray-500">Páginas totales</p>
           </div>
@@ -139,7 +162,7 @@ export default function EstudiantesPage() {
         columns={columns}
         data={estudiantes?.results ?? []}
         isLoading={isLoading}
-        count={estudiantes?.count ?? 0}
+        count={effectiveCount}
         pageSize={PAGE_SIZE}
         controlledPage={page}
         onPageChange={setPage}
