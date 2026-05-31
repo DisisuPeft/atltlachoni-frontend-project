@@ -9,8 +9,6 @@ import { DataTable, StatusBadge } from "@/app/utils/data-table";
 import ButtonLink from "../link-button";
 import { Users } from "lucide-react";
 
-const PAGE_SIZE = 10;
-
 const columns: ColumnDef<EstudiantePerfil>[] = [
   {
     id: "matricula",
@@ -69,10 +67,11 @@ export default function EstudiantesPage() {
   const [page, setPage] = useState(1);
   const [prevSearch, setPrevSearch] = useState(search);
   const [prevStatus, setPrevStatus] = useState(status);
-  // Tracks the real last page once the backend confirms it (next === null)
   const [lastKnownPage, setLastKnownPage] = useState<number | null>(null);
+  // Real page size as reported by Django (persists across page navigations)
+  const [pageSize, setPageSize] = useState<number | null>(null);
 
-  // Derived state: reset everything when filters change
+  // Derived state: reset page when filters change
   if (prevSearch !== search) { setPrevSearch(search); setPage(1); setLastKnownPage(null); }
   if (prevStatus !== status) { setPrevStatus(status); setPage(1); setLastKnownPage(null); }
 
@@ -85,22 +84,25 @@ export default function EstudiantesPage() {
   const hasNext = !!estudiantes?.next;
   const resultsLength = estudiantes?.results?.length ?? 0;
 
-  // Derived state: discover the real last page when backend says next === null
-  if (!isLoading && estudiantes !== undefined && !hasNext && resultsLength > 0) {
+  // Learn the real page size from any full page (hasNext=true means backend has more)
+  if (!isLoading && hasNext && resultsLength > 0 && pageSize !== resultsLength) {
+    setPageSize(resultsLength);
+  }
+  // Track the real last page when backend says next=null
+  if (!isLoading && !hasNext && resultsLength > 0) {
     if (lastKnownPage === null || page < lastKnownPage) setLastKnownPage(page);
   }
-  // Derived state: auto-correct if we landed on an empty phantom page
+  // Auto-correct if we landed on an empty phantom page
   if (!isLoading && resultsLength === 0 && page > 1) {
     const target = lastKnownPage ?? page - 1;
     if (page !== target) setPage(Math.max(1, target));
   }
 
-  // Use data.length to infer the backend's real page size (may differ from PAGE_SIZE)
-  // Only when hasNext=true (not on last page), so we get a full-page sample
-  const inferredPageSize = hasNext && resultsLength > 0 ? resultsLength : PAGE_SIZE;
-  // Effective count: once we know the last page, cap pagination to avoid phantom pages
-  const effectiveCount = lastKnownPage !== null
-    ? lastKnownPage * inferredPageSize
+  // Use discovered page size; fall back to current results length as last resort
+  const effectivePageSize = pageSize ?? resultsLength;
+  // Cap total count to the real last page once known, to eliminate phantom pages
+  const effectiveCount = lastKnownPage !== null && effectivePageSize > 0
+    ? lastKnownPage * effectivePageSize
     : (estudiantes?.count ?? 0);
 
   const activos =
@@ -150,7 +152,7 @@ export default function EstudiantesPage() {
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">
-              {Math.ceil(effectiveCount / inferredPageSize)}
+              {effectivePageSize > 0 ? Math.ceil(effectiveCount / effectivePageSize) : "—"}
             </p>
             <p className="text-xs text-gray-500">Páginas totales</p>
           </div>
@@ -163,7 +165,7 @@ export default function EstudiantesPage() {
         data={estudiantes?.results ?? []}
         isLoading={isLoading}
         count={effectiveCount}
-        pageSize={PAGE_SIZE}
+        pageSize={effectivePageSize || 1}
         controlledPage={page}
         onPageChange={setPage}
         filters={[
