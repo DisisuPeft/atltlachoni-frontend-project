@@ -93,7 +93,7 @@ const TIPOS_ACEPTADOS = [
   "audio/*",
   ".doc,.docx,.ppt,.pptx,.xls,.xlsx",
 ].join(",");
-const MAX_MB = 500;
+const MAX_MB = 1000;
 
 interface SectionUploaderProps {
   programaId: string;
@@ -389,7 +389,7 @@ export default function ProgramMaterialesTab({ programaId, modulos }: Props) {
 
   const [deleteMaterial] = useDeleteMaterialMutation();
 
-  const allMateriales = materialesData?.results ?? [];
+  const allMateriales = useMemo(() => materialesData?.results ?? [], [materialesData]);
 
   const filtered = useMemo(
     () =>
