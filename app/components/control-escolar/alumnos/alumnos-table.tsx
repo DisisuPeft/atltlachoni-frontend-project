@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { useGetEstudiantesQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
@@ -62,10 +63,16 @@ const columns: ColumnDef<EstudiantePerfil>[] = [
 
 export default function EstudiantesPage() {
   const searchParams = useSearchParams();
-
-  const page = Number(searchParams.get("page") ?? "1");
   const search = searchParams.get("search") ?? "";
   const status = searchParams.get("status") ?? "all";
+
+  const [page, setPage] = useState(1);
+  const [prevSearch, setPrevSearch] = useState(search);
+  const [prevStatus, setPrevStatus] = useState(status);
+
+  // React "derived state" pattern: reset page when filters change (during render, not in effect)
+  if (prevSearch !== search) { setPrevSearch(search); setPage(1); }
+  if (prevStatus !== status) { setPrevStatus(status); setPage(1); }
 
   const { data: estudiantes, isLoading } = useGetEstudiantesQuery({
     page,
@@ -134,6 +141,8 @@ export default function EstudiantesPage() {
         isLoading={isLoading}
         count={estudiantes?.count ?? 0}
         pageSize={PAGE_SIZE}
+        controlledPage={page}
+        onPageChange={setPage}
         filters={[
           {
             type: "search",

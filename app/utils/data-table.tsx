@@ -119,6 +119,9 @@ export interface DataTableProps<T> {
   filters?: FilterConfig[];
   emptyIcon?: React.ComponentType<{ className?: string }>;
   emptyMessage?: string;
+  /** Controlled page — bypasses URL-based pagination when provided */
+  controlledPage?: number;
+  onPageChange?: (p: number) => void;
 }
 
 export function DataTable<T>({
@@ -130,12 +133,15 @@ export function DataTable<T>({
   filters,
   emptyIcon: EmptyIcon,
   emptyMessage = "No se encontraron resultados",
+  controlledPage,
+  onPageChange,
 }: DataTableProps<T>) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const page = Number(searchParams.get("page") ?? "1");
+  const urlPage = Number(searchParams.get("page") ?? "1");
+  const page = controlledPage ?? urlPage;
 
   const setParam = useCallback(
     (updates: Record<string, string>) => {
@@ -287,7 +293,13 @@ export function DataTable<T>({
           page={page}
           count={count}
           pageSize={pageSize}
-          onPage={(p) => setParam({ page: String(p) })}
+          onPage={(p) => {
+            if (onPageChange) {
+              onPageChange(p);
+            } else {
+              setParam({ page: String(p) });
+            }
+          }}
         />
       )}
     </div>
