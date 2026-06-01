@@ -11,5 +11,6 @@ export { default as useChangeUnidad } from "./crm/use-change-unidad";
 export { default as MisMovimientosHook } from "./crm/use-mismovimientos";
 export { default as useLeadForm } from "./crm/leads/use-lead-form";
 export { default as useMaterialUpload } from "./control-escolar/use-material-upload";
+export { default as usePonenciaUpload } from "./control-escolar/use-ponencia-upload";
 export { default as useMaterialStream } from "./plataforma/use-material-stream";
 export { default as useComprobanteStream } from "./crm/use-comprobante-stream";

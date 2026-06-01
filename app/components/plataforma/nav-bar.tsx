@@ -8,30 +8,13 @@
 // import Logout from "@/app/utils/auth/logout";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
 import Badge from "../plataforma/badge";
 import { IconSearch } from "../plataforma/iconst";
 import { UserMenu } from "../plataforma/drop-down-menu";
 
-type NavItem = {
-  id: number;
-  nav: string;
-  label: string;
-};
-
-const navItems: NavItem[] = [
-  // { id: 1, nav: "/plataforma", label: "Dashboard", icon: IconDashboard },
-  {
-    id: 2,
-    nav: "/plataforma/educacion",
-    label: "Mi Aprendizaje",
-  },
-  // { id: 3, nav: "perfil", label: "Mi Perfil", icon: IconUser },
-];
 
 export default function Navbar() {
   // const { data: user } = useRetrieveUserQuery();
-  const pathname = usePathname();
 
   return (
     // <nav className="h-16 bg-white shadow px-6 flex items-center justify-between fixed z-10 w-full">
@@ -78,31 +61,6 @@ export default function Navbar() {
             <span className="text-xl font-bold text-gray-900">CINFA</span>
           </div>
         </Link>
-
-        {/* Nav links */}
-        <nav className="flex items-center gap-1">
-          {/* <button className="flex items-center gap-1 px-3 py-2 text-sm text-gray-700 hover:text-gray-900 transition-colors rounded-md hover:bg-gray-50">
-            Explorar
-            <IconChevronDown className="w-3.5 h-3.5" />
-          </button> */}
-          {navItems.map((item) => {
-            // const Icon = item.icon;
-            return (
-              <Link
-                key={item.id}
-                href={item.nav}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left cursor-pointer ${
-                  pathname === item.nav
-                    ? "bg-blue-50 text-blue-600 font-medium"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {/* <Icon className="w-5 h-5" /> */}
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
 
         {/* Search bar */}
         <div className="flex-1 max-w-lg mx-auto">

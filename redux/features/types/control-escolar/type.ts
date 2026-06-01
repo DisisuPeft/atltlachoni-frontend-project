@@ -389,6 +389,22 @@ export interface Comentario {
   respuestas: ComentarioSimple[];
 }
 
+export interface Ponencia {
+  id: number;
+  titulo: string;
+  tipo: string;
+  original_name: string;
+  file_type: string;
+  file_extension: string;
+  mime_type: string;
+  size: number;
+  size_formatted: string;
+  hls_status: "pending" | "processing" | "ready" | "failed" | null;
+  preview_url: string | null;
+  download_url: string | null;
+  created_at: string;
+}
+
 export interface Material {
   id: number;
   created_at: string;
