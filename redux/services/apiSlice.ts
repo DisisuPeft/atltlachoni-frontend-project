@@ -22,7 +22,8 @@ const selectBaseQuery = (args: string | FetchArgs) => {
   const url = typeof args === "string" ? args : args.url;
   return url.startsWith("/control-escolar/materiales") ||
     url.startsWith("/control-escolar/comunidad") ||
-    url.startsWith("/control-escolar/ponencias")
+    url.startsWith("/control-escolar/ponencias") ||
+    url.startsWith("/control-escolar/plantillas-constancia")
     ? baseQueryUpload
     : baseQuery;
 };

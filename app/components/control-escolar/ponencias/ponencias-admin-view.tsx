@@ -22,7 +22,9 @@ import {
   PlayCircle,
   ChevronDown,
   X,
+  Award,
 } from "lucide-react";
+import ConstanciasPanel from "./constancias-panel";
 import { useAppDispatch } from "@/redux/hooks";
 import { setAlert } from "@/redux/features/alert/alertSlice";
 
@@ -269,28 +271,41 @@ function UploadForm({ onSuccess }: { onSuccess: () => void }) {
 function PonenciaRow({
   ponencia,
   isSelected,
+  isConstanciasOpen,
   onSelect,
+  onOpenConstancias,
   onDelete,
 }: {
   ponencia: Ponencia;
   isSelected: boolean;
+  isConstanciasOpen: boolean;
   onSelect: () => void;
+  onOpenConstancias: () => void;
   onDelete: (id: number) => void;
 }) {
   const [confirming, setConfirming] = useState(false);
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 transition-colors group ${isSelected ? "bg-blue-50 border-l-2 border-[#0056D2]" : "hover:bg-gray-50"}`}>
+    <div className={`flex items-center gap-3 px-4 py-3 transition-colors group ${isSelected ? "bg-blue-50 border-l-2 border-[#0056D2]" : isConstanciasOpen ? "bg-indigo-50 border-l-2 border-indigo-400" : "hover:bg-gray-50"}`}>
       <button type="button" onClick={onSelect} className="flex items-center gap-3 flex-1 min-w-0 text-left">
         {typeIcon(ponencia)}
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium truncate ${isSelected ? "text-[#0056D2]" : "text-gray-800"}`}>
+          <p className={`text-sm font-medium truncate ${isSelected ? "text-[#0056D2]" : isConstanciasOpen ? "text-indigo-700" : "text-gray-800"}`}>
             {ponencia.titulo}
           </p>
           <p className="text-xs text-gray-400 mt-0.5">{ponencia.original_name} · {ponencia.size_formatted}</p>
         </div>
         {tipoBadge(ponencia.tipo)}
         <PlayCircle className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#0056D2]" : "text-gray-300 group-hover:text-gray-400"}`} />
+      </button>
+
+      <button
+        type="button"
+        onClick={onOpenConstancias}
+        className={`shrink-0 p-1.5 rounded-lg transition-all ${isConstanciasOpen ? "text-indigo-600 bg-indigo-100" : "opacity-0 group-hover:opacity-100 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50"}`}
+        title="Constancias"
+      >
+        <Award className="w-4 h-4" />
       </button>
 
       {confirming ? (
@@ -318,6 +333,7 @@ export default function PonenciasAdminView() {
   const [filterTipo, setFilterTipo] = useState("");
   const [showUpload, setShowUpload] = useState(false);
   const [selected, setSelected] = useState<Ponencia | null>(null);
+  const [constanciasPonencia, setConstanciasPonencia] = useState<Ponencia | null>(null);
 
   const { data, isLoading, refetch } = useGetPonenciasQuery(
     filterTipo ? { tipo: filterTipo } : undefined,
@@ -325,18 +341,28 @@ export default function PonenciasAdminView() {
   const [deletePonencia] = useDeletePonenciaMutation();
 
   const ponencias = data?.results ?? [];
-
   const tipos = Array.from(new Set(ponencias.map((p) => p.tipo))).sort();
 
   const handleDelete = async (id: number) => {
     try {
       await deletePonencia(id).unwrap();
       if (selected?.id === id) setSelected(null);
+      if (constanciasPonencia?.id === id) setConstanciasPonencia(null);
       refetch();
       dispatch(setAlert({ type: "success", message: "Ponencia eliminada" }));
     } catch {
       dispatch(setAlert({ type: "error", message: "Error al eliminar la ponencia" }));
     }
+  };
+
+  const handleToggleConstancias = (p: Ponencia) => {
+    setConstanciasPonencia((prev) => (prev?.id === p.id ? null : p));
+    setSelected(null);
+  };
+
+  const handleToggleViewer = (p: Ponencia) => {
+    setSelected((prev) => (prev?.id === p.id ? null : p));
+    setConstanciasPonencia(null);
   };
 
   return (
@@ -368,6 +394,15 @@ export default function PonenciasAdminView() {
       {/* Viewer */}
       {selected && (
         <PonenciaViewer ponencia={selected} onClose={() => setSelected(null)} />
+      )}
+
+      {/* Constancias panel */}
+      {constanciasPonencia && (
+        <ConstanciasPanel
+          ponencia={constanciasPonencia}
+          onClose={() => setConstanciasPonencia(null)}
+          onPonenciaUpdated={refetch}
+        />
       )}
 
       {/* Filter + list */}
@@ -428,7 +463,9 @@ export default function PonenciasAdminView() {
                 key={p.id}
                 ponencia={p}
                 isSelected={selected?.id === p.id}
-                onSelect={() => setSelected(selected?.id === p.id ? null : p)}
+                isConstanciasOpen={constanciasPonencia?.id === p.id}
+                onSelect={() => handleToggleViewer(p)}
+                onOpenConstancias={() => handleToggleConstancias(p)}
                 onDelete={handleDelete}
               />
             ))}

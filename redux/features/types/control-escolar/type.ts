@@ -389,6 +389,39 @@ export interface Comentario {
   respuestas: ComentarioSimple[];
 }
 
+export interface PlantillaConstancia {
+  id: number;
+  nombre: string;
+  ponente_nombre: string;
+  ponente_cargo: string;
+  lugar: string;
+  fondo_url: string | null;
+  firma_url: string | null;
+  created_at: string;
+}
+
+export interface Participante {
+  id: number;
+  nombre_completo: string;
+  email: string;
+  user: number | null;
+  constancia_generada: boolean;
+  constancia_url: string | null;
+  token: string | null;
+  created_at: string;
+}
+
+export interface ConstanciaPublica {
+  participante: string;
+  ponencia: string;
+  tipo: string;
+  fecha_evento: string;
+  ponente: string;
+  lugar: string;
+  token: string;
+  emitida_en: string;
+}
+
 export interface Ponencia {
   id: number;
   titulo: string;
@@ -402,6 +435,8 @@ export interface Ponencia {
   hls_status: "pending" | "processing" | "ready" | "failed" | null;
   preview_url: string | null;
   download_url: string | null;
+  plantilla_constancia: number | null;
+  fecha_evento: string | null;
   created_at: string;
 }
 
