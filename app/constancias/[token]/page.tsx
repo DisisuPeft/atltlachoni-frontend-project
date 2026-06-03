@@ -2,20 +2,16 @@
 
 import { useParams } from "next/navigation";
 import { useGetConstanciaPublicaQuery } from "@/redux/features/control-escolar/ponenciasApiSlice";
-import { Award, CheckCircle, AlertCircle, Loader2, MapPin, Calendar, User, Mic } from "lucide-react";
+import {
+  Award,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  MapPin,
+  Calendar,
+  Mic,
+} from "lucide-react";
 import Image from "next/image";
-
-function formatFecha(dateStr: string) {
-  try {
-    return new Date(dateStr).toLocaleDateString("es-MX", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch {
-    return dateStr;
-  }
-}
 
 function formatEmitida(isoStr: string) {
   try {
@@ -38,7 +34,7 @@ export default function VerificacionConstanciaPage() {
   const { data, isLoading, isError } = useGetConstanciaPublicaQuery(token, {
     skip: !token,
   });
-
+  console.log(data);
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex flex-col">
       {/* Minimal header */}
@@ -53,7 +49,9 @@ export default function VerificacionConstanciaPage() {
         </div>
         <span className="text-lg font-bold text-gray-900">CINFA</span>
         <span className="text-gray-300 mx-1">·</span>
-        <span className="text-sm text-gray-500">Verificación de constancia</span>
+        <span className="text-sm text-gray-500">
+          Verificación de constancia
+        </span>
       </header>
 
       {/* Main */}
@@ -74,12 +72,16 @@ export default function VerificacionConstanciaPage() {
                 <AlertCircle className="w-7 h-7 text-red-400" />
               </div>
               <div>
-                <p className="font-semibold text-gray-800">Constancia no encontrada</p>
+                <p className="font-semibold text-gray-800">
+                  Constancia no encontrada
+                </p>
                 <p className="text-sm text-gray-500 mt-1">
                   El token no corresponde a ninguna constancia válida o expiró.
                 </p>
               </div>
-              <p className="text-xs text-gray-300 font-mono break-all">{token}</p>
+              <p className="text-xs text-gray-300 font-mono break-all">
+                {token}
+              </p>
             </div>
           )}
 
@@ -92,8 +94,12 @@ export default function VerificacionConstanciaPage() {
                   <CheckCircle className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-white font-bold text-sm">Constancia verificada</p>
-                  <p className="text-green-100 text-xs">Documento auténtico emitido por CINFA</p>
+                  <p className="text-white font-bold text-sm">
+                    Constancia verificada
+                  </p>
+                  <p className="text-green-100 text-xs">
+                    Documento auténtico emitido por CINFA
+                  </p>
                 </div>
               </div>
 
@@ -111,27 +117,38 @@ export default function VerificacionConstanciaPage() {
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
                     Participante
                   </p>
-                  <p className="text-xl font-bold text-gray-900 mt-0.5">{data.participante}</p>
+                  <p className="text-xl font-bold text-gray-900 mt-0.5">
+                    {data.nombre_completo}
+                  </p>
                 </div>
 
                 <div className="border-t border-gray-100 pt-4 space-y-3">
-                  <DataRow icon={<Mic className="w-4 h-4 text-indigo-400" />} label="Ponencia" value={data.ponencia} />
-                  <DataRow icon={<Award className="w-4 h-4 text-indigo-400" />} label="Tipo" value={data.tipo} capitalize />
+                  <DataRow
+                    icon={<Mic className="w-4 h-4 text-indigo-400" />}
+                    label="Ponencia"
+                    value={data.ponencia_titulo}
+                  />
+                  <DataRow
+                    icon={<Award className="w-4 h-4 text-indigo-400" />}
+                    label="Tipo"
+                    value={data.tipo_ponencia}
+                    capitalize
+                  />
                   <DataRow
                     icon={<Calendar className="w-4 h-4 text-indigo-400" />}
                     label="Fecha del evento"
-                    value={formatFecha(data.fecha_evento)}
+                    value={data.fecha_evento}
                   />
-                  <DataRow icon={<User className="w-4 h-4 text-indigo-400" />} label="Ponente" value={data.ponente} />
-                  <DataRow icon={<MapPin className="w-4 h-4 text-indigo-400" />} label="Lugar" value={data.lugar} />
+                  <DataRow
+                    icon={<MapPin className="w-4 h-4 text-indigo-400" />}
+                    label="Lugar"
+                    value={data.lugar_evento}
+                  />
                 </div>
 
                 <div className="border-t border-gray-100 pt-3">
                   <p className="text-xs text-gray-400 text-center">
-                    Emitida el {formatEmitida(data.emitida_en)}
-                  </p>
-                  <p className="text-xs text-gray-300 font-mono text-center mt-1 break-all">
-                    {data.token}
+                    Generada el {formatEmitida(data.fecha_generacion)}
                   </p>
                 </div>
               </div>
@@ -161,7 +178,11 @@ function DataRow({
       </div>
       <div className="min-w-0">
         <p className="text-xs font-medium text-gray-400">{label}</p>
-        <p className={`text-sm text-gray-800 font-medium ${capitalize ? "capitalize" : ""}`}>{value}</p>
+        <p
+          className={`text-sm text-gray-800 font-medium ${capitalize ? "capitalize" : ""}`}
+        >
+          {value}
+        </p>
       </div>
     </div>
   );

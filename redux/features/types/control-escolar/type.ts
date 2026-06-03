@@ -412,14 +412,12 @@ export interface Participante {
 }
 
 export interface ConstanciaPublica {
-  participante: string;
-  ponencia: string;
-  tipo: string;
+  nombre_completo: string;
+  ponencia_titulo: string;
+  tipo_ponencia: string;
   fecha_evento: string;
-  ponente: string;
-  lugar: string;
-  token: string;
-  emitida_en: string;
+  lugar_evento: string;
+  fecha_generacion: string;
 }
 
 export interface Ponencia {
