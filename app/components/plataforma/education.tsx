@@ -28,14 +28,14 @@ export default function MainEducationDash() {
   // useEffect(() => {});
 
   return (
-    <div className="mx-auto px-12 py-8">
+    <div className="mx-auto px-4 sm:px-6 md:px-10 py-5 md:py-8">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-2">
-        <div className="w-14 h-14 rounded-full bg-[#0056D2] flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+      <div className="flex items-center gap-3 md:gap-4 mb-2">
+        <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-[#0056D2] flex items-center justify-center text-white text-base md:text-xl font-bold flex-shrink-0">
           D
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
             Hola, {user?.nombre_completo}
           </h1>
           <p className="text-sm text-gray-600">
