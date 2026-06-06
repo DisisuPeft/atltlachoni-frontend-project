@@ -5,7 +5,7 @@ import { useInscriptionAlumnoDetailQuery } from "@/redux/features/control-escola
 import { IconStarOutline, IconDots } from "./iconst";
 import Link from "next/link";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
-import { useMyCalender } from "@/hooks";
+// import { useMyCalender } from "@/hooks";
 import CalenderStudent from "./calender";
 
 export default function MainEducationDash() {
@@ -15,9 +15,9 @@ export default function MainEducationDash() {
 
   const { data: detalleInscripcion } = useInscriptionAlumnoDetailQuery();
   const { data: user } = useRetrieveUserQuery();
-  const [filtro, setFiltro] = useState<"todos" | "progreso" | "completados">(
-    "todos",
-  );
+  // const [filtro, setFiltro] = useState<"todos" | "progreso" | "completados">(
+  //   "todos",
+  // );
 
   //   const cursosFiltrados = cursosData.filter((curso) => {
   //     if (filtro === "progreso") return curso.progreso < 100;
