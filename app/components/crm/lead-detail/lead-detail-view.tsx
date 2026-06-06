@@ -68,6 +68,7 @@ import {
 } from "@/redux/features/types/crm/lead-types";
 import PlanPagoTab from "./plan-pago-tab";
 import { Modal } from "@/app/components/common/modal";
+import { useSearchParams } from "next/navigation";
 
 interface Props {
   uuid: string;
@@ -223,7 +224,10 @@ function LeadInfoSidebar({
       });
       if (!result.isConfirmed || !result.value?.trim()) return;
       try {
-        await apagarLead({ uuid: lead.uuid, motivo: result.value.trim() }).unwrap();
+        await apagarLead({
+          uuid: lead.uuid,
+          motivo: result.value.trim(),
+        }).unwrap();
         refetchLead();
       } catch (err: unknown) {
         const msg =
@@ -800,9 +804,7 @@ function LeadInfoSidebar({
       {!editing && (
         <div
           className={`rounded-xl border p-4 transition-colors ${
-            isActive
-              ? "bg-white border-gray-200"
-              : "bg-red-50 border-red-200"
+            isActive ? "bg-white border-gray-200" : "bg-red-50 border-red-200"
           }`}
         >
           <div className="flex items-center justify-between gap-3">
@@ -1067,7 +1069,9 @@ function InteraccionesTab({
 
       <Modal show={open} onClose={() => setOpen(false)}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-base font-semibold text-gray-900">Nueva interacción</h3>
+          <h3 className="text-base font-semibold text-gray-900">
+            Nueva interacción
+          </h3>
           <button
             type="button"
             onClick={() => setOpen(false)}
@@ -2040,7 +2044,9 @@ function SeguimientosTab({ leadId }: { leadId: number }) {
 
       <Modal show={open} onClose={() => setOpen(false)}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-base font-semibold text-gray-900">Programar seguimiento</h3>
+          <h3 className="text-base font-semibold text-gray-900">
+            Programar seguimiento
+          </h3>
           <button
             type="button"
             onClick={() => setOpen(false)}
@@ -2413,8 +2419,9 @@ function HistorialTab({ leadId }: { leadId: number }) {
 
 // ── Main view ─────────────────────────────────────────────────────────
 
-export default function LeadDetailView({ uuid, refParam }: Props) {
+export default function LeadDetailView({ uuid }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("interacciones");
+  const searhParams = useSearchParams();
   const { data: lead, refetch: refetchLead } = useGetLeadQuery(uuid);
   const { unidadId } = useAppSelector((state) => state.changeUnidad);
   const { data: pipelines } = useGetPipelinesQuery(
@@ -2440,12 +2447,12 @@ export default function LeadDetailView({ uuid, refParam }: Props) {
     { key: "historial", label: "Historial", icon: GitBranch },
     { key: "plan-pago", label: "Plan de Pago", icon: CreditCard },
   ];
-
+  console.log(searhParams.get("ref"));
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Back */}
       <Link
-        href={`/dashboard/crm/menu?ref=${refParam}`}
+        href={`/dashboard/crm/leads?ref=${searhParams.get("ref")}`}
         className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />

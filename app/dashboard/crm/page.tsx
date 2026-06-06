@@ -1,4 +1,4 @@
 import { redirect } from "next/navigation";
 export default function Page() {
-  redirect("/dashboard/crm/menu");
+  redirect("/dashboard/crm/leads");
 }

@@ -137,12 +137,13 @@ const leadsApiSlice = apiSlice.injectEndpoints({
 
     getSeguimientos: builder.query<
       PaginatedResponse<SeguimientoProgramado>,
-      { lead?: number; completado?: boolean }
+      { lead?: number; completado?: boolean; page?: number }
     >({
-      query: ({ lead, completado }) => {
+      query: ({ lead, completado, page }) => {
         const qs = new URLSearchParams();
         if (lead) qs.set("lead", String(lead));
         if (completado !== undefined) qs.set("completado", String(completado));
+        if (page) qs.set("page", String(page));
         return `/crm/seguimientos/?${qs.toString()}`;
       },
     }),
