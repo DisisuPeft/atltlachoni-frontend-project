@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { useGetPonenciasQuery } from "@/redux/features/control-escolar/ponenciasApiSlice";
 import { Ponencia } from "@/redux/features/types/control-escolar/type";
 import {
@@ -198,7 +198,6 @@ function PonenciaCard({
 export default function PonenciasView() {
   const [filterTipo, setFilterTipo] = useState("");
   const [selected, setSelected] = useState<Ponencia | null>(null);
-  const viewerRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading } = useGetPonenciasQuery(
     filterTipo ? { tipo: filterTipo } : undefined,
@@ -215,9 +214,7 @@ export default function PonenciasView() {
     const isDeselect = selected?.id === p.id;
     setSelected(isDeselect ? null : p);
     if (!isDeselect) {
-      setTimeout(() => {
-        viewerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 50);
+      document.getElementById("plataforma-main")?.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -234,11 +231,9 @@ export default function PonenciasView() {
       </div>
 
       {/* Viewer */}
-      <div ref={viewerRef}>
-        {selected && (
-          <PonenciaViewer ponencia={selected} onClose={() => setSelected(null)} />
-        )}
-      </div>
+      {selected && (
+        <PonenciaViewer ponencia={selected} onClose={() => setSelected(null)} />
+      )}
 
       {/* Tipo filters */}
       {tipos.length > 1 && (

@@ -15,7 +15,7 @@ export default function Layout({ children }: Children) {
         <Navbar />
         <div className="flex flex-1 overflow-hidden">
           <PlataformaEducativa />
-          <main className="flex-1 overflow-auto md:ml-64 pb-16 md:pb-0">
+          <main id="plataforma-main" className="flex-1 overflow-auto md:ml-64 pb-16 md:pb-0">
             {children}
           </main>
         </div>

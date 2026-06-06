@@ -310,7 +310,7 @@ export default function BienvenidaView({ programaId }: Props) {
 
   const handleSelect = (material: Material) => {
     setSelectedMaterial(material);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("plataforma-main")?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
