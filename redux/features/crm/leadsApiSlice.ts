@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { SuccessMessage } from "../types/reponse";
+import { type LeadCreatedResponse } from "../types/reponse";
 import { LeadFormData } from "@/hooks/crm/leads/use-lead-form";
 import {
   Lead,
@@ -42,18 +42,30 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         if (search) qs.set("search", search);
         return `/crm/leads/?${qs.toString()}`;
       },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.results.map(({ uuid }) => ({
+                type: "Leads" as const,
+                id: uuid,
+              })),
+              { type: "Leads" as const, id: "LIST" },
+            ]
+          : [{ type: "Leads" as const, id: "LIST" }],
     }),
 
     getLead: builder.query<Lead, string>({
       query: (uuid) => `/crm/leads/${uuid}/`,
+      providesTags: (_result, _error, uuid) => [{ type: "Leads", id: uuid }],
     }),
 
-    createLead: builder.mutation<SuccessMessage, LeadFormData>({
+    createLead: builder.mutation<LeadCreatedResponse, LeadFormData>({
       query: (formData) => ({
         url: "/crm/leads/",
         method: "POST",
         body: formData,
       }),
+      invalidatesTags: [{ type: "Leads", id: "LIST" }],
     }),
 
     updateLead: builder.mutation<Lead, { uuid: string; data: Partial<Lead> }>({
@@ -62,6 +74,10 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         method: "PATCH",
         body: data,
       }),
+      invalidatesTags: (_result, _error, { uuid }) => [
+        { type: "Leads", id: uuid },
+        { type: "Leads", id: "LIST" },
+      ],
     }),
 
     deleteLead: builder.mutation<void, string>({
@@ -69,6 +85,10 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         url: `/crm/leads/${uuid}/`,
         method: "DELETE",
       }),
+      invalidatesTags: (_result, _error, uuid) => [
+        { type: "Leads", id: uuid },
+        { type: "Leads", id: "LIST" },
+      ],
     }),
 
     apagarLead: builder.mutation<Lead, { uuid: string; motivo: string }>({
@@ -77,6 +97,10 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: { motivo },
       }),
+      invalidatesTags: (_result, _error, { uuid }) => [
+        { type: "Leads", id: uuid },
+        { type: "Leads", id: "LIST" },
+      ],
     }),
 
     reactivarLead: builder.mutation<Lead, string>({
@@ -84,6 +108,10 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         url: `/crm/leads/${uuid}/reactivar/`,
         method: "POST",
       }),
+      invalidatesTags: (_result, _error, uuid) => [
+        { type: "Leads", id: uuid },
+        { type: "Leads", id: "LIST" },
+      ],
     }),
 
     // ─── Interacciones ────────────────────────────────────────────────
@@ -93,6 +121,14 @@ const leadsApiSlice = apiSlice.injectEndpoints({
       { lead: number }
     >({
       query: ({ lead }) => `/crm/interacciones/?lead=${lead}`,
+      providesTags: (result, _error, { lead }) => [
+        ...(result?.results ?? []).map(({ id }) => ({
+          type: "Interacciones" as const,
+          id,
+        })),
+        { type: "Interacciones" as const, id: `lead-${lead}` },
+        { type: "Interacciones" as const, id: "LIST" },
+      ],
     }),
 
     createInteraccion: builder.mutation<InteraccionLead, InteraccionForm>({
@@ -113,6 +149,13 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         }
         return { url: "/crm/interacciones/", method: "POST", body: data };
       },
+      invalidatesTags: (result) =>
+        result
+          ? [
+              { type: "Interacciones", id: `lead-${result.lead}` },
+              { type: "Interacciones", id: "LIST" },
+            ]
+          : [{ type: "Interacciones", id: "LIST" }],
     }),
 
     updateInteraccion: builder.mutation<
@@ -124,6 +167,13 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         method: "PATCH",
         body: data,
       }),
+      invalidatesTags: (result) =>
+        result
+          ? [
+              { type: "Interacciones", id: result.id },
+              { type: "Interacciones", id: `lead-${result.lead}` },
+            ]
+          : [{ type: "Interacciones", id: "LIST" }],
     }),
 
     deleteInteraccion: builder.mutation<void, number>({
@@ -131,6 +181,7 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         url: `/crm/interacciones/${id}/`,
         method: "DELETE",
       }),
+      invalidatesTags: [{ type: "Interacciones", id: "LIST" }],
     }),
 
     // ─── Seguimientos ─────────────────────────────────────────────────
@@ -146,6 +197,14 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         if (page) qs.set("page", String(page));
         return `/crm/seguimientos/?${qs.toString()}`;
       },
+      providesTags: (result, _error, { lead }) => [
+        ...(result?.results ?? []).map(({ id }) => ({
+          type: "Seguimientos" as const,
+          id,
+        })),
+        ...(lead ? [{ type: "Seguimientos" as const, id: `lead-${lead}` }] : []),
+        { type: "Seguimientos" as const, id: "LIST" },
+      ],
     }),
 
     createSeguimiento: builder.mutation<SeguimientoProgramado, SeguimientoForm>(
@@ -155,6 +214,13 @@ const leadsApiSlice = apiSlice.injectEndpoints({
           method: "POST",
           body: data,
         }),
+        invalidatesTags: (result) =>
+          result
+            ? [
+                { type: "Seguimientos", id: `lead-${result.lead}` },
+                { type: "Seguimientos", id: "LIST" },
+              ]
+            : [{ type: "Seguimientos", id: "LIST" }],
       },
     ),
 
@@ -167,6 +233,13 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         method: "PATCH",
         body: data,
       }),
+      invalidatesTags: (result) =>
+        result
+          ? [
+              { type: "Seguimientos", id: result.id },
+              { type: "Seguimientos", id: `lead-${result.lead}` },
+            ]
+          : [{ type: "Seguimientos", id: "LIST" }],
     }),
 
     completarSeguimiento: builder.mutation<void, number>({
@@ -174,6 +247,10 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         url: `/crm/seguimientos/${id}/completar/`,
         method: "POST",
       }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: "Seguimientos", id },
+        { type: "Seguimientos", id: "LIST" },
+      ],
     }),
 
     // ─── Historial etapas ─────────────────────────────────────────────
@@ -183,6 +260,9 @@ const leadsApiSlice = apiSlice.injectEndpoints({
       { lead: number }
     >({
       query: ({ lead }) => `/crm/historial-etapas/?lead=${lead}`,
+      providesTags: (_result, _error, { lead }) => [
+        { type: "HistorialEtapas", id: `lead-${lead}` },
+      ],
     }),
 
     // ─── Vendedores ───────────────────────────────────────────────────
@@ -198,6 +278,9 @@ const leadsApiSlice = apiSlice.injectEndpoints({
           method: "POST",
           body: { vendedor },
         }),
+        invalidatesTags: (_result, _error, { uuid }) => [
+          { type: "Leads", id: uuid },
+        ],
       },
     ),
 
@@ -206,6 +289,9 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         url: `/crm/leads/${uuid}/desasignar-vendedor/`,
         method: "POST",
       }),
+      invalidatesTags: (_result, _error, uuid) => [
+        { type: "Leads", id: uuid },
+      ],
     }),
 
     // ─── Planes de pago ───────────────────────────────────────────────
@@ -222,10 +308,21 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         if (params.empresa) qs.set("empresa", String(params.empresa));
         return `/crm/planes-pago/?${qs.toString()}`;
       },
+      providesTags: (result, _error, params) => [
+        ...(result?.results ?? []).map(({ id }) => ({
+          type: "PlanesPago" as const,
+          id,
+        })),
+        ...(params.lead
+          ? [{ type: "PlanesPago" as const, id: `lead-${params.lead}` }]
+          : []),
+        { type: "PlanesPago" as const, id: "LIST" },
+      ],
     }),
 
     getPlanPago: builder.query<PlanPagoDetalle, number>({
       query: (id) => `/crm/planes-pago/${id}/`,
+      providesTags: (_result, _error, id) => [{ type: "PlanesPago", id }],
     }),
 
     createPlanPago: builder.mutation<PlanPagoDetalle, CreatePlanPagoPayload>({
@@ -234,6 +331,13 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: (result) =>
+        result
+          ? [
+              { type: "PlanesPago", id: `lead-${result.lead}` },
+              { type: "PlanesPago", id: "LIST" },
+            ]
+          : [{ type: "PlanesPago", id: "LIST" }],
     }),
 
     aprobarPlanPago: builder.mutation<{ detail: string }, number>({
@@ -241,6 +345,10 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         url: `/crm/planes-pago/${id}/aprobar/`,
         method: "POST",
       }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: "PlanesPago", id },
+        { type: "PlanesPago", id: "LIST" },
+      ],
     }),
 
     // ─── Validaciones ─────────────────────────────────────────────────
@@ -254,6 +362,16 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         if (plan_pago) qs.set("plan_pago", String(plan_pago));
         return `/crm/validaciones/?${qs.toString()}`;
       },
+      providesTags: (result, _error, { plan_pago }) => [
+        ...(result?.results ?? []).map(({ id }) => ({
+          type: "Validaciones" as const,
+          id,
+        })),
+        ...(plan_pago
+          ? [{ type: "Validaciones" as const, id: `plan-${plan_pago}` }]
+          : []),
+        { type: "Validaciones" as const, id: "LIST" },
+      ],
     }),
 
     createValidacion: builder.mutation<Validacion, CreateValidacionPayload>({
@@ -268,6 +386,13 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         }
         return { url: "/crm/validaciones/", method: "POST", body: formData };
       },
+      invalidatesTags: (result) =>
+        result
+          ? [
+              { type: "Validaciones", id: `plan-${result.plan_pago}` },
+              { type: "Validaciones", id: "LIST" },
+            ]
+          : [{ type: "Validaciones", id: "LIST" }],
     }),
 
     validarValidacion: builder.mutation<{ detail: string }, number>({
@@ -275,6 +400,10 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         url: `/crm/validaciones/${id}/validar/`,
         method: "POST",
       }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: "Validaciones", id },
+        { type: "Validaciones", id: "LIST" },
+      ],
     }),
 
     rechazarValidacion: builder.mutation<
@@ -286,6 +415,10 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: { motivo_rechazo },
       }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Validaciones", id },
+        { type: "Validaciones", id: "LIST" },
+      ],
     }),
   }),
 });

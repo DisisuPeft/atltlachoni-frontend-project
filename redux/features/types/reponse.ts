@@ -6,6 +6,11 @@ export type SuccessMessage = {
   message: string;
 };
 
+export type LeadCreatedResponse = {
+  message: string;
+  uuid: string;
+};
+
 export interface ErrorResponse {
   data: ErrorMessage;
   status: number;

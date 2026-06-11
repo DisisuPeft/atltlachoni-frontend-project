@@ -16,7 +16,7 @@ import { useCreateLeadMutation } from "@/redux/features/crm/leadsApiSlice";
 import { sweetAlert } from "@/sweetalert/sweetalerts";
 import { ErrorResponse } from "@/redux/features/types/reponse";
 import { useAppSelector } from "@/redux/hooks";
-// import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const leadSchema = z.object({
   nombre: z
@@ -52,7 +52,7 @@ export default function useLeadForm() {
   const { data: etapas, isLoading: etapasLoading } = useGetEtapasQuery();
   const [createLead] = useCreateLeadMutation();
   const { unidadId } = useAppSelector((state) => state.changeUnidad);
-  // const router = useRouter();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -95,17 +95,18 @@ export default function useLeadForm() {
         title: `${res.message}`,
         showDenyButton: true,
         showCancelButton: true,
-        confirmButtonText: "Agregar otro lead",
-        denyButtonText: `Terminar registro`,
-        cancelButtonText: `Volver al inicio`,
-        denyButtonColor: "#0EA5E9",
+        confirmButtonText: "Registrar otro",
+        denyButtonText: "Terminar",
+        cancelButtonText: "Continuar",
+        denyButtonColor: "#6B7280",
+        cancelButtonColor: "#0EA5E9",
       }).then((result) => {
         if (result.isConfirmed) {
           reset();
         } else if (result.isDenied) {
-          Swal.fire("Changes are not saved", "", "info");
-        } else if (result.isDismissed) {
-          Swal.fire("Back", "", "info");
+          router.push("/dashboard/crm/leads");
+        } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+          router.push(`/dashboard/crm/detalle-lead/${res.uuid}`);
         }
       });
     } catch (error) {
