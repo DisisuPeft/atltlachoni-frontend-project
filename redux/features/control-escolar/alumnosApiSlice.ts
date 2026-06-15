@@ -4,6 +4,7 @@ import {
   EstudiantePerfil,
   EstudiantePerfilForm,
   InscripcionBody,
+  InscripcionEstudianteDetail,
   Material,
   MiInscripcionPagos,
   ProgramaEducativoDetail,
@@ -55,6 +56,7 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
     }),
     retrieveEstudiante: builder.query<EstudiantePerfilForm, string>({
       query: (uuid) => `/control-escolar/estudiantes/${uuid}/`,
+      providesTags: (_result, _error, uuid) => [{ type: "Estudiantes" as const, id: uuid }],
     }),
     updateEstudiante: builder.mutation<
       MessageResponse,
@@ -128,12 +130,26 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
         method: "DELETE",
       }),
     }),
-    getInscripcionesEstudiante: builder.query<MiInscripcionPagos[], string>({
+    getInscripcionesEstudiante: builder.query<InscripcionEstudianteDetail[], string>({
       query: (uuid) => `/control-escolar/estudiantes/${uuid}/inscripciones/`,
       providesTags: (_result, _error, uuid) => [{ type: "Inscripciones" as const, id: uuid }],
     }),
     getMisPagos: builder.query<MiInscripcionPagos[], void>({
       query: () => `/control-escolar/inscripciones/mis_pagos/`,
+    }),
+    activarEstudiante: builder.mutation<{ detail: string }, string>({
+      query: (uuid) => ({
+        url: `/control-escolar/estudiantes/${uuid}/activar/`,
+        method: "POST",
+      }),
+      invalidatesTags: (_result, _error, uuid) => [{ type: "Estudiantes" as const, id: uuid }],
+    }),
+    desactivarEstudiante: builder.mutation<{ detail: string }, string>({
+      query: (uuid) => ({
+        url: `/control-escolar/estudiantes/${uuid}/desactivar/`,
+        method: "POST",
+      }),
+      invalidatesTags: (_result, _error, uuid) => [{ type: "Estudiantes" as const, id: uuid }],
     }),
   }),
 });
@@ -154,4 +170,6 @@ export const {
   useSubirComprobanteInscripcionMutation,
   useGetComprobantesInscripcionQuery,
   useGetMisPagosQuery,
+  useActivarEstudianteMutation,
+  useDesactivarEstudianteMutation,
 } = alumnoApiSlice;

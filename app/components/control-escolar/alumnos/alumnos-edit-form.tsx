@@ -8,8 +8,10 @@ import {
   useGetComprobantesInscripcionQuery,
   useSubirComprobanteInscripcionMutation,
   useRetrieveEstudianteQuery,
+  useActivarEstudianteMutation,
+  useDesactivarEstudianteMutation,
 } from "@/redux/features/control-escolar/alumnosApiSlice";
-import { MiPagoItem } from "@/redux/features/types/control-escolar/type";
+import { PagoInscripcion } from "@/redux/features/types/control-escolar/type";
 import { Modal } from "../../common/modal";
 import StepEstudiante from "./steps";
 import {
@@ -106,6 +108,22 @@ function ProfileHeader({
   onInscribir: () => void;
 }) {
   const { data: estudiante, isLoading } = useRetrieveEstudianteQuery(uuid);
+  const [activar, { isLoading: activando }] = useActivarEstudianteMutation();
+  const [desactivar, { isLoading: desactivando }] = useDesactivarEstudianteMutation();
+  const toggling = activando || desactivando;
+
+  const handleToggleStatus = async () => {
+    try {
+      if (estudiante?.status === 1) {
+        await desactivar(uuid).unwrap();
+      } else {
+        await activar(uuid).unwrap();
+      }
+    } catch (err) {
+      const detail = (err as { data?: { detail?: string } })?.data?.detail;
+      sweetAlert("error", detail ?? "No se pudo cambiar el estado", "Error");
+    }
+  };
 
   const nombre = estudiante
     ? `${estudiante.user_obj?.nombre ?? ""} ${estudiante.user_obj?.apellido_paterno ?? ""} ${estudiante.user_obj?.apellido_materno ?? ""}`.trim()
@@ -180,6 +198,25 @@ function ProfileHeader({
             </span>
           )}
           <div className="flex items-center gap-2">
+            {estudiante && (
+              <button
+                type="button"
+                onClick={handleToggleStatus}
+                disabled={toggling}
+                className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg border transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                  estudiante.status === 1
+                    ? "border-red-200 text-red-600 hover:bg-red-50"
+                    : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                }`}
+              >
+                {toggling ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <span className={`w-1.5 h-1.5 rounded-full ${estudiante.status === 1 ? "bg-red-400" : "bg-emerald-500"}`} />
+                )}
+                {estudiante.status === 1 ? "Desactivar" : "Activar"}
+              </button>
+            )}
             <button
               type="button"
               onClick={onEdit}
@@ -210,12 +247,19 @@ function ProfileHeader({
 // ── Comprobantes sub-panel ────────────────────────────────────────────
 
 function ComprobantesPanel({ inscripcionId }: { inscripcionId: number }) {
-  const { data: comprobantes } = useGetComprobantesInscripcionQuery(inscripcionId);
-  const [subirComprobante, { isLoading: isUploading }] = useSubirComprobanteInscripcionMutation();
+  const { data: comprobantes } =
+    useGetComprobantesInscripcionQuery(inscripcionId);
+  const [subirComprobante, { isLoading: isUploading }] =
+    useSubirComprobanteInscripcionMutation();
 
   const [showForm, setShowForm] = useState(false);
   const [archivo, setArchivo] = useState<File | null>(null);
-  const [campos, setCampos] = useState({ monto_visible: "", banco_origen: "", referencia: "", notas: "" });
+  const [campos, setCampos] = useState({
+    monto_visible: "",
+    banco_origen: "",
+    referencia: "",
+    notas: "",
+  });
 
   const handleSubir = async () => {
     if (!archivo) return;
@@ -230,7 +274,12 @@ function ComprobantesPanel({ inscripcionId }: { inscripcionId: number }) {
       await subirComprobante({ inscripcionId, formData: fd }).unwrap();
       setShowForm(false);
       setArchivo(null);
-      setCampos({ monto_visible: "", banco_origen: "", referencia: "", notas: "" });
+      setCampos({
+        monto_visible: "",
+        banco_origen: "",
+        referencia: "",
+        notas: "",
+      });
     } catch (err) {
       const detail = (err as { data?: { detail?: string } })?.data?.detail;
       sweetAlert("error", detail ?? "No se pudo subir el comprobante", "Error");
@@ -264,11 +313,15 @@ function ComprobantesPanel({ inscripcionId }: { inscripcionId: number }) {
           {/* File picker */}
           <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-lg p-4 cursor-pointer hover:border-[#0056D2]/50 hover:bg-[#F0F6FF]/50 transition-colors">
             {archivo ? (
-              <span className="text-xs text-gray-700 font-medium">{archivo.name}</span>
+              <span className="text-xs text-gray-700 font-medium">
+                {archivo.name}
+              </span>
             ) : (
               <>
                 <Upload className="w-5 h-5 text-gray-300" />
-                <span className="text-xs text-gray-400">PDF, imagen u otro comprobante</span>
+                <span className="text-xs text-gray-400">
+                  PDF, imagen u otro comprobante
+                </span>
               </>
             )}
             <input
@@ -285,31 +338,56 @@ function ComprobantesPanel({ inscripcionId }: { inscripcionId: number }) {
               <label className="text-xs text-gray-500 font-medium flex items-center gap-1">
                 <DollarSign className="w-3 h-3" /> Monto visible
               </label>
-              <input type="number" step="0.01" min="0" className={inputSm} placeholder="0.00"
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                className={inputSm}
+                placeholder="0.00"
                 value={campos.monto_visible}
-                onChange={(e) => setCampos((c) => ({ ...c, monto_visible: e.target.value }))} />
+                onChange={(e) =>
+                  setCampos((c) => ({ ...c, monto_visible: e.target.value }))
+                }
+              />
             </div>
             <div className="space-y-1">
               <label className="text-xs text-gray-500 font-medium flex items-center gap-1">
                 <Landmark className="w-3 h-3" /> Banco emisor
               </label>
-              <input className={inputSm} placeholder="BBVA, HSBC..."
+              <input
+                className={inputSm}
+                placeholder="BBVA, HSBC..."
                 value={campos.banco_origen}
-                onChange={(e) => setCampos((c) => ({ ...c, banco_origen: e.target.value }))} />
+                onChange={(e) =>
+                  setCampos((c) => ({ ...c, banco_origen: e.target.value }))
+                }
+              />
             </div>
             <div className="space-y-1">
               <label className="text-xs text-gray-500 font-medium flex items-center gap-1">
                 <Hash className="w-3 h-3" /> Referencia / folio
               </label>
-              <input className={inputSm} placeholder="TXN-123456"
+              <input
+                className={inputSm}
+                placeholder="TXN-123456"
                 value={campos.referencia}
-                onChange={(e) => setCampos((c) => ({ ...c, referencia: e.target.value }))} />
+                onChange={(e) =>
+                  setCampos((c) => ({ ...c, referencia: e.target.value }))
+                }
+              />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-gray-500 font-medium">Notas internas</label>
-              <input className={inputSm} placeholder="Observaciones..."
+              <label className="text-xs text-gray-500 font-medium">
+                Notas internas
+              </label>
+              <input
+                className={inputSm}
+                placeholder="Observaciones..."
                 value={campos.notas}
-                onChange={(e) => setCampos((c) => ({ ...c, notas: e.target.value }))} />
+                onChange={(e) =>
+                  setCampos((c) => ({ ...c, notas: e.target.value }))
+                }
+              />
             </div>
           </div>
 
@@ -320,7 +398,11 @@ function ComprobantesPanel({ inscripcionId }: { inscripcionId: number }) {
               disabled={isUploading || !archivo}
               className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-[#0056D2] rounded-lg hover:bg-[#004BB5] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
-              {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+              {isUploading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Upload className="w-3.5 h-3.5" />
+              )}
               {isUploading ? "Subiendo..." : "Subir"}
             </button>
           </div>
@@ -331,15 +413,25 @@ function ComprobantesPanel({ inscripcionId }: { inscripcionId: number }) {
       {(comprobantes?.length ?? 0) > 0 && (
         <div className="space-y-2">
           {comprobantes!.map((c) => (
-            <div key={c.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <div
+              key={c.id}
+              className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100"
+            >
               <FileCheck2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-gray-800 truncate">{c.original_name}</p>
+                <p className="text-xs font-medium text-gray-800 truncate">
+                  {c.original_name}
+                </p>
                 <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-xs text-gray-400">
                   {c.monto_visible && <span>${c.monto_visible}</span>}
                   {c.banco_origen && <span>{c.banco_origen}</span>}
                   {c.referencia && <span>{c.referencia}</span>}
-                  <span>{new Date(c.created_at).toLocaleDateString("es-MX", { day: "numeric", month: "short" })}</span>
+                  <span>
+                    {new Date(c.created_at).toLocaleDateString("es-MX", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </span>
                 </div>
               </div>
               <a
@@ -361,37 +453,54 @@ function ComprobantesPanel({ inscripcionId }: { inscripcionId: number }) {
 // ── Helpers ──────────────────────────────────────────────────────────
 
 function fmtMXN(monto: string) {
-  return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(
-    parseFloat(monto)
-  );
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
+  }).format(parseFloat(monto));
 }
 
 function fmtDate(iso: string | null) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(iso).toLocaleDateString("es-MX", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 // ── Pago row ─────────────────────────────────────────────────────────
 
-function PagoRow({ pago }: { pago: MiPagoItem }) {
+function PagoRow({ pago }: { pago: PagoInscripcion }) {
   const done = pago.estado === "completado";
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
-      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${done ? "bg-emerald-50" : "bg-amber-50"}`}>
-        {done
-          ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-          : <Clock className="w-3.5 h-3.5 text-amber-500" />
-        }
+      <div
+        className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${done ? "bg-emerald-50" : "bg-amber-50"}`}
+      >
+        {done ? (
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+        ) : (
+          <Clock className="w-3.5 h-3.5 text-amber-500" />
+        )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-gray-800 truncate">{pago.concepto}</p>
+        <p className="text-xs font-medium text-gray-800 truncate">
+          {pago.concepto ?? pago.tipo_pago_r}
+        </p>
         <p className="text-xs text-gray-400">
-          {done ? `Pagado el ${fmtDate(pago.fecha_pago)}` : `Vence el ${fmtDate(pago.fecha_vencimiento)}`}
+          {done
+            ? `Pagado el ${fmtDate(pago.fecha_pago)}`
+            : `Vence el ${fmtDate(pago.fecha_vencimiento)}`}
+          {pago.metodo_pago_r && ` · ${pago.metodo_pago_r}`}
         </p>
       </div>
       <div className="text-right flex-shrink-0">
-        <p className="text-xs font-semibold text-gray-900">{fmtMXN(pago.monto)}</p>
-        <span className={`text-xs font-medium ${done ? "text-emerald-600" : "text-amber-500"}`}>
+        <p className="text-xs font-semibold text-gray-900">
+          {fmtMXN(pago.monto)}
+        </p>
+        <span
+          className={`text-xs font-medium ${done ? "text-emerald-600" : "text-amber-500"}`}
+        >
           {done ? "Pagado" : "Pendiente"}
         </span>
       </div>
@@ -402,7 +511,8 @@ function PagoRow({ pago }: { pago: MiPagoItem }) {
 // ── Inscripciones tab ────────────────────────────────────────────────
 
 function InscripcionesTab({ uuid }: { uuid: string }) {
-  const { data: inscripciones, isLoading } = useGetInscripcionesEstudianteQuery(uuid);
+  const { data: inscripciones, isLoading } =
+    useGetInscripcionesEstudianteQuery(uuid);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [comprobantesId, setComprobantesId] = useState<number | null>(null);
 
@@ -410,11 +520,16 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
     return (
       <div className="space-y-4">
         {[0, 1].map((i) => (
-          <div key={i} className="border border-gray-200 rounded-xl p-5 animate-pulse space-y-3">
+          <div
+            key={i}
+            className="border border-gray-200 rounded-xl p-5 animate-pulse space-y-3"
+          >
             <div className="h-4 w-48 bg-gray-100 rounded" />
             <div className="h-3 w-32 bg-gray-100 rounded" />
             <div className="grid grid-cols-3 gap-4">
-              {[0, 1, 2].map((j) => <div key={j} className="h-8 bg-gray-100 rounded" />)}
+              {[0, 1, 2].map((j) => (
+                <div key={j} className="h-8 bg-gray-100 rounded" />
+              ))}
             </div>
           </div>
         ))}
@@ -426,9 +541,12 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
     return (
       <div className="border border-gray-200 rounded-xl py-16 text-center">
         <GraduationCap className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-        <p className="text-sm font-medium text-gray-500">Sin inscripciones registradas</p>
+        <p className="text-sm font-medium text-gray-500">
+          Sin inscripciones registradas
+        </p>
         <p className="text-xs text-gray-400 mt-1">
-          Usa el botón &quot;Inscribir&quot; para agregar al estudiante a un programa
+          Usa el botón &quot;Inscribir&quot; para agregar al estudiante a un
+          programa
         </p>
       </div>
     );
@@ -437,14 +555,20 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
   return (
     <div className="space-y-4">
       {inscripciones.map((ins) => {
-        const total = parseFloat(ins.total);
-        const pagado = parseFloat(ins.pagado);
+        const total = ins.pagos.reduce((sum, p) => sum + parseFloat(p.monto), 0);
+        const pagado = ins.pagos
+          .filter((p) => p.estado === "completado")
+          .reduce((sum, p) => sum + parseFloat(p.monto), 0);
+        const pendiente = total - pagado;
         const pct = total > 0 ? Math.min(100, Math.round((pagado / total) * 100)) : 0;
-        const pagosOpen = expandedId === ins.inscripcion_id;
-        const comprobantesOpen = comprobantesId === ins.inscripcion_id;
+        const pagosOpen = expandedId === ins.id;
+        const comprobantesOpen = comprobantesId === ins.id;
 
         return (
-          <div key={ins.inscripcion_id} className="border border-gray-200 rounded-xl overflow-hidden">
+          <div
+            key={ins.id}
+            className="border border-gray-200 rounded-xl overflow-hidden"
+          >
             {/* Header */}
             <div className="px-5 py-4 border-b border-gray-100">
               <div className="flex items-start gap-3">
@@ -452,8 +576,15 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
                   <GraduationCap className="w-4 h-4 text-[#0056D2]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{ins.programa}</p>
-                  <p className="text-xs text-[#0056D2] font-medium mt-0.5">{ins.campania}</p>
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {ins.campania_obj?.programa_nombre ?? "—"}
+                  </p>
+                  <p className="text-xs text-[#0056D2] font-medium mt-0.5">
+                    {ins.campania_obj?.nombre ?? "Sin campaña"}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Inscrito el {fmtDate(ins.fecha_inscripcion)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -462,15 +593,21 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
             <div className="px-5 py-4 grid grid-cols-3 gap-4 border-b border-gray-100">
               <div>
                 <p className="text-xs text-gray-400 mb-0.5">Total</p>
-                <p className="text-sm font-semibold text-gray-900">{fmtMXN(ins.total)}</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {fmtMXN(String(total))}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-0.5">Pagado</p>
-                <p className="text-sm font-semibold text-emerald-600">{fmtMXN(ins.pagado)}</p>
+                <p className="text-sm font-semibold text-emerald-600">
+                  {fmtMXN(String(pagado))}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-0.5">Pendiente</p>
-                <p className="text-sm font-semibold text-amber-600">{fmtMXN(ins.pendiente)}</p>
+                <p className="text-sm font-semibold text-amber-600">
+                  {fmtMXN(String(pendiente))}
+                </p>
               </div>
             </div>
 
@@ -488,23 +625,31 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
               </div>
             </div>
 
-            {/* Acciones: ver pagos / ver comprobantes */}
+            {/* Acciones */}
             <div className="px-5 py-3 flex items-center gap-4 border-b border-gray-100">
               <button
                 type="button"
-                onClick={() => setExpandedId(pagosOpen ? null : ins.inscripcion_id)}
+                onClick={() => setExpandedId(pagosOpen ? null : ins.id)}
                 className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
               >
-                {pagosOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                {pagosOpen ? (
+                  <ChevronUp className="w-3.5 h-3.5" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5" />
+                )}
                 {pagosOpen ? "Ocultar pagos" : `Ver pagos (${ins.pagos.length})`}
               </button>
               <span className="text-gray-200">|</span>
               <button
                 type="button"
-                onClick={() => setComprobantesId(comprobantesOpen ? null : ins.inscripcion_id)}
+                onClick={() => setComprobantesId(comprobantesOpen ? null : ins.id)}
                 className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
               >
-                {comprobantesOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                {comprobantesOpen ? (
+                  <ChevronUp className="w-3.5 h-3.5" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5" />
+                )}
                 {comprobantesOpen ? "Ocultar comprobantes" : "Ver comprobantes"}
               </button>
             </div>
@@ -512,14 +657,16 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
             {/* Lista de pagos */}
             {pagosOpen && (
               <div className="px-5 py-2">
-                {ins.pagos.map((p) => <PagoRow key={p.id} pago={p} />)}
+                {ins.pagos.map((p) => (
+                  <PagoRow key={p.id} pago={p} />
+                ))}
               </div>
             )}
 
             {/* Comprobantes */}
             {comprobantesOpen && (
               <div className="px-5 pb-4">
-                <ComprobantesPanel inscripcionId={ins.inscripcion_id} />
+                <ComprobantesPanel inscripcionId={ins.id} />
               </div>
             )}
           </div>
@@ -620,46 +767,78 @@ export default function EstudianteEditPage({ uuid }: Props) {
                   description="Datos de identificación del estudiante"
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                  <Field label="Nombre" required error={errors.user?.nombre?.message}>
+                  <Field
+                    label="Nombre"
+                    required
+                    error={errors.user?.nombre?.message}
+                  >
                     <input
                       disabled={disabled}
-                      {...register("user.nombre", { required: "El nombre es requerido" })}
+                      {...register("user.nombre", {
+                        required: "El nombre es requerido",
+                      })}
                       className={inputClass}
                     />
                   </Field>
-                  <Field label="Apellido Paterno" required error={errors.user?.apellido_paterno?.message}>
+                  <Field
+                    label="Apellido Paterno"
+                    required
+                    error={errors.user?.apellido_paterno?.message}
+                  >
                     <input
                       disabled={disabled}
-                      {...register("user.apellido_paterno", { required: "El apellido paterno es requerido" })}
+                      {...register("user.apellido_paterno", {
+                        required: "El apellido paterno es requerido",
+                      })}
                       className={inputClass}
                     />
                   </Field>
-                  <Field label="Apellido Materno" required error={errors.user?.apellido_materno?.message}>
+                  <Field
+                    label="Apellido Materno"
+                    required
+                    error={errors.user?.apellido_materno?.message}
+                  >
                     <input
                       disabled={disabled}
-                      {...register("user.apellido_materno", { required: "El apellido materno es requerido" })}
+                      {...register("user.apellido_materno", {
+                        required: "El apellido materno es requerido",
+                      })}
                       className={inputClass}
                     />
                   </Field>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-5">
-                  <Field label="Género" required error={errors.user?.genero?.message}>
+                  <Field
+                    label="Género"
+                    required
+                    error={errors.user?.genero?.message}
+                  >
                     <select
                       disabled={disabled}
-                      {...register("user.genero", { required: "El género es requerido" })}
+                      {...register("user.genero", {
+                        required: "El género es requerido",
+                      })}
                       className={selectClass}
                     >
                       <option value="">Seleccionar</option>
                       {generos?.results.map((g) => (
-                        <option key={g.id} value={g.id}>{g.nombre}</option>
+                        <option key={g.id} value={g.id}>
+                          {g.nombre}
+                        </option>
                       ))}
                     </select>
                   </Field>
-                  <Field label="Fecha de Nacimiento" required error={errors.user?.fecha_nacimiento?.message}>
+                  <Field
+                    label="Fecha de Nacimiento"
+                    required
+                    error={errors.user?.fecha_nacimiento?.message}
+                  >
                     <input
                       disabled={disabled}
                       type="date"
-                      {...register("user.fecha_nacimiento", { required: "La fecha de nacimiento es requerida" })}
+                      {...register("user.fecha_nacimiento", {
+                        required: "La fecha de nacimiento es requerida",
+                      })}
                       className={inputClass}
                     />
                   </Field>
@@ -668,10 +847,15 @@ export default function EstudianteEditPage({ uuid }: Props) {
                       <input
                         disabled
                         type="number"
-                        {...register("user.edad", { required: "La edad es requerida", min: 1 })}
+                        {...register("user.edad", {
+                          required: "La edad es requerida",
+                          min: 1,
+                        })}
                         className={inputClass}
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">años</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                        años
+                      </span>
                     </div>
                   </Field>
                 </div>
@@ -685,7 +869,11 @@ export default function EstudianteEditPage({ uuid }: Props) {
                   description="Medios para comunicarse con el estudiante"
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <Field label="Email" required error={errors.user?.email?.message}>
+                  <Field
+                    label="Email"
+                    required
+                    error={errors.user?.email?.message}
+                  >
                     <div className="relative">
                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                       <input
@@ -693,19 +881,28 @@ export default function EstudianteEditPage({ uuid }: Props) {
                         type="email"
                         {...register("user.email", {
                           required: "El email es requerido",
-                          pattern: { value: /^\S+@\S+$/i, message: "Email inválido" },
+                          pattern: {
+                            value: /^\S+@\S+$/i,
+                            message: "Email inválido",
+                          },
                         })}
                         className={`${inputClass} pl-10`}
                       />
                     </div>
                   </Field>
-                  <Field label="Teléfono" required error={errors.user?.telefono?.message}>
+                  <Field
+                    label="Teléfono"
+                    required
+                    error={errors.user?.telefono?.message}
+                  >
                     <div className="relative">
                       <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                       <input
                         disabled={disabled}
                         type="tel"
-                        {...register("user.telefono", { required: "El teléfono es requerido" })}
+                        {...register("user.telefono", {
+                          required: "El teléfono es requerido",
+                        })}
                         className={`${inputClass} pl-10`}
                       />
                     </div>
@@ -721,10 +918,16 @@ export default function EstudianteEditPage({ uuid }: Props) {
                   description="Datos de ingreso y trayectoria educativa"
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <Field label="Especialidad" required error={errors.especialidad?.message}>
+                  <Field
+                    label="Especialidad"
+                    required
+                    error={errors.especialidad?.message}
+                  >
                     <input
                       disabled={disabled}
-                      {...register("especialidad", { required: "La especialidad es requerida" })}
+                      {...register("especialidad", {
+                        required: "La especialidad es requerida",
+                      })}
                       className={inputClass}
                     />
                   </Field>
@@ -737,18 +940,30 @@ export default function EstudianteEditPage({ uuid }: Props) {
                     />
                   </Field>
                   <Field label="Nivel Educativo">
-                    <select disabled={disabled} {...register("nivel_educativo")} className={selectClass}>
+                    <select
+                      disabled={disabled}
+                      {...register("nivel_educativo")}
+                      className={selectClass}
+                    >
                       <option value="">Seleccionar</option>
                       {nivelEducativo?.map((niv) => (
-                        <option key={niv.id} value={niv.id}>{niv.nombre}</option>
+                        <option key={niv.id} value={niv.id}>
+                          {niv.nombre}
+                        </option>
                       ))}
                     </select>
                   </Field>
                   <Field label="Institución">
-                    <select disabled={disabled} {...register("institucion")} className={selectClass}>
+                    <select
+                      disabled={disabled}
+                      {...register("institucion")}
+                      className={selectClass}
+                    >
                       <option value="">Seleccionar</option>
                       {instituciones?.map((ins) => (
-                        <option key={ins.id} value={ins.id}>{ins.nombre}</option>
+                        <option key={ins.id} value={ins.id}>
+                          {ins.nombre}
+                        </option>
                       ))}
                     </select>
                   </Field>
@@ -764,20 +979,34 @@ export default function EstudianteEditPage({ uuid }: Props) {
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <Field label="Estado">
-                    <select disabled={disabled} {...register("estado_pais")} className={selectClass}>
+                    <select
+                      disabled={disabled}
+                      {...register("estado_pais")}
+                      className={selectClass}
+                    >
                       <option value="">Seleccionar estado</option>
                       {estados?.map((e) => (
-                        <option key={e.id} value={e.id}>{e.name}</option>
+                        <option key={e.id} value={e.id}>
+                          {e.name}
+                        </option>
                       ))}
                     </select>
                   </Field>
                   <Field label="Ciudad">
-                    <select disabled={disabled} {...register("ciudad")} className={selectClass}>
+                    <select
+                      disabled={disabled}
+                      {...register("ciudad")}
+                      className={selectClass}
+                    >
                       <option value="">
-                        {estados ? "Seleccionar ciudad" : "Selecciona un estado primero"}
+                        {estados
+                          ? "Seleccionar ciudad"
+                          : "Selecciona un estado primero"}
                       </option>
                       {localidades?.map((l) => (
-                        <option key={l.id} value={l.id}>{l.name}</option>
+                        <option key={l.id} value={l.id}>
+                          {l.name}
+                        </option>
                       ))}
                     </select>
                   </Field>

@@ -468,6 +468,7 @@ export interface Material {
   programa_id: string | null;
   submodulo: number | null;
   campania_id: number | null;
+  campania_nombre: string | null;
 }
 
 export interface InscripcionBody {
@@ -519,6 +520,51 @@ export interface MiInscripcionPagos {
   pagado: string;
   pendiente: string;
   pagos: MiPagoItem[];
+}
+
+// ── Inscripciones por estudiante (admin view) ──────────────────────────────
+
+export interface PagoInscripcion {
+  id: number;
+  inscripcion: number;
+  tipo_pago: string;
+  tipo_pago_r: string;
+  monto: string;
+  fecha_pago: string | null;
+  fecha_vencimiento: string | null;
+  estado: "completado" | "pendiente" | string;
+  metodo_pago: number | null;
+  metodo_pago_r: string | null;
+  referencia: string | null;
+  comprobante: number | null;
+  periodo: string | null;
+  numero_pago: number | null;
+  notas: string | null;
+  concepto: string | null;
+}
+
+export interface CampaniaObj {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
+  costo_asignado: string | null;
+  status: number;
+  programa_nombre: string | null;
+  institucion_nombre: string | null;
+}
+
+export interface InscripcionEstudianteDetail {
+  id: number;
+  fecha_inscripcion: string;
+  pagos: PagoInscripcion[];
+  campania_obj: CampaniaObj | null;
+  tiene_precio_custom: boolean;
+  costo_inscripcion_acordado: string | null;
+  costo_mensualidad_acordado: string | null;
+  costo_documentacion_acordado: string | null;
+  notas_precio_custom: string | null;
 }
 
 export interface EventoShowInterface {

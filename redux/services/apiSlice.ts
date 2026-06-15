@@ -65,6 +65,7 @@ export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
   tagTypes: [
+    "Estudiantes",
     "Inscripciones",
     "Comprobantes",
     "Programas",
