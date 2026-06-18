@@ -7,6 +7,7 @@ import {
   InscripcionEstudianteDetail,
   Material,
   MiInscripcionPagos,
+  ModuloConMateriales,
   ProgramaEducativoDetail,
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
@@ -121,7 +122,7 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
     getMaterialesModulo: builder.query<PaginatedResponse<Material>, number>({
       query: (moduloId) => `/control-escolar/materiales/?modulo=${moduloId}`,
     }),
-    getMaterialesPrograma: builder.query<PaginatedResponse<Material>, string>({
+    getMaterialesPrograma: builder.query<ModuloConMateriales[], string>({
       query: (programaId) => `/control-escolar/materiales/?programa=${programaId}`,
     }),
     deleteMaterial: builder.mutation<void, number>({

@@ -438,6 +438,12 @@ export interface Ponencia {
   created_at: string;
 }
 
+export interface ModuloConMateriales {
+  modulo_id: number | null;
+  modulo_nombre: string | null;
+  materiales: Material[];
+}
+
 export interface Material {
   id: number;
   created_at: string;
@@ -465,8 +471,10 @@ export interface Material {
   uploaded_by_id: number | null;
   uploaded_by_nombre: string | null;
   modulo: number | null;
+  modulo_nombre: string | null;
   programa_id: string | null;
   submodulo: number | null;
+  submodulo_nombre: string | null;
   campania_id: number | null;
   campania_nombre: string | null;
 }

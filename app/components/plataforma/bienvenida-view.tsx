@@ -20,29 +20,37 @@ import {
   Loader2,
   Folder,
 } from "lucide-react";
-import { Material } from "@/redux/features/types/control-escolar/type";
+import {
+  Material,
+  ModuloConMateriales,
+} from "@/redux/features/types/control-escolar/type";
 
 const UPLOAD_HOST = process.env.NEXT_PUBLIC_UPLOAD_HOST;
 const API_HOST = process.env.NEXT_PUBLIC_HOST;
+// ── Document viewer ────────────────────────────────────────────────────────
 
-// ── PDF viewer ─────────────────────────────────────────────────────────────
-
-function isPdf(material: Material) {
+function isDocument(material: Material) {
   return (
-    material.file_type === "pdf" ||
+    material.file_type === "document" ||
     material.file_extension === "pdf" ||
     material.mime_type === "application/pdf"
   );
 }
 
-function PdfViewer({ material }: { material: Material }) {
+function PdfViewer({
+  material,
+  programaId,
+}: {
+  material: Material;
+  programaId: string;
+}) {
   const previewUrl = material.preview_url
-    ? `${API_HOST}${material.preview_url}`
+    ? `${API_HOST}${material.preview_url}?programa=${programaId}`
     : null;
   const downloadUrl = material.download_url
-    ? `${API_HOST}${material.download_url}`
-    : `${UPLOAD_HOST}/api/control-escolar/materiales/${material.id}/stream/`;
-
+    ? `${API_HOST}${material.download_url}?programa=${programaId}`
+    : `${UPLOAD_HOST}/api/control-escolar/materiales/${material.id}/stream/?programa=${programaId}`;
+  // console.log(previewUrl);
   if (!previewUrl) {
     return (
       <div className="w-full bg-gray-50 border border-gray-200 rounded-xl p-8 flex flex-col items-center gap-4">
@@ -68,15 +76,17 @@ function PdfViewer({ material }: { material: Material }) {
           <FileText className="w-4 h-4 text-red-500 shrink-0" />
           <span className="truncate">{material.original_name}</span>
         </div>
-        <a
-          href={downloadUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          <Download className="w-3.5 h-3.5" />
-          Descargar
-        </a>
+        {isDocument(material) && (
+          <a
+            href={downloadUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Descargar
+          </a>
+        )}
       </div>
       <iframe
         src={previewUrl}
@@ -107,14 +117,21 @@ function materialIcon(fileType: string, className = "w-4 h-4 shrink-0") {
 
 // ── Content viewer ─────────────────────────────────────────────────────────
 
-function MaterialViewer({ material }: { material: Material }) {
-  const streamUrl = `${UPLOAD_HOST}/api/control-escolar/materiales/${material.id}/stream/`;
-
+function MaterialViewer({
+  material,
+  programaId,
+}: {
+  material: Material;
+  programaId: string;
+}) {
+  // console.log(material);
+  const streamUrl = `${UPLOAD_HOST}/api/control-escolar/materiales/${material.id}/stream/?programa=${programaId}`;
+  // console.log(streamUrl);
   if (material.file_type === "video") {
     if (material.hls_status === "ready") {
       return (
         <div className="aspect-video w-full bg-black rounded-xl overflow-hidden">
-          <VideoPlayer materialId={material.id} />
+          <VideoPlayer materialId={material.id} programaId={programaId} />
         </div>
       );
     }
@@ -140,14 +157,16 @@ function MaterialViewer({ material }: { material: Material }) {
       <div className="aspect-video w-full bg-gray-950 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400">
         <Loader2 className="w-8 h-8 animate-spin" />
         <p className="text-sm">
-          {material.hls_status === "processing" ? "Preparando video…" : "En cola…"}
+          {material.hls_status === "processing"
+            ? "Preparando video…"
+            : "En cola…"}
         </p>
       </div>
     );
   }
 
-  if (isPdf(material)) {
-    return <PdfViewer material={material} />;
+  if (isDocument(material)) {
+    return <PdfViewer material={material} programaId={programaId} />;
   }
 
   if (material.file_type === "image") {
@@ -165,7 +184,9 @@ function MaterialViewer({ material }: { material: Material }) {
     return (
       <div className="w-full bg-gray-50 border border-gray-200 rounded-xl p-6 flex flex-col items-center gap-4">
         <Music className="w-10 h-10 text-purple-400" />
-        <p className="text-sm font-medium text-gray-700">{material.original_name}</p>
+        <p className="text-sm font-medium text-gray-700">
+          {material.original_name}
+        </p>
         <audio controls src={streamUrl} className="w-full" />
       </div>
     );
@@ -192,7 +213,13 @@ function MaterialViewer({ material }: { material: Material }) {
 
 // ── Bienvenida video placeholder ───────────────────────────────────────────
 
-function BienvenidaVideo({ material }: { material: Material | undefined }) {
+function BienvenidaVideo({
+  material,
+  programaId,
+}: {
+  material: Material | undefined;
+  programaId: string;
+}) {
   if (!material) {
     return (
       <div className="aspect-video w-full bg-gray-100 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400">
@@ -201,40 +228,31 @@ function BienvenidaVideo({ material }: { material: Material | undefined }) {
       </div>
     );
   }
-  return <MaterialViewer material={material} />;
+  return <MaterialViewer material={material} programaId={programaId} />;
 }
 
-// ── Campaign group type ─────────────────────────────────────────────────────
+// ── Group helpers ──────────────────────────────────────────────────────────
 
-interface CampaniaGroup {
-  campania_id: number | null;
-  campania_nombre: string | null;
-  materiales: Material[];
+function groupKey(g: ModuloConMateriales) {
+  return g.modulo_id === null ? "null" : String(g.modulo_id);
 }
 
-function groupKey(g: CampaniaGroup) {
-  return String(g.campania_id);
-}
+// ── Module accordion ───────────────────────────────────────────────────────
 
-// ── Campaign accordion ─────────────────────────────────────────────────────
-
-function CampaniaAccordion({
+function ModuloAccordion({
   group,
   isOpen,
   onToggle,
   selectedId,
   onSelect,
 }: {
-  group: CampaniaGroup;
+  group: ModuloConMateriales;
   isOpen: boolean;
   onToggle: () => void;
   selectedId: number | null;
   onSelect: (m: Material) => void;
 }) {
-  const label =
-    group.campania_nombre ??
-    (group.campania_id === null ? "General" : `Campaña #${group.campania_id}`);
-
+  const nombre = group.modulo_nombre ?? "General";
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
       <button
@@ -250,7 +268,9 @@ function CampaniaAccordion({
           )}
         </span>
         <Folder className="w-4 h-4 text-gray-400 shrink-0" />
-        <span className="text-sm font-semibold text-gray-800 flex-1">{label}</span>
+        <span className="text-sm font-semibold text-gray-800 flex-1">
+          {nombre}
+        </span>
         <span className="text-xs text-gray-400 shrink-0">
           {group.materiales.length} archivo
           {group.materiales.length !== 1 ? "s" : ""}
@@ -306,51 +326,41 @@ interface Props {
 
 export default function BienvenidaView({ programaId }: Props) {
   const { data: programa } = useProgramaEstudianteQuery(programaId);
-  const { data: materialesData, isLoading: materialesLoading } =
+  const { data: grupos = [], isLoading: materialesLoading } =
     useGetMaterialesProgramaQuery(programaId);
 
-  const allMateriales = useMemo(
-    () => materialesData?.results ?? [],
-    [materialesData],
+  // Bienvenida video: first video in the null-modulo group
+  const nullGroup = grupos.find((g) => g.modulo_id === null);
+  const videoMaterial = nullGroup?.materiales.find(
+    (m) => m.file_type === "video",
   );
 
-  // Bienvenida video: first video without campania and without modulo
-  const videoMaterial = allMateriales.find(
-    (m) => m.file_type === "video" && m.modulo === null && m.campania_id === null,
-  );
-
-  // Group remaining materials by campaign; null → "General"
-  const campGroups = useMemo<CampaniaGroup[]>(() => {
-    const map = new Map<number | null, CampaniaGroup>();
-    for (const m of allMateriales) {
-      // Exclude the bienvenida video from the accordion list
-      if (videoMaterial && m.id === videoMaterial.id) continue;
-      const key = m.campania_id;
-      if (!map.has(key)) {
-        map.set(key, {
-          campania_id: key,
-          campania_nombre: m.campania_nombre,
-          materiales: [],
-        });
-      }
-      map.get(key)!.materiales.push(m);
-    }
-    const entries = Array.from(map.values());
-    // General (null) first, then by id
-    return entries.sort((a, b) => {
-      if (a.campania_id === null) return -1;
-      if (b.campania_id === null) return 1;
-      return a.campania_id - b.campania_id;
-    });
-  }, [allMateriales, videoMaterial]);
+  // Accordion groups: exclude the bienvenida video from the null group;
+  // drop the null group entirely if it becomes empty
+  const moduloGroups = useMemo<ModuloConMateriales[]>(() => {
+    return grupos
+      .map((g) => {
+        if (g.modulo_id === null && videoMaterial) {
+          return {
+            ...g,
+            materiales: g.materiales.filter((m) => m.id !== videoMaterial.id),
+          };
+        }
+        return g;
+      })
+      .filter((g) => g.materiales.length > 0);
+  }, [grupos, videoMaterial]);
 
   const [openSet, setOpenSet] = useState<Set<string>>(new Set());
-  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(
+    null,
+  );
 
-  const allExpanded = campGroups.length > 0 && openSet.size === campGroups.length;
+  const allExpanded =
+    moduloGroups.length > 0 && openSet.size === moduloGroups.length;
 
   const toggleExpand = () => {
-    setOpenSet(allExpanded ? new Set() : new Set(campGroups.map(groupKey)));
+    setOpenSet(allExpanded ? new Set() : new Set(moduloGroups.map(groupKey)));
   };
 
   const toggleGroup = (key: string) => {
@@ -364,12 +374,13 @@ export default function BienvenidaView({ programaId }: Props) {
 
   const handleSelect = (material: Material) => {
     setSelectedMaterial(material);
-    document.getElementById("plataforma-main")?.scrollTo({ top: 0, behavior: "smooth" });
+    document
+      .getElementById("plataforma-main")
+      ?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-10">
-
       {/* ── Visor principal ── */}
       <section className="space-y-3">
         <div>
@@ -377,7 +388,9 @@ export default function BienvenidaView({ programaId }: Props) {
             {selectedMaterial ? "Archivo" : "Bienvenida"}
           </p>
           <h1 className="text-xl font-bold text-gray-900 mt-0.5 truncate">
-            {selectedMaterial ? selectedMaterial.original_name : programa?.nombre}
+            {selectedMaterial
+              ? selectedMaterial.original_name
+              : programa?.nombre}
           </h1>
           {(selectedMaterial?.description ?? programa?.descripcion) && (
             <p className="text-sm text-gray-500 mt-1">
@@ -387,9 +400,9 @@ export default function BienvenidaView({ programaId }: Props) {
         </div>
 
         {selectedMaterial ? (
-          <MaterialViewer material={selectedMaterial} />
+          <MaterialViewer material={selectedMaterial} programaId={programaId} />
         ) : (
-          <BienvenidaVideo material={videoMaterial} />
+          <BienvenidaVideo material={videoMaterial} programaId={programaId} />
         )}
 
         {selectedMaterial && (
@@ -403,11 +416,11 @@ export default function BienvenidaView({ programaId }: Props) {
         )}
       </section>
 
-      {/* ── Materiales por campaña ── */}
+      {/* ── Materiales por módulo ── */}
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-bold text-gray-900">Materiales</h2>
-          {campGroups.length > 0 && (
+          {moduloGroups.length > 0 && (
             <button
               type="button"
               onClick={toggleExpand}
@@ -423,14 +436,14 @@ export default function BienvenidaView({ programaId }: Props) {
             <Loader2 className="w-4 h-4 animate-spin" />
             Cargando materiales…
           </div>
-        ) : campGroups.length === 0 ? (
+        ) : moduloGroups.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">
             No hay materiales disponibles.
           </p>
         ) : (
           <div className="space-y-3">
-            {campGroups.map((group) => (
-              <CampaniaAccordion
+            {moduloGroups.map((group) => (
+              <ModuloAccordion
                 key={groupKey(group)}
                 group={group}
                 isOpen={openSet.has(groupKey(group))}
@@ -442,7 +455,6 @@ export default function BienvenidaView({ programaId }: Props) {
           </div>
         )}
       </section>
-
     </div>
   );
 }

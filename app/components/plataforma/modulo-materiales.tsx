@@ -41,7 +41,9 @@ function VideoStatusPlaceholder({
       <div className="flex flex-col items-center justify-center gap-3 py-8 bg-gray-950 rounded-b-lg">
         <div className="flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-red-400" />
-          <span className="text-sm text-red-400">Error al procesar el video</span>
+          <span className="text-sm text-red-400">
+            Error al procesar el video
+          </span>
         </div>
         <a
           href={`${UPLOAD_HOST}/api/control-escolar/materiales/${materialId}/stream/`}
@@ -125,7 +127,13 @@ function MaterialRow({ material }: { material: Material }) {
               <VideoPlayer materialId={material.id} />
             ) : (
               <VideoStatusPlaceholder
-                status={material.hls_status as "pending" | "processing" | "failed" | null}
+                status={
+                  material.hls_status as
+                    | "pending"
+                    | "processing"
+                    | "failed"
+                    | null
+                }
                 materialId={material.id}
               />
             )}
@@ -146,9 +154,13 @@ function MaterialRow({ material }: { material: Material }) {
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-800 truncate">{material.original_name}</p>
+        <p className="text-sm text-gray-800 truncate">
+          {material.original_name}
+        </p>
         {material.description && (
-          <p className="text-xs text-gray-400 truncate">{material.description}</p>
+          <p className="text-xs text-gray-400 truncate">
+            {material.description}
+          </p>
         )}
       </div>
       <span className="text-xs text-gray-400 flex-shrink-0">

@@ -7,9 +7,10 @@ const UPLOAD_HOST = process.env.NEXT_PUBLIC_UPLOAD_HOST;
 
 interface VideoPlayerProps {
   materialId: number;
+  programaId?: string;
 }
 
-export function VideoPlayer({ materialId }: VideoPlayerProps) {
+export function VideoPlayer({ materialId, programaId }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
 
@@ -17,15 +18,18 @@ export function VideoPlayer({ materialId }: VideoPlayerProps) {
     const video = videoRef.current;
     if (!video) return;
 
-    const src = `${UPLOAD_HOST}/api/control-escolar/materiales/${materialId}/hls/`;
+    const src = `${UPLOAD_HOST}/api/control-escolar/materiales/${materialId}/hls/?programa=${programaId}`;
+    const streamSrc = `${UPLOAD_HOST}/api/control-escolar/materiales/${materialId}/stream/?programa=${programaId}`;
 
-    // Safari has native HLS support
-    if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = src;
+    // HLS.js takes priority (Chrome, Firefox). Safari has real native HLS.
+    if (!Hls.isSupported()) {
+      if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = src;
+      } else {
+        video.src = streamSrc;
+      }
       return;
     }
-
-    if (!Hls.isSupported()) return;
 
     const hls = new Hls({
       xhrSetup(xhr) {
@@ -40,13 +44,17 @@ export function VideoPlayer({ materialId }: VideoPlayerProps) {
     hls.attachMedia(video);
 
     hls.on(Hls.Events.ERROR, (_event, data) => {
-      if (data.fatal) hls.destroy();
+      if (data.fatal || data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+        hls.destroy();
+        video.src = streamSrc;
+        video.load();
+      }
     });
 
     hlsRef.current = hls;
 
     return () => hls.destroy();
-  }, [materialId]);
+  }, [materialId, programaId]);
 
   return (
     <video

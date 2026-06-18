@@ -389,7 +389,10 @@ export default function ProgramMaterialesTab({ programaId, modulos }: Props) {
 
   const [deleteMaterial] = useDeleteMaterialMutation();
 
-  const allMateriales = useMemo(() => materialesData?.results ?? [], [materialesData]);
+  const allMateriales = useMemo(
+    () => (materialesData ?? []).flatMap((g) => g.materiales),
+    [materialesData],
+  );
 
   const filtered = useMemo(
     () =>
