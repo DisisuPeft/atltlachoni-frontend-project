@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 interface UploadOptions {
   modulo?: number;
   programa?: string;
+  campania?: number | string;
   submodulo?: number;
   descripcion?: string;
 }
@@ -30,6 +31,8 @@ export default function useMaterialUpload() {
         if (options.modulo) formData.append("modulo", String(options.modulo));
         if (options.programa)
           formData.append("programa", String(options.programa));
+        if (options.campania)
+          formData.append("campania", String(options.campania));
         if (options.submodulo)
           formData.append("submodulo", String(options.submodulo));
         if (options.descripcion)

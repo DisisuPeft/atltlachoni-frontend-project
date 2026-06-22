@@ -1,5 +1,8 @@
 import { apiSlice } from "@/redux/services/apiSlice";
 import {
+  // Material,
+  ModuloMaterial,
+  // ModuloConMateriales,
   ProgramaEducativo,
   ProgramaEducativoForm,
 } from "../types/control-escolar/type";
@@ -21,7 +24,11 @@ const programasApiSlice = apiSlice.injectEndpoints({
       { page?: number; search?: string; status?: string } | void
     >({
       query: (params = {}) => {
-        const { page = 1, search, status } = params as {
+        const {
+          page = 1,
+          search,
+          status,
+        } = params as {
           page?: number;
           search?: string;
           status?: string;
@@ -65,6 +72,17 @@ const programasApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [{ type: "Programas" as const, id: "LIST" }],
     }),
+    modulosPrograma: builder.query<
+      ModuloMaterial[],
+      { ref: string; campania?: string | number }
+    >({
+      query: ({ ref, campania }) => {
+        const qs = new URLSearchParams();
+        if (campania !== undefined) qs.set("campania", String(campania));
+        const search = qs.toString();
+        return `/control-escolar/materiales/${ref}/modulosprograma/${search ? `?${search}` : ""}`;
+      },
+    }),
   }),
 });
 
@@ -76,4 +94,5 @@ export const {
   useUpdateProgramasMutation,
   useActivarProgramaMutation,
   useDesactivarProgramaMutation,
+  useModulosProgramaQuery,
 } = programasApiSlice;

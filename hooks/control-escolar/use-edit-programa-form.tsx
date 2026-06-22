@@ -17,9 +17,15 @@ import { useAppDispatch } from "@/redux/hooks";
 import { useRetrieveInstitucionesQuery } from "@/redux/features/catalogos/genericosApiSlice";
 import { ErrorResponse } from "@/redux/features/types/reponse";
 import { useEffect, useState } from "react";
+import { useModulosProgramaQuery } from "@/redux/features/control-escolar/programasApiSlice";
+import { useRetrieveCampaniaQuery } from "@/redux/features/control-escolar/campaniasApiSlice";
 
 export default function useEditProgramaForm(uuid: string) {
-  const { data: programa, isLoading, refetch: refetchPrograma } = useRetrieveProgramaQuery(uuid);
+  const {
+    data: programa,
+    isLoading,
+    refetch: refetchPrograma,
+  } = useRetrieveProgramaQuery(uuid);
   const { refetch: refetchLista } = useRetrieveProgramasQuery();
   const { data: tiposProgramas } = useGetTiposProgramasQuery();
   const { data: modalidades } = useGetModalidadesQuery();
@@ -27,6 +33,17 @@ export default function useEditProgramaForm(uuid: string) {
   const [updateProgramas] = useUpdateProgramasMutation();
   const dispatch = useAppDispatch();
   const [disabled, setDisabled] = useState(true);
+  // console.log(programa);
+  const { data: campania } = useRetrieveCampaniaQuery(uuid);
+  const { data: modulos, refetch: onRefetchModulos } = useModulosProgramaQuery(
+    {
+      ref: uuid,
+      campania: campania?.id,
+    },
+    {
+      skip: campania?.id === undefined,
+    },
+  );
 
   const {
     register,
@@ -115,5 +132,8 @@ export default function useEditProgramaForm(uuid: string) {
     disabled,
     setDisabled,
     programa,
+    campania,
+    modulos,
+    onRefetchModulos,
   };
 }

@@ -15,11 +15,22 @@ const campaniasApiSlice = apiSlice.injectEndpoints({
       { page?: number; search?: string } | void
     >({
       query: (params = {}) => {
-        const { page = 1, search } = params as { page?: number; search?: string };
+        const { page = 1, search } = params as {
+          page?: number;
+          search?: string;
+        };
         const qs = new URLSearchParams();
         qs.set("page", String(page));
         if (search) qs.set("search", search);
         return `/control-escolar/campanias/?${qs.toString()}`;
+      },
+    }),
+    retrieveCampania: builder.query<Campania, string>({
+      query: (ref) => {
+        const qs = new URLSearchParams();
+        qs.set("ref", String(ref));
+        // if (search) qs.set("search", search);
+        return `/control-escolar/campanias/por_programa/?${qs.toString()}`;
       },
     }),
     howManyCampanias: builder.query<number, void>({
@@ -46,4 +57,5 @@ export const {
   useHowManyCampaniasQuery,
   useActivarCampaniaMutation,
   useDesactivarCampaniaMutation,
+  useRetrieveCampaniaQuery,
 } = campaniasApiSlice;

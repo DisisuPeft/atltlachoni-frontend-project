@@ -444,6 +444,15 @@ export interface ModuloConMateriales {
   materiales: Material[];
 }
 
+export interface ModuloMaterial extends BaseModel {
+  nombre: string;
+  horas_teoricas: number;
+  horas_practicas: number;
+  horas_totales: number;
+  creditos: number;
+  materiales: Material[];
+}
+
 export interface Material {
   id: number;
   created_at: string;
