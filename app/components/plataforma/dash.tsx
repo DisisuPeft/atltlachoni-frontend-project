@@ -155,13 +155,13 @@ export default function Dashboard() {
           )} */}
 
           {/* Mostrar eventos */}
-          {eventos && !isLoading && (
+          {/* {eventos && !isLoading && (
             <BannerEvento
               eventos={eventos}
               onClose={() => setEventoBanner(false)}
               showClose={false}
             />
-          )}
+          )} */}
         </div>
       </div>
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import Badge from "../plataforma/badge";
-import { IconSearch } from "../plataforma/iconst";
+// import { IconSearch } from "../plataforma/iconst";
 import { UserMenu } from "../plataforma/drop-down-menu";
 
 export default function Navbar() {
@@ -21,12 +21,14 @@ export default function Navbar() {
               loading="eager"
             />
           </div>
-          <span className="text-base md:text-xl font-bold text-gray-900">CINFA</span>
+          <span className="text-base md:text-xl font-bold text-gray-900">
+            CINFA
+          </span>
         </Link>
 
         {/* Search bar — solo en desktop */}
         <div className="hidden md:flex flex-1 max-w-lg mx-auto">
-          <div className="relative flex items-center w-full">
+          {/* <div className="relative flex items-center w-full">
             <input
               type="text"
               placeholder="¿Qué quieres aprender?"
@@ -35,7 +37,7 @@ export default function Navbar() {
             <button className="absolute right-1 w-8 h-8 rounded-full bg-[#0056D2] flex items-center justify-center hover:bg-[#004BB5] transition-colors">
               <IconSearch className="w-4 h-4 text-white" />
             </button>
-          </div>
+          </div> */}
         </div>
 
         {/* Espaciador en móvil */}

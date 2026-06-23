@@ -15,9 +15,9 @@ import { useState } from "react";
 import Acordeon from "@/app/ui/components/acordeon";
 import ProgramMaterialesTab from "./program-materiales-tab";
 import ProgramEnlacesTab from "./program-enlaces-tab";
-// import { useModulosProgramaQuery } from "@/redux/features/control-escolar/programasApiSlice";
+import ProgramEvaluacionesTab from "./program-evaluaciones-tab";
 
-type Tab = "programa" | "materiales" | "clases";
+type Tab = "programa" | "materiales" | "clases" | "evaluaciones";
 
 interface Props {
   uuid: string;
@@ -39,7 +39,7 @@ export default function EditProgramaPage({ uuid }: Props) {
     instituciones,
     disabled,
     setDisabled,
-    // programa,
+    programa,
     modulos,
     campania,
     onRefetchModulos,
@@ -55,7 +55,7 @@ export default function EditProgramaPage({ uuid }: Props) {
         <div className="bg-white border border-gray-200 rounded-t-lg border-b-0">
           <div className="flex items-center justify-between px-6 border-b border-gray-200">
             <nav className="-mb-px flex gap-1">
-              {(["programa", "materiales", "clases"] as Tab[]).map((tab) => (
+              {(["programa", "materiales", "clases", "evaluaciones"] as Tab[]).map((tab) => (
                 <button
                   key={tab}
                   type="button"
@@ -70,7 +70,9 @@ export default function EditProgramaPage({ uuid }: Props) {
                     ? "Información"
                     : tab === "materiales"
                       ? "Materiales"
-                      : "Clases en Vivo"}
+                      : tab === "clases"
+                        ? "Clases en Vivo"
+                        : "Evaluaciones"}
                 </button>
               ))}
             </nav>
@@ -99,6 +101,16 @@ export default function EditProgramaPage({ uuid }: Props) {
         {activeTab === "clases" && (
           <div className="bg-white border border-gray-200 border-t-0 rounded-b-lg p-6">
             <ProgramEnlacesTab programaId={uuid} />
+          </div>
+        )}
+
+        {/* Tab: Evaluaciones */}
+        {activeTab === "evaluaciones" && programa?.id && (
+          <div className="bg-white border border-gray-200 border-t-0 rounded-b-lg p-6">
+            <ProgramEvaluacionesTab
+              programaNumericId={programa.id}
+              campaniaId={campania?.id}
+            />
           </div>
         )}
 

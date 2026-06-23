@@ -595,3 +595,138 @@ export interface EventoShowInterface {
   ubicacion: string;
   tipo: string;
 }
+
+// ─── Evaluaciones ─────────────────────────────────────────────────────────────
+
+export interface TipoExamen {
+  id: number;
+  name: string;
+}
+
+export interface TipoPregunta {
+  id: number;
+  name: string;
+}
+
+export interface OpcionAdmin {
+  id: number;
+  text: string;
+  is_correct: boolean;
+  letra: string | null;
+  orden: number;
+}
+
+export interface Pregunta {
+  id: number;
+  enunciado: string;
+  tipo_obj: TipoPregunta | null;
+  opciones: OpcionAdmin[];
+}
+
+export interface Examen {
+  id: number;
+  name: string;
+  fecha: string;
+  duracion_minutos: number | null;
+  tipo_examen_obj: TipoExamen | null;
+}
+
+export interface ExamenDetalle extends Examen {
+  preguntas: Pregunta[];
+}
+
+export interface CalificacionExamen {
+  id: number;
+  calificacion: string;
+  estudiante_obj: { id: number; nombre: string } | null;
+  examen_obj: Examen | null;
+}
+
+export interface CreateExamenBody {
+  name: string;
+  programa_educativo: number;
+  campania?: number;
+  tipo_examen: number;
+  fecha: string;
+  duracion_minutos?: number | null;
+}
+
+export type UpdateExamenBody = Partial<CreateExamenBody>;
+
+export interface CreatePreguntaBody {
+  examen: number;
+  enunciado: string;
+  tipo: number;
+}
+
+export type UpdatePreguntaBody = Partial<CreatePreguntaBody>;
+
+export interface CreateOpcionBody {
+  pregunta: number;
+  text: string;
+  is_correct: boolean;
+  letra?: string | null;
+  orden?: number;
+}
+
+export type UpdateOpcionBody = Partial<CreateOpcionBody>;
+
+export interface CreateTipoExamenBody {
+  name: string;
+}
+
+export interface CreateTipoPreguntaBody {
+  name: string;
+}
+
+// ─── Evaluaciones (Estudiante) ────────────────────────────────────────────────
+
+export interface ExamenItem {
+  id: number;
+  name: string;
+  fecha: string;
+  duracion_minutos: number | null;
+  tipo_examen_obj: { id: number; name: string } | null;
+}
+
+export interface OpcionItem {
+  id: number;
+  text: string;
+  letra: string | null;
+  orden: number;
+}
+
+export interface PreguntaItem {
+  id: number;
+  enunciado: string;
+  tipo_obj: { id: number; name: string } | null;
+  opciones: OpcionItem[];
+}
+
+export interface ExamenDetalleEstudiante extends ExamenItem {
+  preguntas: PreguntaItem[];
+}
+
+export interface EnviarRespuestasBody {
+  respuestas: { pregunta: number; opcion_elegida: number }[];
+}
+
+export interface EnviarRespuestasResponse {
+  message: string;
+  total_preguntas: number;
+  correctas: number;
+  calificacion: number;
+}
+
+export interface RespuestaDetalle {
+  id: number;
+  calificacion: string;
+  opcion_elegida_obj: OpcionItem | null;
+  es_correcta: boolean | null;
+}
+
+export interface MiCalificacionResponse {
+  examen: string;
+  calificacion: string;
+  respuestas: RespuestaDetalle[];
+}

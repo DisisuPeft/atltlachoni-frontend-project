@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useProgramaEstudianteQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { useGetMisClasesQuery } from "@/redux/features/control-escolar/comunidadApiSlice";
 import { useParams } from "next/navigation";
-import { ExternalLink, Video, MessageCircle, FolderOpen } from "lucide-react";
+import { ExternalLink, Video, MessageCircle, FolderOpen, ClipboardList } from "lucide-react";
 
 export default function AsideCurso({ id, slug }: { id: string; slug: string }) {
   const { data: inscripcion } = useProgramaEstudianteQuery(id);
@@ -140,6 +140,17 @@ export default function AsideCurso({ id, slug }: { id: string; slug: string }) {
           >
             <FolderOpen className="w-4 h-4" />
             Archivos
+          </Link>
+        </div>
+
+        {/* Exámenes */}
+        <div className="px-4 border-t border-gray-200 py-3">
+          <Link
+            href={`/plataforma/${slug}/${id}/examenes`}
+            className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors"
+          >
+            <ClipboardList className="w-4 h-4" />
+            Exámenes
           </Link>
         </div>
 

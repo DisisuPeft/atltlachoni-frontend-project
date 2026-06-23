@@ -19,7 +19,10 @@ import {
   Download,
   Loader2,
   Folder,
+  BookOpen,
+  ClipboardList,
 } from "lucide-react";
+import ExamenesView from "@/app/components/plataforma/examenes-view";
 import {
   Material,
   ModuloConMateriales,
@@ -324,7 +327,16 @@ interface Props {
   slug: string;
 }
 
+type Tab = "inicio" | "examenes";
+
+const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
+  { key: "inicio", label: "Inicio", icon: <BookOpen className="w-4 h-4" /> },
+  { key: "examenes", label: "Exámenes", icon: <ClipboardList className="w-4 h-4" /> },
+];
+
 export default function BienvenidaView({ programaId }: Props) {
+  const [tab, setTab] = useState<Tab>("inicio");
+
   const { data: programa } = useProgramaEstudianteQuery(programaId);
   const { data: grupos = [], isLoading: materialesLoading } =
     useGetMaterialesProgramaQuery(programaId);
@@ -380,81 +392,110 @@ export default function BienvenidaView({ programaId }: Props) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8 space-y-10">
-      {/* ── Visor principal ── */}
-      <section className="space-y-3">
-        <div>
-          <p className="text-xs font-semibold text-[#0056D2] uppercase tracking-wide">
-            {selectedMaterial ? "Archivo" : "Bienvenida"}
-          </p>
-          <h1 className="text-xl font-bold text-gray-900 mt-0.5 truncate">
-            {selectedMaterial
-              ? selectedMaterial.original_name
-              : programa?.nombre}
-          </h1>
-          {(selectedMaterial?.description ?? programa?.descripcion) && (
-            <p className="text-sm text-gray-500 mt-1">
-              {selectedMaterial?.description ?? programa?.descripcion}
-            </p>
-          )}
-        </div>
-
-        {selectedMaterial ? (
-          <MaterialViewer material={selectedMaterial} programaId={programaId} />
-        ) : (
-          <BienvenidaVideo material={videoMaterial} programaId={programaId} />
-        )}
-
-        {selectedMaterial && (
-          <button
-            type="button"
-            onClick={() => setSelectedMaterial(null)}
-            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            ← Volver a la bienvenida
-          </button>
-        )}
-      </section>
-
-      {/* ── Materiales por módulo ── */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-gray-900">Materiales</h2>
-          {moduloGroups.length > 0 && (
+    <div>
+      {/* ── Tab strip ── */}
+      <div className="border-b border-gray-200 px-6">
+        <div className="flex max-w-3xl mx-auto">
+          {TABS.map(({ key, label, icon }) => (
             <button
+              key={key}
               type="button"
-              onClick={toggleExpand}
-              className="text-xs text-[#0056D2] hover:underline font-medium"
+              onClick={() => setTab(key)}
+              className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 transition-colors ${
+                tab === key
+                  ? "border-[#0056D2] text-[#0056D2]"
+                  : "border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300"
+              }`}
             >
-              {allExpanded ? "Colapsar todo" : "Expandir todo"}
+              {icon}
+              {label}
             </button>
-          )}
+          ))}
         </div>
+      </div>
 
-        {materialesLoading ? (
-          <div className="flex items-center gap-2 text-sm text-gray-400 py-8">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Cargando materiales…
-          </div>
-        ) : moduloGroups.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">
-            No hay materiales disponibles.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {moduloGroups.map((group) => (
-              <ModuloAccordion
-                key={groupKey(group)}
-                group={group}
-                isOpen={openSet.has(groupKey(group))}
-                onToggle={() => toggleGroup(groupKey(group))}
-                selectedId={selectedMaterial?.id ?? null}
-                onSelect={handleSelect}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+      {/* ── Inicio ── */}
+      {tab === "inicio" && (
+        <div className="max-w-3xl mx-auto px-6 py-8 space-y-10">
+          {/* ── Visor principal ── */}
+          <section className="space-y-3">
+            <div>
+              <p className="text-xs font-semibold text-[#0056D2] uppercase tracking-wide">
+                {selectedMaterial ? "Archivo" : "Bienvenida"}
+              </p>
+              <h1 className="text-xl font-bold text-gray-900 mt-0.5 truncate">
+                {selectedMaterial
+                  ? selectedMaterial.original_name
+                  : programa?.nombre}
+              </h1>
+              {(selectedMaterial?.description ?? programa?.descripcion) && (
+                <p className="text-sm text-gray-500 mt-1">
+                  {selectedMaterial?.description ?? programa?.descripcion}
+                </p>
+              )}
+            </div>
+
+            {selectedMaterial ? (
+              <MaterialViewer material={selectedMaterial} programaId={programaId} />
+            ) : (
+              <BienvenidaVideo material={videoMaterial} programaId={programaId} />
+            )}
+
+            {selectedMaterial && (
+              <button
+                type="button"
+                onClick={() => setSelectedMaterial(null)}
+                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                ← Volver a la bienvenida
+              </button>
+            )}
+          </section>
+
+          {/* ── Materiales por módulo ── */}
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold text-gray-900">Materiales</h2>
+              {moduloGroups.length > 0 && (
+                <button
+                  type="button"
+                  onClick={toggleExpand}
+                  className="text-xs text-[#0056D2] hover:underline font-medium"
+                >
+                  {allExpanded ? "Colapsar todo" : "Expandir todo"}
+                </button>
+              )}
+            </div>
+
+            {materialesLoading ? (
+              <div className="flex items-center gap-2 text-sm text-gray-400 py-8">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Cargando materiales…
+              </div>
+            ) : moduloGroups.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-8">
+                No hay materiales disponibles.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {moduloGroups.map((group) => (
+                  <ModuloAccordion
+                    key={groupKey(group)}
+                    group={group}
+                    isOpen={openSet.has(groupKey(group))}
+                    onToggle={() => toggleGroup(groupKey(group))}
+                    selectedId={selectedMaterial?.id ?? null}
+                    onSelect={handleSelect}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+
+      {/* ── Exámenes ── */}
+      {tab === "examenes" && <ExamenesView programaId={programaId} />}
     </div>
   );
 }
