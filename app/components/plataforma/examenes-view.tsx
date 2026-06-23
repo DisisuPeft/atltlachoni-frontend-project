@@ -32,7 +32,7 @@ function ScoreCard({
   correctas: number;
   total: number;
 }) {
-  const passed = calificacion >= 6;
+  const passed = calificacion >= 60;
   return (
     <div
       className={`flex flex-col items-center gap-3 p-8 rounded-2xl border ${
@@ -188,7 +188,7 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
     const allAnswered = preguntas.length > 0 && answeredCount === preguntas.length;
 
     return (
-      <div className="max-w-2xl mx-auto px-6 py-8">
+      <div className="max-w-2xl mx-auto px-6 py-8 pb-24">
         <button
           onClick={resetToList}
           className="mb-6 flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-800"
