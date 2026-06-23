@@ -2,37 +2,41 @@ import { apiSlice } from "@/redux/services/apiSlice";
 import type {
   ExamenItem,
   ExamenDetalleEstudiante,
-  EnviarRespuestasBody,
+  EnviarRespuestasRequest,
   EnviarRespuestasResponse,
-  MiCalificacionResponse,
+  MiCalificacion,
 } from "../types/control-escolar/type";
 
 export const examenesEstudianteApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getMisExamenes: builder.query<ExamenItem[], void>({
       query: () => "/control-escolar/examenes/mis_examenes/",
-      providesTags: ["Examen"],
+      providesTags: ["Examenes"],
     }),
 
     getExamenParaRendir: builder.query<ExamenDetalleEstudiante, number>({
       query: (id) => `/control-escolar/examenes/${id}/rendir/`,
+      providesTags: (_r, _e, id) => [{ type: "Examenes" as const, id }],
     }),
 
     enviarRespuestasEstudiante: builder.mutation<
       EnviarRespuestasResponse,
-      { id: number; body: EnviarRespuestasBody }
+      { id: number; body: EnviarRespuestasRequest }
     >({
       query: ({ id, body }) => ({
         url: `/control-escolar/examenes/${id}/enviar_respuestas/`,
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Examen", "MiCalificacion"],
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "Examenes" as const, id },
+        "Calificaciones",
+      ],
     }),
 
-    getMiCalificacionExamen: builder.query<MiCalificacionResponse, number>({
+    getMiCalificacionExamen: builder.query<MiCalificacion, number>({
       query: (id) => `/control-escolar/examenes/${id}/mi_calificacion/`,
-      providesTags: (_r, _e, id) => [{ type: "MiCalificacion" as const, id }],
+      providesTags: (_r, _e, id) => [{ type: "Calificaciones" as const, id }],
     }),
   }),
   overrideExisting: false,

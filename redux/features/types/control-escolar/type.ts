@@ -628,6 +628,7 @@ export interface Examen {
   name: string;
   fecha: string;
   duracion_minutos: number | null;
+  max_intentos: number;
   tipo_examen_obj: TipoExamen | null;
 }
 
@@ -649,6 +650,7 @@ export interface CreateExamenBody {
   tipo_examen: number;
   fecha: string;
   duracion_minutos?: number | null;
+  max_intentos?: number;
 }
 
 export type UpdateExamenBody = Partial<CreateExamenBody>;
@@ -686,6 +688,7 @@ export interface ExamenItem {
   name: string;
   fecha: string;
   duracion_minutos: number | null;
+  max_intentos: number;
   tipo_examen_obj: { id: number; name: string } | null;
 }
 
@@ -704,29 +707,39 @@ export interface PreguntaItem {
 }
 
 export interface ExamenDetalleEstudiante extends ExamenItem {
+  intento_actual: number;
+  intentos_restantes: number;
   preguntas: PreguntaItem[];
 }
 
-export interface EnviarRespuestasBody {
-  respuestas: { pregunta: number; opcion_elegida: number }[];
+export interface EnviarRespuestasRequest {
+  respuestas: { pregunta: number; opcion_elegida: number | null }[];
 }
 
 export interface EnviarRespuestasResponse {
   message: string;
+  intento: number;
   total_preguntas: number;
   correctas: number;
   calificacion: number;
 }
 
-export interface RespuestaDetalle {
+export interface RespuestaEstudiante {
   id: number;
-  calificacion: string;
+  calificacion: number;
   opcion_elegida_obj: OpcionItem | null;
   es_correcta: boolean | null;
 }
 
-export interface MiCalificacionResponse {
+export interface IntentoCalificacion {
+  intento: number;
+  calificacion: number;
+  respuestas: RespuestaEstudiante[];
+}
+
+export interface MiCalificacion {
   examen: string;
-  calificacion: string;
-  respuestas: RespuestaDetalle[];
+  max_intentos: number;
+  intentos_usados: number;
+  intentos: IntentoCalificacion[];
 }

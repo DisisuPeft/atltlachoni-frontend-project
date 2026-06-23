@@ -1,6 +1,7 @@
 import DashboardStats from "@/app/components/control-escolar/dashboard/dashboard-stats";
 import AlumnosRecientes from "@/app/components/control-escolar/dashboard/alumnos-recientes";
 import CampaniasProximas from "@/app/components/control-escolar/dashboard/campanias-proximas";
+import PlataformaLink from "@/app/components/control-escolar/dashboard/plataforma-link";
 import Link from "next/link";
 import { BookOpen, Users, Megaphone } from "lucide-react";
 
@@ -58,6 +59,7 @@ export default function DashboardPage() {
               {label}
             </Link>
           ))}
+          <PlataformaLink />
         </div>
       </div>
 
@@ -88,6 +90,7 @@ export default function DashboardPage() {
             <span className="text-xs font-medium text-gray-700">{label}</span>
           </Link>
         ))}
+        <PlataformaLink />
       </div>
     </div>
   );

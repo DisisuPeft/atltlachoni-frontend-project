@@ -15,6 +15,7 @@ import {
   XCircle,
   ChevronLeft,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 
 type Mode = "list" | "taking" | "result" | "reviewing";
@@ -77,13 +78,13 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
     skip: selectedId === null || mode !== "taking",
   });
 
-  // 400 = examen ya entregado → mostrar calificación sin cambiar estado
-  const alreadySubmitted =
+  // 400 = intentos agotados → mostrar calificación sin cambiar estado
+  const noMoreAttempts =
     mode === "taking" &&
     rendirError &&
     (rendirFetchError as { status?: number })?.status === 400;
 
-  const effectiveMode: Mode = alreadySubmitted ? "reviewing" : mode;
+  const effectiveMode: Mode = noMoreAttempts ? "reviewing" : mode;
 
   const { data: miCalificacion, isLoading: calLoading } =
     useGetMiCalificacionExamenQuery(selectedId!, {
@@ -165,6 +166,7 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
                   {examen.duracion_minutos
                     ? ` · ${examen.duracion_minutos} min`
                     : ""}
+                  {` · ${examen.max_intentos} intento${examen.max_intentos !== 1 ? "s" : ""}`}
                 </p>
               </div>
             </div>
@@ -204,14 +206,27 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
           </div>
         ) : (
           <>
-            <div className="mb-2 flex items-center justify-between">
+            <div className="mb-1 flex items-start justify-between gap-4">
               <h1 className="text-lg font-bold text-gray-900">
                 {examenDetalle?.name}
               </h1>
-              <span className="ml-4 shrink-0 text-xs text-gray-400">
+              <span className="ml-4 shrink-0 text-xs text-gray-400 text-right">
                 {answeredCount}/{preguntas.length} respondidas
               </span>
             </div>
+
+            {examenDetalle && (
+              <p className="mb-6 text-xs text-gray-400">
+                Intento {examenDetalle.intento_actual} de{" "}
+                {examenDetalle.max_intentos}
+                {examenDetalle.intentos_restantes > 0 && (
+                  <span className="ml-1">
+                    · {examenDetalle.intentos_restantes} restante
+                    {examenDetalle.intentos_restantes !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </p>
+            )}
 
             <div className="mb-8 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
               <div
@@ -301,24 +316,50 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
   // ── Result ──────────────────────────────────────────────────────────────────
 
   if (effectiveMode === "result" && submitResult) {
+    const intentosRestantes =
+      examenDetalle != null
+        ? examenDetalle.max_intentos - submitResult.intento
+        : 0;
+
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-8 px-6 py-16">
+        <p className="text-xs text-gray-400">
+          Intento {submitResult.intento}
+          {examenDetalle
+            ? ` de ${examenDetalle.max_intentos}`
+            : ""}
+        </p>
+
         <ScoreCard
           calificacion={submitResult.calificacion}
           correctas={submitResult.correctas}
           total={submitResult.total_preguntas}
         />
+
         {submitResult.message && (
           <p className="text-center text-sm text-gray-500">
             {submitResult.message}
           </p>
         )}
-        <button
-          onClick={resetToList}
-          className="rounded-lg border border-gray-200 px-6 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
-        >
-          Volver a mis exámenes
-        </button>
+
+        <div className="flex flex-col items-center gap-3 w-full">
+          {intentosRestantes > 0 && (
+            <button
+              onClick={() => startExam(selectedId!)}
+              className="flex items-center gap-2 rounded-lg bg-[#0056D2] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#004BB5] w-full justify-center"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Intentar de nuevo ({intentosRestantes} restante
+              {intentosRestantes !== 1 ? "s" : ""})
+            </button>
+          )}
+          <button
+            onClick={resetToList}
+            className="rounded-lg border border-gray-200 px-6 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 w-full"
+          >
+            Volver a mis exámenes
+          </button>
+        </div>
       </div>
     );
   }
@@ -326,13 +367,6 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
   // ── Reviewing ───────────────────────────────────────────────────────────────
 
   if (effectiveMode === "reviewing") {
-    const calificacion = miCalificacion
-      ? parseFloat(miCalificacion.calificacion)
-      : 0;
-    const correctas = miCalificacion
-      ? miCalificacion.respuestas.filter((r) => r.es_correcta === true).length
-      : 0;
-
     return (
       <div className="max-w-2xl mx-auto px-6 py-8">
         <button
@@ -349,52 +383,91 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
           </div>
         ) : miCalificacion ? (
           <>
-            <div className="mb-6">
-              <ScoreCard
-                calificacion={calificacion}
-                correctas={correctas}
-                total={miCalificacion.respuestas.length}
-              />
+            <div className="mb-6 flex items-center justify-between">
+              <h1 className="text-lg font-bold text-gray-900">
+                {miCalificacion.examen}
+              </h1>
+              <span className="text-xs text-gray-400">
+                {miCalificacion.intentos_usados} de{" "}
+                {miCalificacion.max_intentos} intento
+                {miCalificacion.max_intentos !== 1 ? "s" : ""} usados
+              </span>
             </div>
 
-            <div className="space-y-3">
-              {miCalificacion.respuestas.map((r, idx) => {
-                const correct = r.es_correcta === true;
+            <div className="space-y-8">
+              {miCalificacion.intentos.map((intento) => {
+                const passed = intento.calificacion >= 60;
+                const correctas = intento.respuestas.filter(
+                  (r) => r.es_correcta === true
+                ).length;
+
                 return (
-                  <div
-                    key={r.id}
-                    className={`rounded-xl border p-4 ${
-                      correct
-                        ? "border-green-200 bg-green-50"
-                        : "border-red-200 bg-red-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {correct ? (
-                        <CheckCircle className="h-5 w-5 shrink-0 text-green-500" />
-                      ) : (
-                        <XCircle className="h-5 w-5 shrink-0 text-red-400" />
-                      )}
-                      <span className="text-sm text-gray-700">
-                        Pregunta {idx + 1}
+                  <div key={intento.intento}>
+                    <div className="mb-4 flex items-center gap-3">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        Intento {intento.intento}
                       </span>
                       <span
-                        className={`ml-auto text-xs font-medium ${
-                          correct ? "text-green-700" : "text-red-600"
+                        className={`text-sm font-bold ${passed ? "text-green-600" : "text-red-500"}`}
+                      >
+                        {intento.calificacion.toFixed(1)}
+                      </span>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          passed
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-600"
                         }`}
                       >
-                        {correct ? "Correcta" : "Incorrecta"}
+                        {passed ? "Aprobado" : "Reprobado"}
+                      </span>
+                      <span className="ml-auto text-xs text-gray-400">
+                        {correctas}/{intento.respuestas.length} correctas
                       </span>
                     </div>
-                    {r.opcion_elegida_obj && (
-                      <p className="mt-2 pl-8 text-xs text-gray-500">
-                        Tu respuesta:{" "}
-                        {r.opcion_elegida_obj.letra
-                          ? `${r.opcion_elegida_obj.letra}. `
-                          : ""}
-                        {r.opcion_elegida_obj.text}
-                      </p>
-                    )}
+
+                    <div className="space-y-2">
+                      {intento.respuestas.map((r, idx) => {
+                        const correct = r.es_correcta === true;
+                        return (
+                          <div
+                            key={r.id}
+                            className={`rounded-xl border p-4 ${
+                              correct
+                                ? "border-green-200 bg-green-50"
+                                : "border-red-200 bg-red-50"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              {correct ? (
+                                <CheckCircle className="h-5 w-5 shrink-0 text-green-500" />
+                              ) : (
+                                <XCircle className="h-5 w-5 shrink-0 text-red-400" />
+                              )}
+                              <span className="text-sm text-gray-700">
+                                Pregunta {idx + 1}
+                              </span>
+                              <span
+                                className={`ml-auto text-xs font-medium ${
+                                  correct ? "text-green-700" : "text-red-600"
+                                }`}
+                              >
+                                {correct ? "Correcta" : "Incorrecta"}
+                              </span>
+                            </div>
+                            {r.opcion_elegida_obj && (
+                              <p className="mt-2 pl-8 text-xs text-gray-500">
+                                Tu respuesta:{" "}
+                                {r.opcion_elegida_obj.letra
+                                  ? `${r.opcion_elegida_obj.letra}. `
+                                  : ""}
+                                {r.opcion_elegida_obj.text}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}

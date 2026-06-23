@@ -18,7 +18,7 @@ import {
 } from "@/redux/features/control-escolar/evaluacionesApiSlice";
 import type {
   Examen,
-  ExamenDetalle,
+  // ExamenDetalle,
   Pregunta,
   OpcionAdmin,
   TipoExamen,
@@ -646,6 +646,7 @@ function ExamenCard({
   const [duracion, setDuracion] = useState<number | "">(
     examen.duracion_minutos ?? "",
   );
+  const [maxIntentos, setMaxIntentos] = useState<number>(examen.max_intentos ?? 1);
   const [tipoExamen, setTipoExamen] = useState<number | "">(
     examen.tipo_examen_obj?.id ?? "",
   );
@@ -661,6 +662,7 @@ function ExamenCard({
         fecha,
         ...(tipoExamen !== "" ? { tipo_examen: Number(tipoExamen) } : {}),
         duracion_minutos: duracion === "" ? null : Number(duracion),
+        max_intentos: maxIntentos,
       }).unwrap();
       setEditing(false);
     } catch {
@@ -712,6 +714,14 @@ function ExamenCard({
               placeholder="Duración (min)"
               className="text-sm px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
+            <input
+              type="number"
+              min={1}
+              value={maxIntentos}
+              onChange={(e) => setMaxIntentos(Math.max(1, Number(e.target.value)))}
+              placeholder="Intentos"
+              className="text-sm px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
             <select
               value={tipoExamen}
               onChange={(e) =>
@@ -748,6 +758,11 @@ function ExamenCard({
                 <span className="flex items-center gap-1 text-xs text-gray-400">
                   <Clock className="w-3 h-3" />
                   {examen.duracion_minutos} min
+                </span>
+              )}
+              {examen.max_intentos > 1 && (
+                <span className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full font-medium">
+                  {examen.max_intentos} intentos
                 </span>
               )}
             </div>
@@ -832,6 +847,7 @@ function CreateExamenForm({
   const [fecha, setFecha] = useState("");
   const [tipoExamen, setTipoExamen] = useState<number | "">("");
   const [duracion, setDuracion] = useState<number | "">("");
+  const [maxIntentos, setMaxIntentos] = useState<number>(1);
   const [createExamen, { isLoading }] = useCreateExamenMutation();
 
   const handleSubmit = async () => {
@@ -844,6 +860,7 @@ function CreateExamenForm({
         tipo_examen: Number(tipoExamen),
         fecha,
         duracion_minutos: duracion === "" ? null : Number(duracion),
+        max_intentos: maxIntentos,
       }).unwrap();
       onDone();
       dispatch(setAlert({ type: "success", message: "Examen creado" }));
@@ -911,6 +928,19 @@ function CreateExamenForm({
               setDuracion(e.target.value === "" ? "" : Number(e.target.value))
             }
             placeholder="90"
+            className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">
+            Intentos permitidos
+          </label>
+          <input
+            type="number"
+            min={1}
+            value={maxIntentos}
+            onChange={(e) => setMaxIntentos(Math.max(1, Number(e.target.value)))}
+            placeholder="1"
             className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           />
         </div>
