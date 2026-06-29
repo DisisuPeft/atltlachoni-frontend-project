@@ -84,6 +84,7 @@ export default function EstudianteDetallePage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <input type="hidden" {...register("institucion")} />
         {/* ── Información Personal ── */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <SectionHeader
