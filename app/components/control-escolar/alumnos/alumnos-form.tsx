@@ -69,7 +69,6 @@ export default function EstudianteDetallePage() {
     // isSubmitting,
     generos,
     nivelEducativo,
-    instituciones,
     estados,
     localidades,
   } = useAlumnoForm();
@@ -277,16 +276,6 @@ export default function EstudianteDetallePage() {
               </select>
             </Field>
 
-            <Field label="Institución">
-              <select {...register("institucion")} className={selectClass}>
-                <option value="">Seleccionar</option>
-                {instituciones?.map((ins) => (
-                  <option key={ins.id} value={ins.id}>
-                    {ins.nombre}
-                  </option>
-                ))}
-              </select>
-            </Field>
           </div>
         </div>
 

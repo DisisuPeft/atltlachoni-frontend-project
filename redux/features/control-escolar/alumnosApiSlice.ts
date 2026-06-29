@@ -44,14 +44,20 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
     }),
     getEstudiantes: builder.query<
       PaginatedResponse<EstudiantePerfil>,
-      { page?: number; search?: string; status?: string } | void
+      { page?: number; search?: string; status?: string; instituto?: number } | void
     >({
       query: (params = {}) => {
-        const { page = 1, search, status } = params as { page?: number; search?: string; status?: string };
+        const { page = 1, search, status, instituto } = params as {
+          page?: number;
+          search?: string;
+          status?: string;
+          instituto?: number;
+        };
         const qs = new URLSearchParams();
         qs.set("page", String(page));
         if (search) qs.set("search", search);
         if (status && status !== "all") qs.set("status", status);
+        if (instituto) qs.set("instituto", String(instituto));
         return `/control-escolar/estudiantes/?${qs.toString()}`;
       },
     }),

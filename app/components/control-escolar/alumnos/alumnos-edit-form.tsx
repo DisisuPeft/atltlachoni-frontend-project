@@ -696,6 +696,7 @@ export default function EstudianteEditPage({ uuid }: Props) {
     estados,
     localidades,
     disabled,
+    isAdmin,
   } = useAlumnoEditForm(uuid);
 
   const handleEdit = () => {
@@ -953,20 +954,22 @@ export default function EstudianteEditPage({ uuid }: Props) {
                       ))}
                     </select>
                   </Field>
-                  <Field label="Institución">
-                    <select
-                      disabled={disabled}
-                      {...register("institucion")}
-                      className={selectClass}
-                    >
-                      <option value="">Seleccionar</option>
-                      {instituciones?.map((ins) => (
-                        <option key={ins.id} value={ins.id}>
-                          {ins.nombre}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
+                  {isAdmin && (
+                    <Field label="Institución">
+                      <select
+                        disabled={disabled}
+                        {...register("institucion")}
+                        className={selectClass}
+                      >
+                        <option value="">Seleccionar</option>
+                        {instituciones?.map((ins) => (
+                          <option key={ins.id} value={ins.id}>
+                            {ins.nombre}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  )}
                 </div>
               </div>
 

@@ -18,13 +18,21 @@ import {
 } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { setAlert } from "@/redux/features/alert/alertSlice";
+import { useRetrieveUserQuery, useVerifyUserQuery } from "@/redux/features/auth/authApiSlice";
 
 export default function useAlumnoEditForm(uuid: string) {
   const { data: estudiante, isLoading } = useRetrieveEstudianteQuery(uuid);
   const dispatch = useAppDispatch();
+  const { data: user } = useRetrieveUserQuery();
+  const { data: verifyData } = useVerifyUserQuery();
+  const ins = user?.departamento_info?.instituto.id;
+  const isAdmin =
+    verifyData?.superuser ||
+    verifyData?.roles.some((r) => r.nombre === "Administrador") ||
+    false;
   const { data: generos } = useGetGenerosQuery();
   const { data: nivelEducativo } = useRetrieveNivelEducativoQuery();
-  const { data: instituciones } = useRetrieveInstitucionesQuery();
+  const { data: instituciones } = useRetrieveInstitucionesQuery({ ins });
   const { data: estados } = useRetrieveEstadosQuery();
   const [updateEstudiantes] = useUpdateEstudianteMutation();
   const [disabled, setDisabled] = useState(true);
@@ -119,5 +127,6 @@ export default function useAlumnoEditForm(uuid: string) {
     estados,
     localidades,
     disabled,
+    isAdmin,
   };
 }

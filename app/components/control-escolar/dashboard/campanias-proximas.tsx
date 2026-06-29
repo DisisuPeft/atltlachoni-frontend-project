@@ -1,6 +1,7 @@
 "use client";
 
 import { useGetCampaniasProximasQuery } from "@/redux/features/control-escolar/dashboardApiSlice";
+import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import Link from "next/link";
 import { ArrowRight, Megaphone, Users, CalendarRange } from "lucide-react";
 import { formatCurrency } from "@/lib/format-currency";
@@ -39,7 +40,9 @@ function formatDate(iso: string) {
 }
 
 export default function CampaniasProximas() {
-  const { data: campanias, isLoading } = useGetCampaniasProximasQuery();
+  const { data: user } = useRetrieveUserQuery();
+  const instituto = user?.departamento_info?.instituto.id;
+  const { data: campanias, isLoading } = useGetCampaniasProximasQuery({ instituto });
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

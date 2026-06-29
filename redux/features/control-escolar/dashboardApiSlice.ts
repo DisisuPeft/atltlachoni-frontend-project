@@ -31,14 +31,39 @@ export interface CampaniaProxima {
 
 const dashboardApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getDashboardResumen: builder.query<DashboardResumen, void>({
-      query: () => "/control-escolar/dashboard/resumen/",
+    getDashboardResumen: builder.query<
+      DashboardResumen,
+      { instituto?: number; empresa?: number } | void
+    >({
+      query: (params = {}) => {
+        const { instituto, empresa } = params as {
+          instituto?: number;
+          empresa?: number;
+        };
+        const qs = new URLSearchParams();
+        if (instituto) qs.set("instituto", String(instituto));
+        if (empresa) qs.set("empresa", String(empresa));
+        const search = qs.toString();
+        return `/control-escolar/dashboard/resumen/${search ? `?${search}` : ""}`;
+      },
     }),
-    getAlumnosRecientes: builder.query<AlumnoReciente[], void>({
-      query: () => "/control-escolar/dashboard/alumnos_recientes/",
+    getAlumnosRecientes: builder.query<AlumnoReciente[], { instituto?: number } | void>({
+      query: (params = {}) => {
+        const { instituto } = params as { instituto?: number };
+        const qs = new URLSearchParams();
+        if (instituto) qs.set("instituto", String(instituto));
+        const search = qs.toString();
+        return `/control-escolar/dashboard/alumnos_recientes/${search ? `?${search}` : ""}`;
+      },
     }),
-    getCampaniasProximas: builder.query<CampaniaProxima[], void>({
-      query: () => "/control-escolar/dashboard/campanias_proximas/",
+    getCampaniasProximas: builder.query<CampaniaProxima[], { instituto?: number } | void>({
+      query: (params = {}) => {
+        const { instituto } = params as { instituto?: number };
+        const qs = new URLSearchParams();
+        if (instituto) qs.set("instituto", String(instituto));
+        const search = qs.toString();
+        return `/control-escolar/dashboard/campanias_proximas/${search ? `?${search}` : ""}`;
+      },
     }),
   }),
 });

@@ -85,6 +85,8 @@ export const apiSlice = createApi({
     "MiCalificacion",
     "Examenes",
     "Calificaciones",
+    "Departamentos",
+    "UsuariosDepartamento",
   ],
   endpoints: (builder) => ({}),
 });

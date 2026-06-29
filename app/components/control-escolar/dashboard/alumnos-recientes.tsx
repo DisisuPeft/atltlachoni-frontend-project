@@ -1,6 +1,7 @@
 "use client";
 
 import { useGetAlumnosRecientesQuery } from "@/redux/features/control-escolar/dashboardApiSlice";
+import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import Link from "next/link";
 import { ArrowRight, Users } from "lucide-react";
 
@@ -37,7 +38,9 @@ function Initials({ nombre }: { nombre: string }) {
 }
 
 export default function AlumnosRecientes() {
-  const { data: alumnos, isLoading } = useGetAlumnosRecientesQuery();
+  const { data: user } = useRetrieveUserQuery();
+  const instituto = user?.departamento_info?.instituto.id;
+  const { data: alumnos, isLoading } = useGetAlumnosRecientesQuery({ instituto });
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

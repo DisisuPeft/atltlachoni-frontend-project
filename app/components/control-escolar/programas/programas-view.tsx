@@ -8,6 +8,7 @@ import {
   useActivarProgramaMutation,
   useDesactivarProgramaMutation,
 } from "@/redux/features/control-escolar/programasApiSlice";
+import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import { ProgramaEducativo } from "@/redux/features/types/control-escolar/type";
 import { DataTable } from "@/app/utils/data-table";
 import ButtonLink from "../link-button";
@@ -153,10 +154,14 @@ export default function ProgramasView() {
   const page = Number(searchParams.get("page") ?? "1");
   const search = searchParams.get("search") ?? "";
 
+  const { data: user } = useRetrieveUserQuery();
+  const instituto = user?.departamento_info?.instituto.id;
+
   const { data: programas, isLoading } = useRetrieveProgramasQuery({
     page,
     search,
     status: statusFilter,
+    instituto,
   });
 
   return (

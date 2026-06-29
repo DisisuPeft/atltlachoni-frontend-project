@@ -9,8 +9,14 @@ import {
 
 const generoApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    retrieveInstituciones: builder.query<Instituciones[], void>({
-      query: () => "/catalagos/genericos/instituciones/",
+    retrieveInstituciones: builder.query<Instituciones[], { ins?: number } | void>({
+      query: (params = {}) => {
+        const { ins } = params as { ins?: number };
+        const qs = new URLSearchParams();
+        if (ins) qs.set("ins", String(ins));
+        const search = qs.toString();
+        return `/catalagos/genericos/instituciones/${search ? `?${search}` : ""}`;
+      },
     }),
     retrieveNivelEducativo: builder.query<NivelEducativo[], void>({
       query: () => "/catalagos/genericos/niveles-educativos/",

@@ -15,12 +15,15 @@ import { useEffect } from "react";
 import { useAddEstudiantesMutation } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { setAlert } from "@/redux/features/alert/alertSlice";
+import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 
 export default function useAlumnoForm() {
   const dispatch = useAppDispatch();
+  const { data: user } = useRetrieveUserQuery();
+  const ins = user?.departamento_info?.instituto.id;
   const { data: generos } = useGetGenerosQuery();
   const { data: nivelEducativo } = useRetrieveNivelEducativoQuery();
-  const { data: instituciones } = useRetrieveInstitucionesQuery();
+  useRetrieveInstitucionesQuery({ ins });
   const { data: estados } = useRetrieveEstadosQuery();
   const [addEstudiantes] = useAddEstudiantesMutation();
   const {
@@ -48,7 +51,7 @@ export default function useAlumnoForm() {
       dispatch(
         setAlert({ message: "Alumno creado con exito", type: "success" }),
       );
-    } catch (error) {
+    } catch {
       dispatch(
         setAlert({ message: "El alumno no pudo ser creado", type: "error" }),
       );
@@ -60,7 +63,7 @@ export default function useAlumnoForm() {
   const caluleAgeBirth = () => {
     const birthday = new Date(dateBirth);
     const today = new Date();
-    let yearsOld = today.getUTCFullYear() - birthday.getUTCFullYear();
+    const yearsOld = today.getUTCFullYear() - birthday.getUTCFullYear();
 
     if (birthday.getUTCMonth() < today.getUTCMonth()) {
       return yearsOld;
@@ -76,8 +79,11 @@ export default function useAlumnoForm() {
 
   useEffect(() => {
     setValue("user.edad", caluleAgeBirth());
-    // caluleAgeBirth();
   });
+
+  useEffect(() => {
+    if (ins) setValue("institucion", ins);
+  }, [ins, setValue]);
 
   return {
     register,
@@ -88,7 +94,6 @@ export default function useAlumnoForm() {
     isSubmitting,
     generos,
     nivelEducativo,
-    instituciones,
     estados,
     localidades,
   };

@@ -9,6 +9,7 @@ import {
   useActivarCampaniaMutation,
   useDesactivarCampaniaMutation,
 } from "@/redux/features/control-escolar/campaniasApiSlice";
+import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import { formatCurrency } from "@/lib/format-currency";
 import { Loader2, Megaphone } from "lucide-react";
 import Swal from "sweetalert2";
@@ -103,6 +104,9 @@ export default function CampaniasView() {
   const page = Number(searchParams.get("page") ?? "1");
   const search = searchParams.get("search") ?? "";
 
+  const { data: user } = useRetrieveUserQuery();
+  const instituto = user?.departamento_info?.instituto.id;
+
   const {
     data: campanias,
     isLoading,
@@ -110,6 +114,7 @@ export default function CampaniasView() {
   } = useRetrieveCampaniasQuery({
     page,
     search,
+    instituto,
   });
   console.log(campanias);
   const columns: ColumnDef<Campania>[] = [

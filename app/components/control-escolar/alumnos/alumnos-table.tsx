@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { useGetEstudiantesQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
+import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import { EstudiantePerfil } from "@/redux/features/types/control-escolar/type";
 import { DataTable, StatusBadge } from "@/app/utils/data-table";
 import ButtonLink from "../link-button";
@@ -64,14 +65,15 @@ export default function EstudiantesPage() {
   const search = searchParams.get("search") ?? "";
   const status = searchParams.get("status") ?? "all";
 
+  const { data: user } = useRetrieveUserQuery();
+  const instituto = user?.departamento_info?.instituto.id;
+
   const [page, setPage] = useState(1);
   const [prevSearch, setPrevSearch] = useState(search);
   const [prevStatus, setPrevStatus] = useState(status);
   const [lastKnownPage, setLastKnownPage] = useState<number | null>(null);
-  // Real page size as reported by Django (persists across page navigations)
   const [pageSize, setPageSize] = useState<number | null>(null);
 
-  // Derived state: reset page when filters change
   if (prevSearch !== search) { setPrevSearch(search); setPage(1); setLastKnownPage(null); }
   if (prevStatus !== status) { setPrevStatus(status); setPage(1); setLastKnownPage(null); }
 
@@ -79,6 +81,7 @@ export default function EstudiantesPage() {
     page,
     search,
     status,
+    instituto,
   });
 
   const hasNext = !!estudiantes?.next;

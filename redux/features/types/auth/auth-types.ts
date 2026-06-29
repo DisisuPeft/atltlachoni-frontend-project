@@ -51,11 +51,23 @@ export interface Pestanias {
   id: number;
 }
 
+export type DepartamentoInfo = {
+  id: number;
+  nombre: string;
+  instituto: {
+    id: number;
+    nombre: string;
+  };
+} | null;
+
 export type User = {
   uuid: string;
   nombre_completo: string;
   email: string;
+  roles_list: { id: number; nombre: string; nivel_acceso: number }[];
+  permisos: string[];
   modulos_accesibles: Modulos[];
+  departamento_info: DepartamentoInfo;
 };
 
 //3 meses de venta

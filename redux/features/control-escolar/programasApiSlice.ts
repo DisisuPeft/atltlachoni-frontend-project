@@ -21,22 +21,25 @@ const programasApiSlice = apiSlice.injectEndpoints({
     }),
     retrieveProgramas: builder.query<
       PaginatedResponse<ProgramaEducativo>,
-      { page?: number; search?: string; status?: string } | void
+      { page?: number; search?: string; status?: string; instituto?: number } | void
     >({
       query: (params = {}) => {
         const {
           page = 1,
           search,
           status,
+          instituto,
         } = params as {
           page?: number;
           search?: string;
           status?: string;
+          instituto?: number;
         };
         const qs = new URLSearchParams();
         qs.set("page", String(page));
         if (search) qs.set("search", search);
         if (status !== undefined && status !== "") qs.set("status", status);
+        if (instituto) qs.set("instituto", String(instituto));
         return `/control-escolar/programas-educativos/?${qs.toString()}`;
       },
       providesTags: [{ type: "Programas" as const, id: "LIST" }],

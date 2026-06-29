@@ -1,6 +1,7 @@
 "use client";
 
 import { useGetDashboardResumenQuery } from "@/redux/features/control-escolar/dashboardApiSlice";
+import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import { Users, BookOpen, Megaphone, ClipboardList } from "lucide-react";
 
 interface StatItemProps {
@@ -41,7 +42,9 @@ function StatItem({ label, value, sub, icon, accent, isLoading }: StatItemProps)
 }
 
 export default function DashboardStats() {
-  const { data: resumen, isLoading } = useGetDashboardResumenQuery();
+  const { data: user } = useRetrieveUserQuery();
+  const instituto = user?.departamento_info?.instituto.id;
+  const { data: resumen, isLoading } = useGetDashboardResumenQuery({ instituto });
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

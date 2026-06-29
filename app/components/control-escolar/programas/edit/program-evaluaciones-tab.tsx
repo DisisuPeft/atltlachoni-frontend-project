@@ -646,7 +646,9 @@ function ExamenCard({
   const [duracion, setDuracion] = useState<number | "">(
     examen.duracion_minutos ?? "",
   );
-  const [maxIntentos, setMaxIntentos] = useState<number>(examen.max_intentos ?? 1);
+  const [maxIntentos, setMaxIntentos] = useState<number>(
+    examen.max_intentos ?? 1,
+  );
   const [tipoExamen, setTipoExamen] = useState<number | "">(
     examen.tipo_examen_obj?.id ?? "",
   );
@@ -718,7 +720,9 @@ function ExamenCard({
               type="number"
               min={1}
               value={maxIntentos}
-              onChange={(e) => setMaxIntentos(Math.max(1, Number(e.target.value)))}
+              onChange={(e) =>
+                setMaxIntentos(Math.max(1, Number(e.target.value)))
+              }
               placeholder="Intentos"
               className="text-sm px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
@@ -939,7 +943,9 @@ function CreateExamenForm({
             type="number"
             min={1}
             value={maxIntentos}
-            onChange={(e) => setMaxIntentos(Math.max(1, Number(e.target.value)))}
+            onChange={(e) =>
+              setMaxIntentos(Math.max(1, Number(e.target.value)))
+            }
             placeholder="1"
             className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           />

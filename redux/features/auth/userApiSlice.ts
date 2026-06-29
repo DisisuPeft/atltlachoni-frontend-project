@@ -14,15 +14,20 @@ export interface User {
   telefono: string;
   email: string;
   status: number;
+  departamento_info: { id: number; nombre: string } | null;
 }
 
 const userApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getUsers: builder.query<
       PaginatedResponse<User>,
-      { q: string; page: number }
+      { q?: string; page?: number; role?: number }
     >({
-      query: ({ q, page }) => `/sistema/usuarios/?q=${q}&page=${page}`,
+      query: ({ q = "", page = 1, role }) => {
+        const params = new URLSearchParams({ q, page: String(page) });
+        if (role) params.set("role", String(role));
+        return `/sistema/usuarios/?${params.toString()}`;
+      },
     }),
     addUser: builder.mutation({
       query: (formData) => ({
