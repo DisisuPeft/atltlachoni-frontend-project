@@ -37,6 +37,7 @@ import {
 
 interface Props {
   uuid: string;
+  initialRef?: string;
 }
 
 // ── Primitives (same system as alumnos-form) ─────────────────────────
@@ -680,9 +681,9 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
 
 type Tab = "info" | "inscripciones";
 
-export default function EstudianteEditPage({ uuid }: Props) {
+export default function EstudianteEditPage({ uuid, initialRef }: Props) {
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>("info");
+  const [activeTab, setActiveTab] = useState<Tab>(initialRef ? "inscripciones" : "info");
 
   const {
     register,

@@ -1,4 +1,4 @@
-// import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import {
   EstudiantePerfilForm,
@@ -13,15 +13,23 @@ import {
 } from "@/redux/features/catalogos/genericosApiSlice";
 import { useEffect } from "react";
 import { useAddEstudiantesMutation } from "@/redux/features/control-escolar/alumnosApiSlice";
-import { useAppDispatch } from "@/redux/hooks";
-import { setAlert } from "@/redux/features/alert/alertSlice";
+import Swal from "sweetalert2";
+import { sweetAlert } from "@/sweetalert/sweetalerts";
 import {
   useRetrieveUserQuery,
   useVerifyUserQuery,
 } from "@/redux/features/auth/authApiSlice";
 
+const defaultFormValues = {
+  ...estudiantePerfilInitialValues,
+  user: {
+    ...estudiantePerfilInitialValues.user,
+    fecha_nacimiento: "1999-08-24",
+  },
+};
+
 export default function useAlumnoForm() {
-  const dispatch = useAppDispatch();
+  const router = useRouter();
   const { data: user } = useRetrieveUserQuery();
   const { data: verifyData } = useVerifyUserQuery();
   const ins = user?.departamento_info?.instituto.id;
@@ -43,26 +51,48 @@ export default function useAlumnoForm() {
     setValue,
     reset,
   } = useForm<EstudiantePerfilForm>({
-    defaultValues: estudiantePerfilInitialValues,
+    defaultValues: defaultFormValues,
   });
 
   const entidad = watch("estado_pais");
-  // console.log(typeof entidad);
   const { data: localidades } = useRetrieveLocalidadesQuery(
     entidad ? parseInt(entidad) : 0,
   );
 
   const onSubmit = async (data: EstudiantePerfilForm) => {
-    // console.log(data);
     try {
-      await addEstudiantes(data).unwrap();
-      reset();
-      dispatch(
-        setAlert({ message: "Alumno creado con exito", type: "success" }),
-      );
+      const response = (await addEstudiantes(data).unwrap()) as {
+        message: string;
+        create: string;
+      };
+      const ref = response.create;
+
+      const result = await Swal.fire({
+        icon: "success",
+        title: "Alumno creado",
+        text: "¿Deseas inscribir al alumno ahora?",
+        confirmButtonText: "Sí, inscribir",
+        denyButtonText: "Registrar otro",
+        cancelButtonText: "No",
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonColor: "#0056D2",
+        denyButtonColor: "#6B7280",
+        cancelButtonColor: "#DC2626",
+      });
+
+      if (result.isConfirmed) {
+        router.push(`/dashboard/control-escolar/alumnos/${ref}?ref=${ref}`);
+      } else if (result.isDenied) {
+        reset(defaultFormValues);
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        router.push(`/dashboard/control-escolar/alumnos?ref=${ref}`);
+      }
     } catch {
-      dispatch(
-        setAlert({ message: "El alumno no pudo ser creado", type: "error" }),
+      sweetAlert(
+        "error",
+        "No fue posible crear al alumno. Intenta de nuevo.",
+        "Error",
       );
     }
   };
@@ -76,13 +106,12 @@ export default function useAlumnoForm() {
 
     if (birthday.getUTCMonth() < today.getUTCMonth()) {
       return yearsOld;
-    } // Agosto no es menor que enero
-    else if (
+    } else if (
       today.getUTCMonth() === birthday.getUTCMonth() &&
       birthday.getUTCDate() <= today.getUTCDate()
     ) {
       return yearsOld;
-    } // si mi pumple fue el 8 de enero, pues si, es menor que el dia de hoy, entonces ya cumpli anios
+    }
     return yearsOld - 1;
   };
 

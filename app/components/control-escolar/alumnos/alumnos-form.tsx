@@ -87,6 +87,8 @@ export default function EstudianteDetallePage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <input type="hidden" {...register("institucion")} />
+        <input type="hidden" {...register("user.fecha_nacimiento")} />
+        <input type="hidden" {...register("user.edad")} />
         {/* ── Información Personal ── */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <SectionHeader
@@ -139,7 +141,7 @@ export default function EstudianteDetallePage() {
             </Field>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-5">
+          <div className="grid grid-cols-1 sm:grid-cols-1 gap-5 mt-5">
             <Field
               label="Género"
               required
@@ -158,37 +160,6 @@ export default function EstudianteDetallePage() {
                   </option>
                 ))}
               </select>
-            </Field>
-
-            <Field
-              label="Fecha de Nacimiento"
-              required
-              error={errors.user?.fecha_nacimiento?.message}
-            >
-              <input
-                type="date"
-                {...register("user.fecha_nacimiento", {
-                  required: "La fecha de nacimiento es requerida",
-                })}
-                className={inputClass}
-              />
-            </Field>
-
-            <Field label="Edad" error={errors.user?.edad?.message}>
-              <div className="relative">
-                <input
-                  disabled
-                  type="number"
-                  {...register("user.edad", {
-                    required: "La edad es requerida",
-                    min: 1,
-                  })}
-                  className={inputClass}
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-                  años
-                </span>
-              </div>
             </Field>
           </div>
         </div>
