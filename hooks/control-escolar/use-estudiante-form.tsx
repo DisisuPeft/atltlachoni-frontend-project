@@ -19,6 +19,7 @@ import {
   useRetrieveUserQuery,
   useVerifyUserQuery,
 } from "@/redux/features/auth/authApiSlice";
+import { useSearchParams } from "next/navigation";
 
 const defaultFormValues = {
   ...estudiantePerfilInitialValues,
@@ -42,6 +43,9 @@ export default function useAlumnoForm() {
   const { data: instituciones } = useRetrieveInstitucionesQuery({ ins });
   const { data: estados } = useRetrieveEstadosQuery();
   const [addEstudiantes] = useAddEstudiantesMutation();
+  const searchParams = useSearchParams();
+  const pestaniaRef = searchParams.get("ref");
+  // console.log(pestaniaRef);
   const {
     register,
     handleSubmit,
@@ -82,11 +86,13 @@ export default function useAlumnoForm() {
       });
 
       if (result.isConfirmed) {
-        router.push(`/dashboard/control-escolar/alumnos/${ref}?ref=${ref}`);
+        router.push(
+          `/dashboard/control-escolar/alumnos/${ref}?ref=${pestaniaRef}`,
+        );
       } else if (result.isDenied) {
         reset(defaultFormValues);
       } else if (result.dismiss === Swal.DismissReason.cancel) {
-        router.push(`/dashboard/control-escolar/alumnos?ref=${ref}`);
+        router.push(`/dashboard/control-escolar/alumnos?ref=${pestaniaRef}`);
       }
     } catch {
       sweetAlert(

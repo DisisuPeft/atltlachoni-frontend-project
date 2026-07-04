@@ -1,98 +1,122 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
-const diplomas = [
+const institutes = [
   {
-    title: "Instituto Thales",
+    id: "thales",
+    name: "Instituto Thales",
+    shortName: "THALES",
+    tagline: "Especialización clínica y profesional",
+    description:
+      "Instituto enfocado en la especialización clínica avanzada para profesionales de la salud. Desarrolla competencias técnicas, científicas y humanísticas que elevan la práctica profesional.",
     image: "/assets/logos/logo-thales.svg",
+    accent: "#1C3D54",
     path: "/thales",
+    features: ["Especialización clínica", "Docentes con práctica activa", "Enfoque científico"],
   },
   {
-    title: "Instituto de Educación Superior y Desarrollo Académico",
+    id: "iesda",
+    name: "Instituto de Educación Superior y Desarrollo Académico",
+    shortName: "IESDA",
+    tagline: "Formación ética y científica en salud",
+    description:
+      "Instituto dedicado a la formación integral con enfoque ético y humanístico. Promueve el desarrollo académico riguroso alineado con los más altos estándares en ciencias de la salud.",
     image: "/assets/logos/iesdalogo.webp",
+    accent: "#2F7FB1",
     path: "/iesda",
+    features: ["Formación ética", "Enfoque humanístico", "Estándares internacionales"],
   },
 ];
 
 export default function InstitutesPreview() {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="diplomados" className="py-24 lg:py-32 bg-background">
+    <section id="instituciones" className="py-24 lg:py-32 bg-gray-50">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <motion.div
           ref={ref}
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6"
+          className="text-center max-w-2xl mx-auto"
         >
-          <div>
-            <span className="text-secondary font-medium text-sm uppercase tracking-wider">
-              Oferta Académica
-            </span>
-            <h2 className="mt-4 text-3xl lg:text-4xl font-semibold text-foreground leading-tight text-balance">
-              Nuestros institutos académicos
-            </h2>
-            <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
-              La oferta formativa de CINFA se organiza en institutos académicos
-              especializados, desde los cuales se desarrollan programas y
-              diplomados orientados a distintas áreas del conocimiento.
-            </p>
-          </div>
+          <span className="text-[#2F7FB1] font-medium text-sm uppercase tracking-wider">
+            Instituciones
+          </span>
+          <h2 className="mt-3 text-3xl lg:text-4xl font-semibold text-gray-900 leading-tight">
+            Instituciones que integran CINFA
+          </h2>
+          <p className="mt-4 text-gray-500 text-lg leading-relaxed">
+            CINFA es la institución matriz que agrupa dos institutos académicos
+            especializados en ciencias de la salud.
+          </p>
         </motion.div>
 
-        <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {diplomas.map((diploma, index) => (
+        <div className="mt-14 grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {institutes.map((institute, index) => (
             <motion.article
-              key={diploma.title}
+              key={institute.id}
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{
-                duration: 0.6,
-                delay: index * 0.1,
-                ease: "easeOut",
-              }}
-              className="group bg-card rounded-xl overflow-hidden border border-border hover:shadow-lg transition-all"
+              transition={{ duration: 0.6, delay: index * 0.15, ease: "easeOut" }}
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col"
             >
-              <div className="aspect-[4/3] overflow-hidden">
-                <img
-                  src={diploma.image || "/placeholder.svg"}
-                  alt={diploma.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+              {/* Logo area */}
+              <div className="bg-gray-50 p-10 flex items-center justify-center border-b border-gray-100">
+                <div className="h-20 flex items-center justify-center">
+                  <Image
+                    src={institute.image}
+                    alt={`Logo ${institute.name}`}
+                    width={180}
+                    height={80}
+                    className="object-contain max-h-20"
+                  />
+                </div>
               </div>
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-foreground">
-                  {diploma.title}
-                </h3>
-              </div>
-              <div className="p-6">
-                <Link
-                  href={diploma.path}
-                  // target="_blank"
-                  className="mt-4 inline-flex items-center gap-2 text-primary font-medium text-sm hover:text-primary/80 transition-colors"
+
+              {/* Content */}
+              <div className="p-7 flex flex-col flex-1">
+                <span
+                  className="text-xs font-bold uppercase tracking-widest mb-2"
+                  style={{ color: institute.accent }}
                 >
-                  Más información
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                  {institute.shortName}
+                </span>
+                <h3 className="text-xl font-semibold text-gray-900 leading-snug">
+                  {institute.tagline}
+                </h3>
+                <p className="mt-3 text-gray-500 text-sm leading-relaxed flex-1">
+                  {institute.description}
+                </p>
+
+                <ul className="mt-5 space-y-2">
+                  {institute.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                      <svg className="w-4 h-4 text-[#2F7FB1] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-7">
+                  <Link
+                    href={institute.path}
+                    className="inline-flex items-center justify-center gap-2 w-full bg-[#0F4C75] text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-[#2F7FB1] transition-colors"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </Link>
+                    Conocer programas
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
               </div>
             </motion.article>
           ))}

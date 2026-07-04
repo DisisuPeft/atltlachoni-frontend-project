@@ -12,12 +12,6 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  /* --gradient-cinfa-primary: linear-gradient(
-    135deg,
-    #2f7fb1 0%,
-    #0f4c75 60%,
-    #0a3a5a 100%
-  ); */
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
@@ -45,25 +39,21 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-primary-thales: #1c3d54; /* Azul Thales */
+
+  /* Poppins SemiBold for headings, Source Sans Pro for body */
+  --font-heading: var(--font-poppins), "Segoe UI", sans-serif;
+  --font-sans: var(--font-source-sans), "Geist", "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", monospace;
+
+  --color-primary-thales: #1c3d54;
   --color-primary-thales-foreground: #ffffff;
-
-  --color-secondary-thales: #d7a556; /* Dorado ético */
+  --color-secondary-thales: #d7a556;
   --color-secondary-thales-foreground: #1c3d54;
-
-  --color-neutral-thales: #e8edf3; /* Fondo suave */
+  --color-neutral-thales: #e8edf3;
   --color-neutral-thales-foreground: #1c3d54;
-
-  --color-complementary-thales: #4ca495; /* Verde humano (opcional) */
+  --color-complementary-thales: #4ca495;
   --color-complementary-thales-foreground: #0b1b23;
 
-  /* colores cinfa */
-  --font-sans: "Geist", "Geist Fallback";
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -100,15 +90,21 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.2;
 }
