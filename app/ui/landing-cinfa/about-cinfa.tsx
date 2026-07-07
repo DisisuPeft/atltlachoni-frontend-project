@@ -5,8 +5,9 @@ import { useRef } from "react";
 import Image from "next/image";
 
 const stats = [
-  { value: "+90", label: "Estudiantes", icon: "" },
   { value: "+6", label: "Diplomados activos", icon: "" },
+  { value: "LATAM", label: "Alcance regional", icon: "" },
+  { value: "2", label: "Institutos afiliados", icon: "" },
 ];
 
 export default function AboutCINFA() {
@@ -59,39 +60,40 @@ export default function AboutCINFA() {
               Sobre CINFA
             </span>
             <h2 className="mt-3 text-3xl lg:text-4xl font-semibold text-gray-900 leading-tight">
-              Más de 150 profesionales de la salud ya confían en nosotros
+              La institución que articula y potencia a sus institutos
             </h2>
 
             <p className="mt-5 text-gray-600 text-lg leading-relaxed">
-              El Centro Internacional de Formación Académica (CINFA) es la
-              institución matriz que impulsa la especialización de profesionales
-              de la salud a través de programas académicos rigurosos, flexibles
-              y con acompañamiento personalizado.
+              El Centro Internacional de Formación Académica (CINFA) es el marco
+              institucional que orienta y garantiza la calidad educativa de los institutos
+              que lo conforman. Creemos que el aprendizaje genuino es irreversible: quien
+              accede al conocimiento adquiere una nueva forma de ver el mundo, la práctica
+              y a sí mismo.
             </p>
 
             <p className="mt-4 text-gray-600 text-lg leading-relaxed">
-              Nuestro modelo formativo combina el rigor científico con la
-              aplicación clínica real, apoyado por docentes que ejercen
-              activamente su profesión en el sector salud.
+              CINFA establece los estándares, la visión compartida y el respaldo
+              institucional para que sus institutos generen profesionales que piensan
+              diferente, actúan con criterio y contribuyen al bienestar de sus comunidades.
             </p>
 
             <div className="mt-8 grid grid-cols-2 gap-6">
               <div className="border-l-4 border-[#2F7FB1] pl-4">
                 <div className="font-semibold text-gray-900">
-                  Formación práctica
+                  Rigor académico
                 </div>
                 <div className="mt-1 text-sm text-gray-500 leading-relaxed">
-                  Contenido aplicable desde el primer módulo, basado en casos
-                  clínicos reales.
+                  Programas diseñados para provocar cambios de perspectiva duraderos
+                  en cada profesional.
                 </div>
               </div>
               <div className="border-l-4 border-[#2F7FB1] pl-4">
                 <div className="font-semibold text-gray-900">
-                  Proyección internacional
+                  Red LATAM
                 </div>
                 <div className="mt-1 text-sm text-gray-500 leading-relaxed">
                   Estudiantes de México, Colombia, Argentina y más países de
-                  Latinoamérica.
+                  Latinoamérica forman nuestra comunidad.
                 </div>
               </div>
             </div>

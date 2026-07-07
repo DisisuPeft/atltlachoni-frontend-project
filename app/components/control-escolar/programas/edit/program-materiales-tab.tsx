@@ -6,6 +6,7 @@ import { useMaterialUpload } from "@/hooks";
 import {
   // type ModuloEducativoForm,
   type Material,
+  type Campania,
   ModuloMaterial,
 } from "@/redux/features/types/control-escolar/type";
 import {
@@ -21,9 +22,13 @@ import {
   AlertCircle,
   Check,
   FolderOpen,
+  X,
 } from "lucide-react";
 import { useAppDispatch } from "@/redux/hooks";
 import { setAlert } from "@/redux/features/alert/alertSlice";
+import { Modal } from "@/app/components/common/modal";
+import { useRetrieveCampaniasQuery } from "@/redux/features/control-escolar/campaniasApiSlice";
+import { useModulosProgramaQuery } from "@/redux/features/control-escolar/programasApiSlice";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -250,9 +255,11 @@ function SectionUploader({
 function MaterialRow({
   material,
   onDelete,
+  showCampania = false,
 }: {
   material: Material;
   onDelete: (id: number) => void;
+  showCampania?: boolean;
 }) {
   const [confirming, setConfirming] = useState(false);
 
@@ -263,6 +270,11 @@ function MaterialRow({
         {material.original_name}
       </span>
       {typeBadge(material.file_type)}
+      {showCampania && material.campania_nombre && (
+        <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium shrink-0">
+          {material.campania_nombre}
+        </span>
+      )}
       <span className="text-xs text-gray-400 shrink-0">
         {formatBytes(material.size)}
       </span>
@@ -311,25 +323,31 @@ const TIPO_FILTERS = [
 
 interface Props {
   programaId: string;
-  modulos: ModuloMaterial[];
-  onRefetch: () => void;
-  campania: number | undefined;
 }
 
-export default function ProgramMaterialesTab({
-  programaId,
-  modulos,
-  onRefetch,
-  campania,
-}: Props) {
+export default function ProgramMaterialesTab({ programaId }: Props) {
   const dispatch = useAppDispatch();
   const [filterTipo, setFilterTipo] = useState("all");
+  const [selectedCampania, setSelectedCampania] = useState<
+    number | undefined
+  >();
   const [deleting, setDeleting] = useState<number | null>(null);
   const [openStates, setOpenStates] = useState<Record<string, boolean>>({});
-  const [uploadingStates, setUploadingStates] = useState<
-    Record<string, boolean>
-  >({});
-  // console.log(campania);
+  const [uploadModal, setUploadModal] = useState<{
+    key: string;
+    modulo: ModuloMaterial;
+  } | null>(null);
+  const [uploadCampania, setUploadCampania] = useState<number | undefined>();
+  const [uploadModulo, setUploadModulo] = useState<number | undefined>();
+
+  const { data: campaniasData } = useRetrieveCampaniasQuery();
+  const campaniasList: Campania[] = campaniasData?.results ?? [];
+
+  const { data: modulos, refetch: refetchModulos } = useModulosProgramaQuery({
+    ref: programaId,
+    campania: selectedCampania,
+  });
+  // console.log(modulos);
   const [deleteMaterial] = useDeleteMaterialMutation();
 
   const applyFilter = useCallback(
@@ -342,7 +360,10 @@ export default function ProgramMaterialesTab({
 
   const filteredCount = useMemo(
     () =>
-      modulos.reduce((sum, mod) => sum + applyFilter(mod.materiales).length, 0),
+      (modulos ?? []).reduce(
+        (sum, mod) => sum + applyFilter(mod.materiales).length,
+        0,
+      ),
     [modulos, applyFilter],
   );
 
@@ -350,7 +371,7 @@ export default function ProgramMaterialesTab({
     setDeleting(id);
     try {
       await deleteMaterial(id).unwrap();
-      onRefetch();
+      refetchModulos();
       dispatch(setAlert({ type: "success", message: "Material eliminado" }));
     } catch {
       dispatch(
@@ -384,10 +405,44 @@ export default function ProgramMaterialesTab({
         </span>
       </div>
 
-      {modulos.map((modulo, i) => {
-        const k = String(modulo.id ?? i);
+      {/* Campania filter */}
+      {campaniasList.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-gray-500 font-medium shrink-0">
+            Campaña:
+          </span>
+          <button
+            type="button"
+            onClick={() => setSelectedCampania(undefined)}
+            className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors border ${
+              selectedCampania === undefined
+                ? "bg-indigo-600 text-white border-indigo-600"
+                : "bg-white text-gray-600 border-gray-200 hover:border-indigo-400 hover:text-indigo-600"
+            }`}
+          >
+            Todas
+          </button>
+          {campaniasList.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setSelectedCampania(c.id)}
+              className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors border ${
+                selectedCampania === c.id
+                  ? "bg-indigo-600 text-white border-indigo-600"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-indigo-400 hover:text-indigo-600"
+              }`}
+            >
+              {c.nombre}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {(modulos ?? []).map((modulo, i) => {
+        // console.log(modulo);
+        const k = String(modulo.modulo_id ?? i);
         const isOpen = openStates[k] ?? i === 0;
-        const isUploading = uploadingStates[k] ?? false;
         const materials = applyFilter(modulo.materiales);
 
         return (
@@ -408,7 +463,7 @@ export default function ProgramMaterialesTab({
                 )}
                 <FolderOpen className="w-4 h-4 text-blue-500 shrink-0" />
                 <span className="text-sm font-semibold text-gray-700">
-                  Módulo {i + 1}: {modulo.nombre}
+                  Módulo {i + 1}: {modulo.modulo_nombre}
                 </span>
                 <span className="text-xs text-gray-400 bg-white border border-gray-200 rounded-full px-2 py-0.5 ml-1">
                   {materials.length}
@@ -417,8 +472,9 @@ export default function ProgramMaterialesTab({
               <button
                 type="button"
                 onClick={() => {
-                  setOpenStates((p) => ({ ...p, [k]: true }));
-                  setUploadingStates((p) => ({ ...p, [k]: !isUploading }));
+                  setUploadCampania(selectedCampania ?? campaniasList[0]?.id);
+                  setUploadModulo(modulo.modulo_id);
+                  setUploadModal({ key: k, modulo });
                 }}
                 className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium shrink-0"
               >
@@ -429,20 +485,7 @@ export default function ProgramMaterialesTab({
 
             {isOpen && (
               <div>
-                {isUploading && (
-                  <div className="px-4 pt-3 pb-1">
-                    <SectionUploader
-                      programaId={programaId}
-                      campaniaId={campania}
-                      moduloId={modulo.id as number | undefined}
-                      onSuccess={() => {
-                        setUploadingStates((p) => ({ ...p, [k]: false }));
-                        onRefetch();
-                      }}
-                    />
-                  </div>
-                )}
-                {materials.length === 0 && !isUploading ? (
+                {materials.length === 0 ? (
                   <div className="px-4 py-6 text-center text-sm text-gray-400">
                     Sin materiales en esta sección
                   </div>
@@ -453,6 +496,7 @@ export default function ProgramMaterialesTab({
                         key={m.id}
                         material={m}
                         onDelete={handleDelete}
+                        showCampania={selectedCampania === undefined}
                       />
                     ))}
                   </div>
@@ -466,6 +510,92 @@ export default function ProgramMaterialesTab({
       {deleting !== null && (
         <div className="fixed inset-0 bg-black/10 pointer-events-none" />
       )}
+
+      <Modal
+        show={uploadModal !== null}
+        onClose={() => setUploadModal(null)}
+        maxWidth="md"
+      >
+        <div className="p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">
+                Subir material
+              </h3>
+              {uploadModal && (
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Módulo: {uploadModal.modulo.modulo_nombre}
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setUploadModal(null)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Módulo
+              </label>
+              <select
+                value={uploadModulo ?? ""}
+                onChange={(e) =>
+                  setUploadModulo(
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
+                }
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Sin módulo</option>
+                {(modulos ?? []).map((m, i) => {
+                  // console.log(m);
+                  return (
+                    <option key={m.modulo_id} value={m.modulo_id}>
+                      {i + 1}. {m.modulo_nombre}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Campaña
+              </label>
+              <select
+                value={uploadCampania ?? ""}
+                onChange={(e) =>
+                  setUploadCampania(
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
+                }
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Sin campaña</option>
+                {campaniasList.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {uploadModal && (
+            <SectionUploader
+              programaId={programaId}
+              campaniaId={uploadCampania}
+              moduloId={uploadModulo}
+              onSuccess={() => refetchModulos()}
+            />
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

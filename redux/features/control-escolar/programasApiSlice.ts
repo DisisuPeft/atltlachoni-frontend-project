@@ -5,6 +5,9 @@ import {
   // ModuloConMateriales,
   ProgramaEducativo,
   ProgramaEducativoForm,
+  ProgramaDestacado,
+  SolicitudInformacionInput,
+  SolicitudInformacionResponse,
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
 import { MessageResponse } from "../types/reponse";
@@ -21,7 +24,12 @@ const programasApiSlice = apiSlice.injectEndpoints({
     }),
     retrieveProgramas: builder.query<
       PaginatedResponse<ProgramaEducativo>,
-      { page?: number; search?: string; status?: string; instituto?: number } | void
+      {
+        page?: number;
+        search?: string;
+        status?: string;
+        instituto?: number;
+      } | void
     >({
       query: (params = {}) => {
         const {
@@ -86,6 +94,31 @@ const programasApiSlice = apiSlice.injectEndpoints({
         return `/control-escolar/materiales/${ref}/modulosprograma/${search ? `?${search}` : ""}`;
       },
     }),
+    programasDestacados: builder.query<
+      ProgramaDestacado[],
+      { limit?: number; instituto?: number } | void
+    >({
+      query: (params = {}) => {
+        const { limit = 4, instituto } = (params ?? {}) as {
+          limit?: number;
+          instituto?: number;
+        };
+        const qs = new URLSearchParams();
+        qs.set("limit", String(limit));
+        if (instituto) qs.set("instituto", String(instituto));
+        return `/public/programas-destacados/?${qs.toString()}`;
+      },
+    }),
+    solicitudInformacion: builder.mutation<
+      SolicitudInformacionResponse,
+      SolicitudInformacionInput
+    >({
+      query: (body) => ({
+        url: "/public/solicitar-informacion/",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -98,4 +131,6 @@ export const {
   useActivarProgramaMutation,
   useDesactivarProgramaMutation,
   useModulosProgramaQuery,
+  useProgramasDestacadosQuery,
+  useSolicitudInformacionMutation,
 } = programasApiSlice;

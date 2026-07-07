@@ -444,12 +444,24 @@ export interface ModuloConMateriales {
   materiales: Material[];
 }
 
-export interface ModuloMaterial extends BaseModel {
+export interface ProgramaDestacado {
+  id: number;
+  ref?: string;
   nombre: string;
+  descripcion?: string;
+  imagen_url?: string | null;
+  banner_url?: string | null;
+  total_inscritos?: number;
+  probabilidad?: number;
+}
+
+export interface ModuloMaterial {
+  modulo_id: number;
+  modulo_nombre: string;
   horas_teoricas: number;
   horas_practicas: number;
   horas_totales: number;
-  creditos: number;
+  creditos: string;
   materiales: Material[];
 }
 
@@ -742,4 +754,19 @@ export interface MiCalificacion {
   max_intentos: number;
   intentos_usados: number;
   intentos: IntentoCalificacion[];
+}
+
+export interface SolicitudInformacionInput {
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno?: string;
+  correo: string;
+  telefono: string;
+  programa_ref: string;
+  mensaje?: string;
+}
+
+export interface SolicitudInformacionResponse {
+  message: string;
+  uuid: string;
 }

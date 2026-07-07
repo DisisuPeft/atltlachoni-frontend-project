@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
-const WA_LINK = "https://wa.link/fgv19q";
+const WA_LINK = "https://wa.link/lj52bn";
 
 function scrollToForm() {
-  document.getElementById("solicitar-informacion")?.scrollIntoView({ behavior: "smooth" });
+  document.getElementById("solicitar-informacion-thales")?.scrollIntoView({ behavior: "smooth" });
 }
 
-export default function FloatingCTA() {
+export default function ThalesFloatingCTA() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -42,11 +42,15 @@ export default function FloatingCTA() {
             </svg>
           </Link>
 
-          {/* Solicitar información pill — ancla al formulario de la página */}
+          {/* Solicitar información pill */}
           <button
             onClick={scrollToForm}
             aria-label="Ir al formulario de solicitud de información"
-            className="bg-[#0F4C75] hover:bg-[#2F7FB1] text-white text-sm font-semibold px-5 py-3 rounded-full shadow-xl transition-all hover:scale-105 flex items-center gap-2 whitespace-nowrap"
+            className="text-white text-sm font-semibold px-5 py-3 rounded-full shadow-xl transition-all hover:scale-105 flex items-center gap-2 whitespace-nowrap"
+            style={{
+              background: "linear-gradient(135deg, #1E3A5F 0%, #1FBAC4 100%)",
+              boxShadow: "0 4px 20px rgba(31,186,196,0.4)",
+            }}
           >
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />

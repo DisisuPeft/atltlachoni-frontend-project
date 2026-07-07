@@ -121,14 +121,13 @@ export default function Header() {
               </motion.button> */}
 
               <motion.a
-                href="https://wa.link/lj52bn"
-                target="_blank"
+                href="#solicitar-informacion-thales"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
                 className="px-4 xl:px-6 py-2 border-2 border-primary text-gray-700 rounded-full font-medium hover:border-primary/80 hover:text-primary/80 transition-colors text-sm xl:text-base"
               >
-                Contacto
+                Solicitar información
               </motion.a>
             </div>
 
@@ -209,11 +208,10 @@ export default function Header() {
                 Crear cuenta
               </button> */}
               <Link
-                href="https://wa.link/lj52bn"
-                target="_blank"
+                href="#solicitar-informacion-thales"
                 className="cursor-pointer w-full px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-full font-medium hover:border-primary hover:text-primary transition-colors"
               >
-                Contacto
+                Solicitar información
               </Link>
             </motion.div>
           )}

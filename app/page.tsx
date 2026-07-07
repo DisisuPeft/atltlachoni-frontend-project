@@ -5,7 +5,8 @@ import WhyCINFA from "./ui/landing-cinfa/why-cinfa";
 import InstitutesPreview from "./ui/landing-cinfa/institutos";
 import DiplomadosSection from "./ui/landing-cinfa/diplomados-section";
 import AboutCINFA from "./ui/landing-cinfa/about-cinfa";
-import TestimonialSection from "./ui/landing-cinfa/testimonial-section";
+import CinfaMision from "./ui/landing-cinfa/cinfa-mision";
+import LeadFormSection from "./ui/landing-cinfa/lead-form-section";
 import CallToAction from "./ui/landing-cinfa/call-to-action";
 import Footer from "./ui/landing-cinfa/footer";
 
@@ -19,7 +20,8 @@ export default function Page() {
       <InstitutesPreview />
       <DiplomadosSection />
       <AboutCINFA />
-      <TestimonialSection />
+      <CinfaMision />
+      <LeadFormSection />
       <CallToAction />
       <Footer />
     </main>

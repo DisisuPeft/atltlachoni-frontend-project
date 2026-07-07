@@ -1,133 +1,121 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
 import Image from "next/image";
+import { useProgramasDestacadosQuery } from "@/redux/features/control-escolar/programasApiSlice";
 
-const programs = [
-  {
-    name: "Enfermería Nefrológica, Hemodiálisis y Accesos Vasculares",
-    // duration: "3 años",
-    description:
-      "Orientado a la formación especializada en enfermería nefrológica, con énfasis en los procesos de hemodiálisis y el cuidado integral de los accesos vasculares, integrando fundamentos clínicos, técnicos y humanizados en la atención al paciente.",
-    image: "/assets/diplomados/iesda/Enfermeríanefrologica.webp",
-  },
-  {
-    name: "Enfermería Pericial y Registros Clínicos",
-    // duration: "2 años",
-    description:
-      "Orientado a la formación en enfermería pericial y el correcto manejo de los registros clínicos, con énfasis en la documentación profesional, el sustento legal de la práctica y la atención conforme a criterios éticos y normativos.",
-    image: "/assets/diplomados/iesda/Enfermeríapericiall.webp",
-  },
-  {
-    name: "Urgencias Pediátricas",
-    // duration: "2 años",
-    description:
-      "Orientado al estudio y abordaje de las urgencias pediátricas, enfocado en la identificación oportuna, valoración inicial y atención adecuada de situaciones críticas en pacientes pediátricos, bajo criterios clínicos y éticos.",
-    image: "/assets/diplomados/iesda/URGENCIA-PEDIATRICAS.webp",
-  },
-];
+function solicitarPrograma(ref: string | undefined) {
+  if (ref) {
+    window.dispatchEvent(new CustomEvent("iesda:preselect-programa", { detail: ref }));
+  }
+  document.getElementById("solicitar-informacion-iesda")?.scrollIntoView({ behavior: "smooth" });
+}
 
 export function Programs() {
-  const getWaLink = (programName: string) => {
-    const phone = "529613986294";
-    const message = `Hola, me gustaría recibir más información sobre el diplomado: ${programName}.`;
-    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-  };
+  const { data: programas = [], isLoading } = useProgramasDestacadosQuery({ limit: 6, instituto: 2 });
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+
   return (
     <section
       id="diplomados-iesda"
-      className="py-24 px-6"
-      style={{ backgroundColor: "#F8F2E9" }}
+      className="py-24 lg:py-32"
+      style={{ backgroundColor: "#FDF8F0" }}
     >
-      <div className="container mx-auto max-w-6xl">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8" ref={ref}>
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6"
         >
-          <span
-            className="text-sm tracking-widest uppercase mb-4 block"
-            style={{ color: "#7D8EA3" }}
-          >
-            Formación académica
-          </span>
-          <h2
-            className="text-3xl md:text-4xl font-light leading-tight mb-6"
-            style={{ color: "#3A3A3A" }}
-          >
-            Oferta Académica
-          </h2>
-          <p
-            className="max-w-2xl mx-auto text-base leading-relaxed"
-            style={{ color: "#7D8EA3" }}
-          >
-            Programas técnicos y tecnológicos en el área de la salud, diseñados
-            para formar profesionales competentes y éticamente comprometidos.
-          </p>
+          <div>
+            <span className="font-medium text-sm uppercase tracking-wider" style={{ color: "#D7A22A" }}>
+              Formación académica
+            </span>
+            <h2 className="mt-3 text-3xl lg:text-4xl font-semibold leading-tight" style={{ color: "#2A2118" }}>
+              Oferta académica IESDA
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed max-w-xl" style={{ color: "#7D8EA3" }}>
+              Programas especializados diseñados para integrar rigor científico, ética profesional
+              y sensibilidad humana. Modalidad 100% en línea con certificación institucional.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <button
+              onClick={() => solicitarPrograma(undefined)}
+              className="inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+              style={{ color: "#D7A22A" }}
+            >
+              Solicitar información
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {programs.map((program, index) => (
-            <motion.div
-              key={program.name}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="bg-white rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-300"
-            >
-              {/* IMAGE */}
-              {program.image && (
-                <div className="w-full h-[300px] overflow-hidden">
-                  <Image
-                    src={program.image}
-                    alt={program.name}
-                    className="w-full h-full object-cover"
-                    width={500}
-                    height={500}
-                    quality={100}
-                  />
-                </div>
-              )}
+        {isLoading ? (
+          <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse bg-white rounded-2xl h-80"
+                style={{ border: "1px solid rgba(215,162,42,0.1)" }} />
+            ))}
+          </div>
+        ) : programas.length === 0 ? (
+          <p className="mt-12 text-center text-sm" style={{ color: "#7D8EA3" }}>
+            Próximamente más programas disponibles. Contáctanos para más información.
+          </p>
+        ) : (
+          <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {programas.map((programa, index) => (
+              <motion.div
+                key={programa.ref ?? `programa-${index}`}
+                initial={{ opacity: 0, y: 30 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: index * 0.09, ease: "easeOut" }}
+                className="group bg-white rounded-2xl overflow-hidden transition-shadow hover:shadow-lg"
+                style={{ border: "1px solid rgba(215,162,42,0.15)" }}
+              >
+                {programa.imagen_url && (
+                  <div className="w-full h-52 overflow-hidden">
+                    <Image
+                      src={programa.imagen_url}
+                      alt={programa.nombre}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      width={500}
+                      height={200}
+                      quality={85}
+                    />
+                  </div>
+                )}
 
-              {/* CONTENT */}
-              <div className="p-8">
-                <div className="flex items-start justify-between mb-4">
-                  <h3
-                    className="text-lg font-medium pr-4"
-                    style={{ color: "#3A3A3A" }}
-                  >
-                    {program.name}
+                <div className="p-6">
+                  <div className="w-8 h-0.5 mb-4" style={{ background: "#D7A22A" }} />
+                  <h3 className="text-base font-semibold leading-snug mb-3" style={{ color: "#2A2118" }}>
+                    {programa.nombre}
                   </h3>
+                  {programa.descripcion && (
+                    <p className="text-sm leading-relaxed mb-5" style={{ color: "#7D8EA3" }}>
+                      {programa.descripcion}
+                    </p>
+                  )}
+                  <button
+                    onClick={() => solicitarPrograma(programa.ref)}
+                    className="inline-flex items-center text-sm font-semibold transition-colors hover:opacity-80 mt-4"
+                    style={{ color: "#D7A22A" }}
+                  >
+                    Solicitar información
+                    <svg className="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </button>
                 </div>
-
-                <div
-                  className="w-8 h-0.5 mb-4"
-                  style={{ backgroundColor: "#D7A22A" }}
-                />
-
-                <p
-                  className="text-sm leading-relaxed"
-                  style={{ color: "#7D8EA3" }}
-                >
-                  {program.description}
-                </p>
-                <a
-                  href={getWaLink(program.name)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center mt-6 text-sm font-medium transition-colors"
-                  style={{ color: "#1FBAC4" }}
-                >
-                  Saber más
-                  <span className="ml-2">→</span>
-                </a>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

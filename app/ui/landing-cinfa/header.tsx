@@ -5,15 +5,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 
-const WA_LINK = "https://wa.link/fgv19q";
+function scrollToForm() {
+  document.getElementById("solicitar-informacion")?.scrollIntoView({ behavior: "smooth" });
+}
 
 const navItems = [
   { label: "Inicio", href: "#" },
   { label: "Oferta Académica", href: "#diplomados" },
   { label: "Instituciones", href: "#instituciones" },
   { label: "¿Por qué elegirnos?", href: "#por-que-cinfa" },
-  { label: "Testimonios", href: "#testimonios" },
-  { label: "Contacto", href: "#contacto" },
+  { label: "Nuestra misión", href: "#mision" },
 ];
 
 export default function Header() {
@@ -58,14 +59,12 @@ export default function Header() {
             >
               Iniciar sesión
             </Link>
-            <Link
-              href={WA_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={scrollToForm}
               className="bg-[#2F7FB1] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#0F4C75] transition-colors"
             >
               Solicitar Información
-            </Link>
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -107,15 +106,12 @@ export default function Header() {
                 </Link>
               ))}
               <div className="mt-3 pt-3 border-t border-gray-100 flex flex-col gap-2">
-                <Link
-                  href={WA_LINK}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setIsMenuOpen(false)}
+                <button
+                  onClick={() => { setIsMenuOpen(false); scrollToForm(); }}
                   className="bg-[#2F7FB1] text-white px-5 py-3 rounded-lg text-sm font-semibold text-center"
                 >
                   Solicitar Información
-                </Link>
+                </button>
                 <Link
                   href="/login"
                   onClick={() => setIsMenuOpen(false)}

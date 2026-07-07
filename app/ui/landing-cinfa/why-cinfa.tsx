@@ -7,32 +7,22 @@ const benefits = [
   {
     icon: (
       <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
       </svg>
     ),
-    title: "Educación especializada",
+    title: "Transformación intelectual",
     description:
-      "Programas diseñados por y para profesionales de la salud, con contenido clínicamente actualizado y aplicable de inmediato.",
+      "Cada programa está diseñado para cambiar la forma en que el estudiante piensa, no solo lo que sabe.",
   },
   {
     icon: (
       <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
       </svg>
     ),
-    title: "Modalidad en línea",
+    title: "Rigor con propósito",
     description:
-      "Estudia desde cualquier lugar sin interrumpir tu práctica profesional. Compatible con computadora, tablet y celular.",
-  },
-  {
-    icon: (
-      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-      </svg>
-    ),
-    title: "Certificación curricular",
-    description:
-      "Obtén un certificado con validez institucional al concluir satisfactoriamente tu diplomado, reconocido en el sector salud.",
+      "La exigencia académica existe al servicio del impacto real, no como fin en sí mismo.",
   },
   {
     icon: (
@@ -40,9 +30,9 @@ const benefits = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
-    title: "Tutores especializados",
+    title: "Articulación institucional",
     description:
-      "Acompañamiento permanente de docentes con experiencia clínica y académica real en el área de la salud.",
+      "La fortaleza de CINFA está en la coherencia y la sinergia entre sus institutos.",
   },
   {
     icon: (
@@ -50,19 +40,19 @@ const benefits = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
       </svg>
     ),
-    title: "Alcance internacional",
+    title: "Compromiso social",
     description:
-      "Estudiantes de México, Colombia, Argentina y más países de Latinoamérica forman parte de nuestra comunidad.",
+      "El conocimiento se mide por su capacidad de mejorar comunidades.",
   },
   {
     icon: (
       <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
       </svg>
     ),
-    title: "Plataforma disponible 24/7",
+    title: "Criterio propio",
     description:
-      "Accede a clases, materiales y recursos en cualquier momento del día. Tu aprendizaje se adapta a tu horario.",
+      "Formamos personas que cuestionan, analizan y deciden con fundamento.",
   },
 ];
 
@@ -81,14 +71,14 @@ export default function WhyCINFA() {
           className="text-center max-w-3xl mx-auto"
         >
           <span className="text-white/70 font-medium text-sm uppercase tracking-wider">
-            ¿Por qué estudiar con nosotros?
+            Nuestros valores
           </span>
           <h2 className="mt-3 text-3xl lg:text-4xl font-semibold text-white leading-tight">
-            Lo que nos distingue
+            Los principios que nos definen
           </h2>
           <p className="mt-5 text-white/80 text-lg leading-relaxed">
-            Formación de calidad pensada para el ritmo y las necesidades de los
-            profesionales de la salud.
+            CINFA no solo forma profesionales. Forma personas que piensan diferente,
+            actúan con criterio y transforman sus comunidades.
           </p>
         </motion.div>
 

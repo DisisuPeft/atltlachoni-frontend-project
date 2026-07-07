@@ -40,9 +40,7 @@ export default function EditProgramaPage({ uuid }: Props) {
     disabled,
     setDisabled,
     programa,
-    modulos,
     campania,
-    onRefetchModulos,
   } = useEditProgramaForm(uuid);
 
   const [activeTab, setActiveTab] = useState<Tab>("programa");
@@ -87,12 +85,7 @@ export default function EditProgramaPage({ uuid }: Props) {
         {/* Tab: Materiales */}
         {activeTab === "materiales" && (
           <div className="bg-white border border-gray-200 border-t-0 rounded-b-lg p-6">
-            <ProgramMaterialesTab
-              programaId={uuid}
-              modulos={modulos ?? []}
-              onRefetch={() => onRefetchModulos}
-              campania={campania?.id === undefined ? undefined : campania?.id}
-            />
+            <ProgramMaterialesTab programaId={uuid} />
             {/* <div>Materiales</div>. */}
           </div>
         )}

@@ -2,44 +2,24 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import Link from "next/link";
+import Image from "next/image";
+import { useProgramasDestacadosQuery } from "@/redux/features/control-escolar/programasApiSlice";
 
-const diplomados = [
-  {
-    title: "Nutrición Ginecológica",
-    image: "/assets/diplomados/thales/Nutricionginecologica.webp",
-    duration: "3 meses",
-    modality: "En línea",
-    institute: "Instituto Thales",
-    href: "/thales",
-  },
-  {
-    title: "Urgencias Pediátricas",
-    image: "/assets/diplomados/iesda/URGENCIA-PEDIATRICAS.webp",
-    duration: "3 meses",
-    modality: "En línea",
-    institute: "IESDA",
-    href: "/iesda",
-  },
-  {
-    title: "Atención Perinatal",
-    image: "/assets/diplomados/perinatal.webp",
-    duration: "3 meses",
-    modality: "En línea",
-    institute: "Instituto Thales",
-    href: "/thales",
-  },
-  {
-    title: "Composición Digital en Salud",
-    image: "/assets/diplomados/thales/COMPOSICION-DIGITAL.webp",
-    duration: "3 meses",
-    modality: "En línea",
-    institute: "Instituto Thales",
-    href: "/thales",
-  },
-];
+const WA_LINK = "https://wa.link/fgv19q";
+
+function solicitarPrograma(ref: string | undefined) {
+  if (ref) {
+    window.dispatchEvent(
+      new CustomEvent("cinfa:preselect-programa", { detail: ref }),
+    );
+  }
+  document
+    .getElementById("solicitar-informacion")
+    ?.scrollIntoView({ behavior: "smooth" });
+}
 
 export default function DiplomadosSection() {
+  const { data: programas = [] } = useProgramasDestacadosQuery({ limit: 4 });
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
@@ -66,70 +46,119 @@ export default function DiplomadosSection() {
             </p>
           </div>
           <div className="shrink-0">
-            <Link
-              href="/thales"
+            <a
+              href={WA_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-[#2F7FB1] font-semibold text-sm hover:text-[#0F4C75] transition-colors"
             >
               Ver todos los programas
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
-            </Link>
+            </a>
           </div>
         </motion.div>
 
         <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {diplomados.map((diplomado, index) => (
+          {programas.map((programa, index) => (
             <motion.article
-              key={diplomado.title}
+              key={programa.ref}
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
+              transition={{
+                duration: 0.5,
+                delay: index * 0.1,
+                ease: "easeOut",
+              }}
               className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col"
             >
               {/* Imagen */}
-              <div className="aspect-[4/3] overflow-hidden bg-gray-100">
-                <img
-                  src={diplomado.image}
-                  alt={diplomado.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+              <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#0F4C75] to-[#2F7FB1]">
+                {programa.imagen_url ? (
+                  <Image
+                    src={programa.imagen_url}
+                    alt={programa.nombre}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center p-6">
+                    <span className="text-white/30 text-5xl font-bold leading-none text-center select-none">
+                      {programa.nombre.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                {index === 0 && (
+                  <span className="absolute top-3 left-3 bg-amber-400 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                    Más popular
+                  </span>
+                )}
+                {programa.probabilidad != null && programa.probabilidad > 0 && (
+                  <span className="absolute top-3 right-3 bg-white/90 text-[#0F4C75] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    {programa.probabilidad.toFixed(0)}% demanda
+                  </span>
+                )}
               </div>
 
               {/* Contenido */}
               <div className="p-5 flex flex-col flex-1">
                 <span className="text-xs font-medium text-[#2F7FB1] uppercase tracking-wide mb-2">
-                  {diplomado.institute}
+                  En línea · CINFA
                 </span>
-                <h3 className="text-base font-semibold text-gray-900 leading-snug flex-1">
-                  {diplomado.title}
+                <h3 className="text-base font-semibold text-gray-900 leading-snug flex-1 line-clamp-3">
+                  {programa.nombre}
                 </h3>
 
-                {/* Meta */}
-                <div className="mt-4 flex items-center gap-3 text-xs text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                {programa.total_inscritos != null && (
+                  <div className="mt-3 flex items-center gap-1.5 text-xs text-gray-400">
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
                     </svg>
-                    {diplomado.duration}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    {diplomado.modality}
-                  </span>
-                </div>
+                    {programa.total_inscritos} inscritos
+                  </div>
+                )}
 
-                <Link
-                  href={diplomado.href}
-                  className="mt-4 inline-flex items-center justify-center gap-2 bg-[#0F4C75] text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-[#2F7FB1] transition-colors"
+                <button
+                  onClick={() => solicitarPrograma(programa.ref)}
+                  className="mt-4 inline-flex items-center justify-center gap-2 bg-[#0F4C75] text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-[#2F7FB1] transition-colors w-full"
                 >
-                  Más información
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  Solicitar información
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
-                </Link>
+                </button>
               </div>
             </motion.article>
           ))}

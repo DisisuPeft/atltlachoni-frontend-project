@@ -3,7 +3,9 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-const WA_LINK = "https://wa.link/fgv19q";
+function scrollToForm() {
+  document.getElementById("solicitar-informacion")?.scrollIntoView({ behavior: "smooth" });
+}
 
 export default function HeroSection() {
   return (
@@ -12,7 +14,7 @@ export default function HeroSection() {
       <div className="absolute inset-0">
         <Image
           src="/assets/hero/hero-img-section.webp"
-          alt="Profesionales de la salud estudiando en línea"
+          alt="Profesionales estudiando en línea"
           fill
           className="object-cover object-center"
           priority
@@ -39,22 +41,34 @@ export default function HeroSection() {
             transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
             className="text-4xl md:text-5xl lg:text-[3.2rem] xl:text-[3.5rem] font-semibold text-white leading-tight"
           >
-            Especialízate con programas en línea diseñados para profesionales de la salud
+            Diplomados en línea para profesionales que quieren seguir creciendo
           </motion.h1>
+
+          {/* Lema */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.18, ease: "easeOut" }}
+            className="mt-5 text-xl md:text-2xl font-medium italic text-white/90"
+          >
+            Aprende. Transforma.{" "}
+            <span className="not-italic font-bold text-white">No hay vuelta atrás.</span>
+          </motion.p>
 
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
-            className="mt-6 text-lg md:text-xl text-white/85 max-w-xl leading-relaxed"
+            transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
+            className="mt-4 text-base md:text-lg text-white/75 max-w-xl leading-relaxed"
           >
-            Formación flexible, docentes expertos y acompañamiento académico personalizado.
+            Programas de alto rigor académico, modalidad 100% en línea y docentes
+            con experiencia real. Formación que cambia cómo piensas, no solo lo que sabes.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
+            transition={{ duration: 0.7, delay: 0.32, ease: "easeOut" }}
             className="mt-10 flex flex-col sm:flex-row gap-4"
           >
             <a
@@ -63,14 +77,12 @@ export default function HeroSection() {
             >
               Ver diplomados
             </a>
-            <a
-              href={WA_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={scrollToForm}
               className="border-2 border-white/50 text-white px-8 py-4 rounded-lg text-base font-medium hover:bg-white/10 transition-colors text-center backdrop-blur-sm"
             >
               Solicitar información
-            </a>
+            </button>
           </motion.div>
 
           {/* Trust signals */}
@@ -81,20 +93,50 @@ export default function HeroSection() {
             className="mt-14 flex flex-wrap gap-6 text-white/70 text-sm"
           >
             <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-white/60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-4 h-4 text-white/60 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
-              +150 profesionales de la salud
+              +100 profesionales inscritos
             </div>
             <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-white/60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-4 h-4 text-white/60 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
               Modalidad 100% en línea
             </div>
             <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-white/60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-4 h-4 text-white/60 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
               Certificación con validez institucional
             </div>
@@ -111,7 +153,11 @@ export default function HeroSection() {
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+          transition={{
+            duration: 1.5,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "easeInOut",
+          }}
           className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2"
         >
           <div className="w-1.5 h-3 bg-white/50 rounded-full" />

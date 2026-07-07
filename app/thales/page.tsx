@@ -3,7 +3,8 @@ import Header from "../ui/landing-thales/header";
 import Hero from "../ui/landing-thales/hero";
 import FilosofiaEducativa from "../ui/landing-thales/filosofia-thales";
 import OfertaEducativaPage from "../ui/landing-thales/oferta";
-import ContactoPage from "../ui/landing-thales/contacto";
+import ThalesLeadFormSection from "../ui/landing-thales/thales-lead-form-section";
+import ThalesFloatingCTA from "../ui/landing-thales/thales-floating-cta";
 import Footer from "../ui/landing-thales/footer";
 
 export default function Page() {
@@ -15,9 +16,10 @@ export default function Page() {
         <QuienesSomosPage />
         <FilosofiaEducativa />
         <OfertaEducativaPage />
-        <ContactoPage />
+        <ThalesLeadFormSection />
       </main>
       <Footer />
+      <ThalesFloatingCTA />
     </div>
   );
 }
