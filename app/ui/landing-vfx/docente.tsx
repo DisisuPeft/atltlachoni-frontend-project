@@ -245,14 +245,34 @@ export function VfxDocente() {
             </span>
           </div>
 
-          {/* Grid: Her ocupa 2fr, cada otra 1fr — todos portrait a la misma altura */}
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr", height: "520px" }}
-          >
+          {/* Grid responsivo: móvil = Her arriba + 3 en fila; desktop = 2fr 1fr 1fr 1fr */}
+          <style>{`
+            .vfx-credits-grid {
+              display: grid;
+              gap: 12px;
+              grid-template-columns: 1fr;
+            }
+            .vfx-credits-her { height: 300px; }
+            .vfx-credits-others {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 12px;
+              height: 200px;
+            }
+            @media (min-width: 1024px) {
+              .vfx-credits-grid {
+                grid-template-columns: 2fr 1fr 1fr 1fr;
+                height: 520px;
+              }
+              .vfx-credits-her { height: auto; }
+              .vfx-credits-others { display: contents; }
+            }
+          `}</style>
+
+          <div className="vfx-credits-grid">
             {/* HER */}
             <div
-              className="relative rounded-2xl overflow-hidden"
+              className="vfx-credits-her relative rounded-2xl overflow-hidden"
               style={{ background: "#0d0404", border: "1px solid rgba(212,175,55,0.25)" }}
             >
               <Image src="/assets/vfx/HER.webp" alt="Her (2013)" fill className="object-cover object-center" />
@@ -281,23 +301,25 @@ export function VfxDocente() {
               </div>
             </div>
 
-            {/* Las otras 3 — portrait en columnas individuales */}
-            {OTHER_FILMS.map((film) => (
-              <div key={film.title} className="relative rounded-xl overflow-hidden"
-                style={{ background: "#080808", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <Image src={film.src} alt={film.title} fill className="object-cover object-center" />
-                <div className="absolute inset-0 pointer-events-none" style={{
-                  background: "linear-gradient(to top, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.10) 40%, transparent 100%)",
-                }} />
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <p className="font-bold text-white uppercase leading-tight"
-                    style={{ fontFamily: "var(--font-orbitron, monospace)", fontSize: "0.58rem" }}>
-                    {film.title}
-                  </p>
-                  <p style={{ color: "#A0A0A0", fontSize: "0.6rem" }}>{film.year}</p>
+            {/* Las otras 3 — wrapper responsivo */}
+            <div className="vfx-credits-others">
+              {OTHER_FILMS.map((film) => (
+                <div key={film.title} className="relative rounded-xl overflow-hidden"
+                  style={{ background: "#080808", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <Image src={film.src} alt={film.title} fill className="object-cover object-center" />
+                  <div className="absolute inset-0 pointer-events-none" style={{
+                    background: "linear-gradient(to top, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.10) 40%, transparent 100%)",
+                  }} />
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="font-bold text-white uppercase leading-tight"
+                      style={{ fontFamily: "var(--font-orbitron, monospace)", fontSize: "0.58rem" }}>
+                      {film.title}
+                    </p>
+                    <p style={{ color: "#A0A0A0", fontSize: "0.6rem" }}>{film.year}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </motion.div>
       </div>
