@@ -349,6 +349,7 @@ export default function DiplomadosSection() {
                       />
                     </svg>
                     {/* {programa.total_inscritos} inscritos */}
+                    +100 inscritos
                   </div>
                 )}
 
