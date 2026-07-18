@@ -258,22 +258,70 @@ export default function DiplomadosSection() {
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center p-6">
-                    <span className="text-white/30 text-5xl font-bold leading-none text-center select-none">
-                      {programa.nombre.charAt(0)}
-                    </span>
+                  <div className="w-full h-full relative overflow-hidden">
+                    {/* Dot grid */}
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        backgroundImage:
+                          "radial-gradient(circle, rgba(255,255,255,0.13) 1px, transparent 1px)",
+                        backgroundSize: "18px 18px",
+                      }}
+                    />
+                    {/* Glow central */}
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "radial-gradient(ellipse 65% 65% at 50% 50%, rgba(255,255,255,0.07) 0%, transparent 70%)",
+                      }}
+                    />
+                    {/* Inicial grande */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span
+                        className="font-black leading-none select-none"
+                        style={{
+                          fontSize: "6rem",
+                          fontFamily: "var(--font-orbitron, serif)",
+                          color: "transparent",
+                          WebkitTextStroke: "1.5px rgba(255,255,255,0.18)",
+                        }}
+                      >
+                        {programa.nombre.charAt(0)}
+                      </span>
+                    </div>
+                    {/* Badge CINFA esquina */}
+                    <div className="absolute top-3 right-3">
+                      {/* <span
+                        className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded"
+                        style={{
+                          border: "1px solid rgba(255,255,255,0.18)",
+                          color: "rgba(255,255,255,0.45)",
+                        }}
+                      >
+                        CINFA
+                      </span> */}
+                    </div>
+                    {/* Línea inferior decorativa */}
+                    <div
+                      className="absolute bottom-0 left-0 right-0 h-px"
+                      style={{
+                        background:
+                          "linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent)",
+                      }}
+                    />
                   </div>
                 )}
-                {index === 0 && (
+                {/* {index === 0 && (
                   <span className="absolute top-3 left-3 bg-amber-400 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
                     Más popular
                   </span>
-                )}
-                {programa.probabilidad != null && programa.probabilidad > 0 && (
+                )} */}
+                {/* {programa.probabilidad != null && programa.probabilidad > 0 && (
                   <span className="absolute top-3 right-3 bg-white/90 text-[#0F4C75] text-[10px] font-bold px-2 py-0.5 rounded-full">
                     {programa.probabilidad.toFixed(0)}% demanda
                   </span>
-                )}
+                )} */}
               </div>
 
               {/* Contenido */}
@@ -300,7 +348,7 @@ export default function DiplomadosSection() {
                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
-                    {programa.total_inscritos} inscritos
+                    {/* {programa.total_inscritos} inscritos */}
                   </div>
                 )}
 
