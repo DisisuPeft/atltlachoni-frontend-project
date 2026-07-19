@@ -1,5 +1,37 @@
 import { apiSlice } from "@/redux/services/apiSlice";
 
+export interface DashboardMasterSummary {
+  totalRegistros: number;
+  activosConfirmados: number;
+  inscripcionesCobradas: string;
+  colegiosProgramas: number;
+  asesores: number;
+  documentosPendientes: number;
+  estatusPorActualizar: number;
+  bajasReembolsos: number;
+  saldoProyectado: string;
+  ingresosRegistrados: string;
+}
+
+export interface DashboardMasterDiplomado {
+  nombre: string;
+  inscritos: number;
+  activosConfirmados: number;
+}
+
+export interface DashboardMasterInstituto {
+  nombre: string;
+  registros: number;
+  activos: number;
+  porActualizar: number;
+}
+
+export interface DashboardMasterResponse {
+  summary: DashboardMasterSummary;
+  diplomados: DashboardMasterDiplomado[];
+  institutos: DashboardMasterInstituto[];
+}
+
 export interface DashboardResumen {
   total_alumnos: number;
   nuevos_este_mes: number;
@@ -65,6 +97,9 @@ const dashboardApiSlice = apiSlice.injectEndpoints({
         return `/control-escolar/dashboard/campanias_proximas/${search ? `?${search}` : ""}`;
       },
     }),
+    getDashboardMaster: builder.query<DashboardMasterResponse, void>({
+      query: () => "/control-escolar/dashboard/master/",
+    }),
   }),
 });
 
@@ -72,4 +107,5 @@ export const {
   useGetDashboardResumenQuery,
   useGetAlumnosRecientesQuery,
   useGetCampaniasProximasQuery,
+  useGetDashboardMasterQuery,
 } = dashboardApiSlice;

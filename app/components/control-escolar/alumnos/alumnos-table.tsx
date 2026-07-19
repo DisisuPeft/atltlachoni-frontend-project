@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { useGetEstudiantesQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
-import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
+import { useRetrieveUserQuery, useVerifyUserQuery } from "@/redux/features/auth/authApiSlice";
+import { useGetInstitucionesQuery } from "@/redux/features/catalogos/institucionesApiSlice";
 import { EstudiantePerfil } from "@/redux/features/types/control-escolar/type";
 import { DataTable, StatusBadge } from "@/app/utils/data-table";
 import ButtonLink from "../link-button";
@@ -28,7 +29,9 @@ const columns: ColumnDef<EstudiantePerfil>[] = [
         <p className="text-sm font-medium text-gray-900">
           {row.original.user_nombre}
         </p>
-        <p className="text-xs text-gray-400 mt-0.5">{row.original.user_genero}</p>
+        <p className="text-xs text-gray-400 mt-0.5">
+          {row.original.user_genero}
+        </p>
       </div>
     ),
   },
@@ -64,18 +67,44 @@ export default function EstudiantesPage() {
   const searchParams = useSearchParams();
   const search = searchParams.get("search") ?? "";
   const status = searchParams.get("status") ?? "all";
+  const institutoParam = searchParams.get("instituto") ?? "all";
 
+  const { data: verify } = useVerifyUserQuery();
   const { data: user } = useRetrieveUserQuery();
-  const instituto = user?.departamento_info?.instituto.id;
+  const isAdmin = verify?.superuser || verify?.roles?.some((r) => r.nombre === "Administrador");
+  const fixedInstituto = user?.departamento_info?.instituto.id;
+
+  // Admins → use URL param; everyone else → scoped to their own institute
+  const instituto = isAdmin
+    ? institutoParam !== "all" ? parseInt(institutoParam) : undefined
+    : fixedInstituto;
+
+  const { data: instituciones } = useGetInstitucionesQuery(undefined, {
+    skip: !isAdmin,
+  });
 
   const [page, setPage] = useState(1);
   const [prevSearch, setPrevSearch] = useState(search);
   const [prevStatus, setPrevStatus] = useState(status);
+  const [prevInstituto, setPrevInstituto] = useState(institutoParam);
   const [lastKnownPage, setLastKnownPage] = useState<number | null>(null);
   const [pageSize, setPageSize] = useState<number | null>(null);
 
-  if (prevSearch !== search) { setPrevSearch(search); setPage(1); setLastKnownPage(null); }
-  if (prevStatus !== status) { setPrevStatus(status); setPage(1); setLastKnownPage(null); }
+  if (prevSearch !== search) {
+    setPrevSearch(search);
+    setPage(1);
+    setLastKnownPage(null);
+  }
+  if (prevStatus !== status) {
+    setPrevStatus(status);
+    setPage(1);
+    setLastKnownPage(null);
+  }
+  if (prevInstituto !== institutoParam) {
+    setPrevInstituto(institutoParam);
+    setPage(1);
+    setLastKnownPage(null);
+  }
 
   const { data: estudiantes, isLoading } = useGetEstudiantesQuery({
     page,
@@ -88,7 +117,12 @@ export default function EstudiantesPage() {
   const resultsLength = estudiantes?.results?.length ?? 0;
 
   // Learn the real page size from any full page (hasNext=true means backend has more)
-  if (!isLoading && hasNext && resultsLength > 0 && pageSize !== resultsLength) {
+  if (
+    !isLoading &&
+    hasNext &&
+    resultsLength > 0 &&
+    pageSize !== resultsLength
+  ) {
     setPageSize(resultsLength);
   }
   // Track the real last page when backend says next=null
@@ -104,9 +138,10 @@ export default function EstudiantesPage() {
   // Use discovered page size; fall back to current results length as last resort
   const effectivePageSize = pageSize ?? resultsLength;
   // Cap total count to the real last page once known, to eliminate phantom pages
-  const effectiveCount = lastKnownPage !== null && effectivePageSize > 0
-    ? lastKnownPage * effectivePageSize
-    : (estudiantes?.count ?? 0);
+  const effectiveCount =
+    lastKnownPage !== null && effectivePageSize > 0
+      ? lastKnownPage * effectivePageSize
+      : (estudiantes?.count ?? 0);
 
   const activos =
     estudiantes?.results.filter((e) => e.status === 1).length ?? 0;
@@ -155,7 +190,9 @@ export default function EstudiantesPage() {
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">
-              {effectivePageSize > 0 ? Math.ceil(effectiveCount / effectivePageSize) : "—"}
+              {effectivePageSize > 0
+                ? Math.ceil(effectiveCount / effectivePageSize)
+                : "—"}
             </p>
             <p className="text-xs text-gray-500">Páginas totales</p>
           </div>
@@ -186,6 +223,21 @@ export default function EstudiantesPage() {
               { value: "0", label: "Inactivo" },
             ],
           },
+          ...(isAdmin
+            ? [
+                {
+                  type: "select" as const,
+                  key: "instituto",
+                  options: [
+                    { value: "all", label: "Todos los institutos" },
+                    ...(instituciones?.results ?? []).map((i) => ({
+                      value: String(i.id),
+                      label: i.nombre,
+                    })),
+                  ],
+                },
+              ]
+            : []),
         ]}
         emptyIcon={Users}
         emptyMessage="No se encontraron estudiantes"
