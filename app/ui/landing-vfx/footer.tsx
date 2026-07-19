@@ -3,15 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-
-const LINKS = [
-  { label: "El Diplomado", href: "#por-que-vfx" },
-  { label: "Plan de estudios", href: "#plan-estudios-vfx" },
-  { label: "Docente", href: "#docente-vfx" },
-  { label: "Modalidad", href: "#modalidad-vfx" },
-  { label: "FAQ", href: "#faq-vfx" },
-  { label: "Solicitar información", href: "#solicitar-informacion-vfx" },
-];
+import { useTerm } from "./term-context";
 
 const INSTITUTOS = [
   { label: "CINFA", href: "/" },
@@ -20,6 +12,17 @@ const INSTITUTOS = [
 ];
 
 export function VfxFooter() {
+  const term = useTerm();
+
+  const LINKS = [
+    { label: `El ${term}`, href: "#por-que-vfx" },
+    { label: "Plan de estudios", href: "#plan-estudios-vfx" },
+    { label: "Docente", href: "#docente-vfx" },
+    { label: "Modalidad", href: "#modalidad-vfx" },
+    { label: "FAQ", href: "#faq-vfx" },
+    { label: "Solicitar información", href: "#solicitar-informacion-vfx" },
+  ];
+
   return (
     <footer
       className="py-16 px-6"
@@ -57,7 +60,7 @@ export function VfxFooter() {
               </div>
             </Link>
             <p className="text-sm leading-relaxed mb-4" style={{ color: "#A0A0A0" }}>
-              Diplomado profesional en composición digital y efectos visuales.
+              {term} profesional en composición digital y efectos visuales.
               Formación práctica basada en pipelines reales de la industria cinematográfica.
             </p>
             <p className="text-xs" style={{ color: "#A0A0A050" }}>
@@ -71,7 +74,7 @@ export function VfxFooter() {
               className="text-xs font-bold uppercase tracking-widest mb-5"
               style={{ color: "#18C62A" }}
             >
-              El Diplomado
+              El {term}
             </h4>
             <ul className="space-y-3">
               {LINKS.map((l) => (

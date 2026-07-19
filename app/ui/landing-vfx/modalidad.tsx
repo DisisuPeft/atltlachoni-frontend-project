@@ -2,8 +2,9 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { useTerm } from "./term-context";
 
-const CARDS = [
+const CARDS_BASE = [
   {
     icon: (
       <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,6 +56,20 @@ const CARDS = [
 export function VfxModalidad() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const term = useTerm();
+
+  const CARDS = CARDS_BASE.map((card) =>
+    card.title === "Grabaciones 24/7"
+      ? {
+          ...card,
+          items: [
+            "Todas las sesiones grabadas",
+            "Plataforma CINFA",
+            `Acceso durante todo el ${term.toLowerCase()}`,
+          ],
+        }
+      : card
+  );
 
   return (
     <section

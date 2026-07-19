@@ -3,62 +3,65 @@
 import { useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { useRef } from "react";
-
-const FAQS = [
-  {
-    q: "¿Necesito experiencia previa?",
-    a: "No es indispensable. El programa está diseñado para desarrollar habilidades desde fundamentos hasta técnicas avanzadas. Si tienes experiencia previa en diseño, edición o animación, te adaptarás más rápido, pero no es un requisito.",
-  },
-  {
-    q: "¿Qué software aprenderé?",
-    a: "Principalmente Nuke, la herramienta estándar de la industria VFX, además de conocimientos complementarios empleados en pipelines profesionales de postproducción. Durante el programa se orienta sobre las opciones de licenciamiento para estudiantes.",
-  },
-  {
-    q: "¿Cuál es el horario?",
-    a: "Las clases se imparten dos sábados al mes, de 9:00 a.m. a 2:00 p.m. (hora del centro de México), vía Zoom. Son sesiones en vivo de 5 horas con interacción directa con el docente.",
-  },
-  {
-    q: "¿Qué computadora necesito?",
-    a: "Mínimo recomendado: procesador Intel Core i5 / AMD Ryzen 5, 16 GB de RAM (32 GB recomendados), tarjeta gráfica dedicada, SSD e internet estable. Estas especificaciones permiten ejecutar Nuke y el software complementario con fluidez.",
-  },
-  {
-    q: "¿Las clases quedan grabadas?",
-    a: "Sí. Todas las sesiones en vivo quedan grabadas y disponibles en la plataforma CINFA. Tendrás acceso a las grabaciones durante todo el periodo del diplomado.",
-  },
-  {
-    q: "¿Qué proyectos realizaré?",
-    a: "Composiciones digitales completas, integración de elementos 3D, eliminación de objetos, extensiones de escenarios, reemplazo de fondos y ejercicios inspirados en producciones reales. Cada módulo incorpora una actividad práctica con resultado esperado.",
-  },
-  {
-    q: "¿Crearé un Demo Reel?",
-    a: "Sí. Uno de los objetivos principales del diplomado es construir un Demo Reel profesional. Lo desarrollas en el módulo final con mentoría personalizada para postular a estudios y empresas de postproducción.",
-  },
-  {
-    q: "¿Obtendré diploma?",
-    a: "Sí. Al concluir satisfactoriamente el programa recibirás tu diploma de la red educativa CINFA.",
-  },
-  {
-    q: "¿Está dirigido únicamente a diseñadores?",
-    a: "No. El diplomado está dirigido también a cineastas, comunicólogos, artistas digitales, fotógrafos, videógrafos, editores, creadores de contenido y cualquier persona interesada en el campo de los efectos visuales.",
-  },
-  {
-    q: "¿Podré trabajar en cine o estudios VFX?",
-    a: "Sí. El programa está diseñado para desarrollar competencias profesionales utilizadas en estudios VFX. Al egresar contarás con un Demo Reel y habilidades directamente aplicables a postular a estudios y productoras.",
-  },
-  {
-    q: "¿Necesito saber inglés?",
-    a: "No es obligatorio. El programa se imparte en español. Sin embargo, conocimientos básicos de inglés ayudan a comprender documentación técnica y terminología de la industria.",
-  },
-  {
-    q: "¿Este diplomado ayuda a conseguir empleo?",
-    a: "Sí. Además de desarrollar habilidades profesionales, el programa orienta en la elaboración de un Demo Reel para postular a estudios y empresas de postproducción. El mercado de VFX en Latinoamérica está en expansión.",
-  },
-];
+import { useTerm } from "./term-context";
 
 export function VfxFaq() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const term = useTerm();
+  const t = term.toLowerCase();
+
+  const FAQS = [
+    {
+      q: "¿Necesito experiencia previa?",
+      a: "No es indispensable. El programa está diseñado para desarrollar habilidades desde fundamentos hasta técnicas avanzadas. Si tienes experiencia previa en diseño, edición o animación, te adaptarás más rápido, pero no es un requisito.",
+    },
+    {
+      q: "¿Qué software aprenderé?",
+      a: "Principalmente Nuke, la herramienta estándar de la industria VFX, además de conocimientos complementarios empleados en pipelines profesionales de postproducción. Durante el programa se orienta sobre las opciones de licenciamiento para estudiantes.",
+    },
+    {
+      q: "¿Cuál es el horario?",
+      a: "Las clases se imparten dos sábados al mes, de 9:00 a.m. a 2:00 p.m. (hora del centro de México), vía Zoom. Son sesiones en vivo de 5 horas con interacción directa con el docente.",
+    },
+    {
+      q: "¿Qué computadora necesito?",
+      a: "Mínimo recomendado: procesador Intel Core i5 / AMD Ryzen 5, 16 GB de RAM (32 GB recomendados), tarjeta gráfica dedicada, SSD e internet estable. Estas especificaciones permiten ejecutar Nuke y el software complementario con fluidez.",
+    },
+    {
+      q: "¿Las clases quedan grabadas?",
+      a: `Sí. Todas las sesiones en vivo quedan grabadas y disponibles en la plataforma CINFA. Tendrás acceso a las grabaciones durante todo el periodo del ${t}.`,
+    },
+    {
+      q: "¿Qué proyectos realizaré?",
+      a: "Composiciones digitales completas, integración de elementos 3D, eliminación de objetos, extensiones de escenarios, reemplazo de fondos y ejercicios inspirados en producciones reales. Cada módulo incorpora una actividad práctica con resultado esperado.",
+    },
+    {
+      q: "¿Crearé un Demo Reel?",
+      a: `Sí. Uno de los objetivos principales del ${t} es construir un Demo Reel profesional. Lo desarrollas en el módulo final con mentoría personalizada para postular a estudios y empresas de postproducción.`,
+    },
+    {
+      q: "¿Obtendré diploma?",
+      a: "Sí. Al concluir satisfactoriamente el programa recibirás tu diploma de la red educativa CINFA.",
+    },
+    {
+      q: "¿Está dirigido únicamente a diseñadores?",
+      a: `No. El ${t} está dirigido también a cineastas, comunicólogos, artistas digitales, fotógrafos, videógrafos, editores, creadores de contenido y cualquier persona interesada en el campo de los efectos visuales.`,
+    },
+    {
+      q: "¿Podré trabajar en cine o estudios VFX?",
+      a: "Sí. El programa está diseñado para desarrollar competencias profesionales utilizadas en estudios VFX. Al egresar contarás con un Demo Reel y habilidades directamente aplicables a postular a estudios y productoras.",
+    },
+    {
+      q: "¿Necesito saber inglés?",
+      a: "No es obligatorio. El programa se imparte en español. Sin embargo, conocimientos básicos de inglés ayudan a comprender documentación técnica y terminología de la industria.",
+    },
+    {
+      q: `¿Este ${t} ayuda a conseguir empleo?`,
+      a: `Sí. Además de desarrollar habilidades profesionales, el programa orienta en la elaboración de un Demo Reel para postular a estudios y empresas de postproducción. El mercado de VFX en Latinoamérica está en expansión.`,
+    },
+  ];
 
   return (
     <section

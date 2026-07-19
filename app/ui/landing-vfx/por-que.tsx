@@ -2,6 +2,7 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { useTerm } from "./term-context";
 
 const STATS = [
   { value: "10", label: "Módulos especializados" },
@@ -13,6 +14,7 @@ const STATS = [
 export function VfxPorQue() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const term = useTerm();
 
   return (
     <section
@@ -32,7 +34,7 @@ export function VfxPorQue() {
               className="text-xs font-bold uppercase tracking-widest"
               style={{ color: "#18C62A" }}
             >
-              ¿Por qué estudiar este diplomado?
+              ¿Por qué estudiar este {term.toLowerCase()}?
             </span>
             <h2
               className="mt-4 text-3xl lg:text-4xl font-black uppercase leading-tight text-white"
@@ -49,7 +51,7 @@ export function VfxPorQue() {
             </h2>
             <p className="mt-6 text-base lg:text-lg leading-relaxed" style={{ color: "#A0A0A0" }}>
               La industria audiovisual demanda artistas capaces de integrar efectos
-              visuales con estándares profesionales. Este diplomado te guía desde los
+              visuales con estándares profesionales. Este {term.toLowerCase()} te guía desde los
               fundamentos hasta la producción de secuencias complejas mediante una
               metodología práctica basada en flujos reales de trabajo utilizados en
               estudios de VFX.

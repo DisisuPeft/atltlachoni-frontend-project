@@ -4,21 +4,23 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import { useTerm } from "./term-context";
 
 function scrollToForm() {
   document.getElementById("solicitar-informacion-vfx")?.scrollIntoView({ behavior: "smooth" });
 }
 
-const NAV_ITEMS = [
-  { label: "El Diplomado", href: "#por-que-vfx" },
-  { label: "Plan de Estudios", href: "#plan-estudios-vfx" },
-  { label: "Docente", href: "#docente-vfx" },
-  { label: "Modalidad", href: "#modalidad-vfx" },
-  { label: "FAQ", href: "#faq-vfx" },
-];
-
 export default function VfxHeader() {
   const [open, setOpen] = useState(false);
+  const term = useTerm();
+
+  const NAV_ITEMS = [
+    { label: `El ${term}`, href: "#por-que-vfx" },
+    { label: "Plan de Estudios", href: "#plan-estudios-vfx" },
+    { label: "Docente", href: "#docente-vfx" },
+    { label: "Modalidad", href: "#modalidad-vfx" },
+    { label: "FAQ", href: "#faq-vfx" },
+  ];
 
   return (
     <header

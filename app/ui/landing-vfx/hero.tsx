@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import Image from "next/image";
+import { useTerm } from "./term-context";
 
 const VFX_BG = "/assets/vfx/Vector Smart Object (Double CLick to Edit).webp";
 
@@ -54,6 +55,7 @@ const HIGHLIGHTS = [
 
 export default function VfxHero() {
   const containerRef = useRef<HTMLElement>(null);
+  const term = useTerm();
   // const { scrollYProgress } = useScroll({
   //   target: containerRef,
   //   offset: ["start start", "end start"],
@@ -65,7 +67,7 @@ export default function VfxHero() {
       ref={containerRef}
       className="relative min-h-screen flex flex-col overflow-hidden"
       style={{ backgroundColor: "#050505" }}
-      aria-label="Diplomado Composición Digital y VFX"
+      aria-label={`${term} Composición Digital y VFX`}
     >
       {/* CSS keyframes */}
       <style>{`
@@ -228,7 +230,7 @@ export default function VfxHero() {
                   marginBottom: "0.5rem",
                 }}
               >
-                DIPLOMADO MÁSTER
+                {term.toUpperCase()} MÁSTER
               </span>
               <span style={{ fontSize: "clamp(2.2rem, 6.5vw, 5rem)" }}>
                 COMPOSICIÓN

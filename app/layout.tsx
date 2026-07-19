@@ -4,6 +4,7 @@ import "./globals.css";
 import Provider from "@/redux/provider";
 import Setup from "./utils/auth/setup";
 import AlertSystem from "./utils/alert/alert";
+import { Analytics } from "@vercel/analytics/next";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -44,6 +45,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Provider>
           <Setup />
+          <Analytics />
           <AlertSystem />
           {children}
         </Provider>
