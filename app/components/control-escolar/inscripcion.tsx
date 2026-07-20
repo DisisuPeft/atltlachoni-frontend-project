@@ -1,23 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import {
-  useMakeInscriptionMutation,
-  useSubirComprobanteInscripcionMutation,
-} from "@/redux/features/control-escolar/alumnosApiSlice";
+import { useMakeInscriptionMutation } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { InscripcionBody } from "@/redux/features/types/control-escolar/type";
 import {
   DollarSign,
   CalendarDays,
-  Tag,
+  // Tag,
   AlertCircle,
   Loader2,
   GraduationCap,
-  ChevronDown,
-  ChevronUp,
-  Upload,
-  FileCheck2,
-  Landmark,
   Hash,
 } from "lucide-react";
 import Swal from "sweetalert2";
@@ -27,7 +19,13 @@ import Swal from "sweetalert2";
 const inputClass =
   "w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] transition-colors bg-white";
 
-function FieldLabel({ label, required }: { label: string; required?: boolean }) {
+function FieldLabel({
+  label,
+  required,
+}: {
+  label: string;
+  required?: boolean;
+}) {
   return (
     <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">
       {label}
@@ -52,45 +50,35 @@ export interface Props {
   estudianteId?: string;
   campania?: string;
   setClose: (value: boolean) => void;
+  onBack?: () => void;
 }
 
 // ── Component ──────────────────────────────────────────────────────────
 
-export default function CourseEnrollment({ estudianteId, campania, setClose }: Props) {
-  const [makeInscription, { isLoading: isInscribing }] = useMakeInscriptionMutation();
-  const [subirComprobante, { isLoading: isUploading }] = useSubirComprobanteInscripcionMutation();
+export default function CourseEnrollment({
+  estudianteId,
+  campania,
+  setClose,
+  onBack,
+}: Props) {
+  const [makeInscription, { isLoading }] = useMakeInscriptionMutation();
 
-  const isLoading = isInscribing || isUploading;
-
-  const [form, setForm] = useState<InscripcionBody>({
-    monto_inicial: 0,
+  const [form, setForm] = useState({
+    monto_inicial: "" as string | number,
+    fecha_pago_inicial: "",
     fecha_primera_mensualidad: "",
+    numero_parcialidades: "" as string | number,
     notas: "",
   });
 
-  const [precioCustom, setPrecioCustom] = useState(false);
-  const [customPrices, setCustomPrices] = useState({
-    costo_inscripcion: "" as string | number,
-    costo_mensualidad: "" as string | number,
-    costo_documentacion: "" as string | number,
-  });
-  const [razon, setRazon] = useState("");
-
-  // Comprobante (opcional)
-  const [archivo, setArchivo] = useState<File | null>(null);
-  const [comprobanteData, setComprobanteData] = useState({
-    monto_visible: "",
-    banco_origen: "",
-    referencia: "",
-  });
+  const [costoMensualidad, setCostoMensualidad] = useState<string | number>("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (form.monto_inicial < 0) errs.monto_inicial = "No puede ser negativo";
-    if (!form.fecha_primera_mensualidad) errs.fecha_primera_mensualidad = "Requerida";
-    if (precioCustom && !razon.trim()) errs.razon = "Indica el motivo del precio personalizado";
+    if (form.monto_inicial !== "" && Number(form.monto_inicial) < 0)
+      errs.monto_inicial = "No puede ser negativo";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -99,58 +87,46 @@ export default function CourseEnrollment({ estudianteId, campania, setClose }: P
     e.preventDefault();
     if (!validate()) return;
 
-    const body: InscripcionBody = {
-      monto_inicial: form.monto_inicial,
-      fecha_primera_mensualidad: form.fecha_primera_mensualidad,
-      notas: form.notas || undefined,
-    };
+    const body: InscripcionBody = {};
 
-    if (precioCustom) {
-      body.tieme_precio_custom = {
-        costo_inscripcion: customPrices.costo_inscripcion !== "" ? Number(customPrices.costo_inscripcion) : undefined,
-        costo_mensualidad: customPrices.costo_mensualidad !== "" ? Number(customPrices.costo_mensualidad) : undefined,
-        costo_documentacion: customPrices.costo_documentacion !== "" ? Number(customPrices.costo_documentacion) : undefined,
-      };
-      body.razon_precio_custom = razon;
-    }
+    if (form.monto_inicial !== "")
+      body.monto_inicial = Number(form.monto_inicial);
+    if (form.fecha_pago_inicial)
+      body.fecha_pago_inicial = form.fecha_pago_inicial;
+    if (form.fecha_primera_mensualidad)
+      body.fecha_primera_mensualidad = form.fecha_primera_mensualidad;
+    if (form.numero_parcialidades !== "")
+      body.numero_parcialidades = parseInt(
+        String(form.numero_parcialidades),
+        10,
+      );
+    if (form.notas.trim()) body.notas = form.notas.trim();
+    if (costoMensualidad !== "")
+      body.costo_mensualidad = Number(costoMensualidad);
 
     try {
-      const res = await makeInscription({ campania, estudianteId, formData: body }).unwrap();
+      const res = await makeInscription({
+        campania,
+        estudianteId,
+        formData: body,
+      }).unwrap();
 
-      // Si hay comprobante, subirlo con el id de la inscripción recién creada
-      if (archivo && res.id) {
-        const fd = new FormData();
-        fd.append("archivo", archivo);
-        if (comprobanteData.monto_visible) fd.append("monto_visible", comprobanteData.monto_visible);
-        if (comprobanteData.banco_origen) fd.append("banco_origen", comprobanteData.banco_origen);
-        if (comprobanteData.referencia) fd.append("referencia", comprobanteData.referencia);
-
-        try {
-          await subirComprobante({ inscripcionId: res.id, formData: fd }).unwrap();
-        } catch {
-          // Inscripción exitosa pero comprobante falló — notificar sin bloquear
-          await Swal.fire({
-            icon: "warning",
-            title: "Inscripción creada",
-            text: `${res.message}. Sin embargo, no se pudo subir el comprobante — puedes intentarlo desde el perfil del alumno.`,
-            timer: 4000,
-            showConfirmButton: false,
-          });
-          setClose(false);
-          return;
-        }
+      if (onBack) {
+        onBack();
+      } else {
+        setClose(false);
       }
-
-      setClose(false);
       await Swal.fire({
         icon: "success",
         title: "Inscripción exitosa",
         text: res.message ?? "El alumno fue inscrito correctamente.",
-        timer: 2000,
+        timer: 3000,
         showConfirmButton: false,
       });
     } catch (err: unknown) {
-      const msg = (err as { data?: { detail?: string } })?.data?.detail ?? "No se pudo completar la inscripción.";
+      const msg =
+        (err as { data?: { detail?: string } })?.data?.detail ??
+        "No se pudo completar la inscripción.";
       Swal.fire({ icon: "error", title: "Error", text: msg });
     }
   };
@@ -159,11 +135,35 @@ export default function CourseEnrollment({ estudianteId, campania, setClose }: P
     <form onSubmit={handleSubmit}>
       {/* Modal header */}
       <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600 flex-shrink-0"
+            title="Cambiar campaña"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+        )}
         <div className="w-9 h-9 rounded-xl bg-[#F0F6FF] flex items-center justify-center flex-shrink-0">
           <GraduationCap className="w-4.5 h-4.5 text-[#0056D2]" />
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">Nueva inscripción</h3>
+          <h3 className="text-sm font-semibold text-gray-900">
+            Nueva inscripción
+          </h3>
           <p className="text-xs text-gray-400">
             El sistema genera los pagos automáticamente al confirmar
           </p>
@@ -171,7 +171,7 @@ export default function CourseEnrollment({ estudianteId, campania, setClose }: P
       </div>
 
       <div className="p-6 space-y-5">
-        {/* Monto inicial + fecha */}
+        {/* Pago inicial + fecha del pago */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <FieldLabel label="Pago inicial" />
@@ -182,176 +182,106 @@ export default function CourseEnrollment({ estudianteId, campania, setClose }: P
                 step="0.01"
                 min="0"
                 className={`${inputClass} pl-9`}
-                value={form.monto_inicial === 0 ? "" : form.monto_inicial}
-                onChange={(e) => setForm((f) => ({ ...f, monto_inicial: Number(e.target.value) }))}
+                value={form.monto_inicial}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, monto_inicial: e.target.value }))
+                }
                 placeholder="0.00 — puede ser $0"
               />
             </div>
-            <p className="text-xs text-gray-400">Flexible — no requiere mínimo</p>
+            <p className="text-xs text-gray-400">
+              Flexible — no requiere mínimo
+            </p>
             <FieldError msg={errors.monto_inicial} />
           </div>
 
           <div className="space-y-1.5">
-            <FieldLabel label="Primera mensualidad" required />
+            <FieldLabel label="Fecha del pago inicial" />
+            <div className="relative">
+              <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                type="date"
+                className={`${inputClass} pl-9`}
+                value={form.fecha_pago_inicial}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, fecha_pago_inicial: e.target.value }))
+                }
+              />
+            </div>
+            <p className="text-xs text-gray-400">
+              Si no se indica, se usa la fecha de hoy
+            </p>
+          </div>
+        </div>
+
+        {/* Primera mensualidad + parcialidades + costo mensualidad */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <FieldLabel label="Primera mensualidad" />
             <div className="relative">
               <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <input
                 type="date"
                 className={`${inputClass} pl-9`}
                 value={form.fecha_primera_mensualidad}
-                onChange={(e) => setForm((f) => ({ ...f, fecha_primera_mensualidad: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    fecha_primera_mensualidad: e.target.value,
+                  }))
+                }
               />
             </div>
+            <p className="text-xs text-gray-400">
+              Si no se indica, usa el día 1 del mes siguiente
+            </p>
             <FieldError msg={errors.fecha_primera_mensualidad} />
           </div>
-        </div>
 
-        {/* Precio personalizado toggle */}
-        <div className="border border-gray-200 rounded-xl overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setPrecioCustom((v) => !v)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-          >
-            <div className="flex items-center gap-2">
-              <Tag className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">
-                Precio personalizado / descuento
-              </span>
-              {precioCustom && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-[#F0F6FF] text-[#0056D2] font-medium">
-                  Activo
-                </span>
-              )}
-            </div>
-            {precioCustom
-              ? <ChevronUp className="w-4 h-4 text-gray-400" />
-              : <ChevronDown className="w-4 h-4 text-gray-400" />
-            }
-          </button>
-
-          {precioCustom && (
-            <div className="p-4 space-y-4 border-t border-gray-200 bg-white">
-              <p className="text-xs text-gray-400">
-                Si se omite un campo, el sistema usa el precio del programa.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {(["costo_inscripcion", "costo_mensualidad", "costo_documentacion"] as const).map((key) => {
-                  const labels: Record<string, string> = {
-                    costo_inscripcion: "Inscripción",
-                    costo_mensualidad: "Mensualidad",
-                    costo_documentacion: "Documentación",
-                  };
-                  return (
-                    <div key={key} className="space-y-1.5">
-                      <FieldLabel label={labels[key]} />
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          className={`${inputClass} pl-9`}
-                          value={customPrices[key]}
-                          onChange={(e) =>
-                            setCustomPrices((p) => ({ ...p, [key]: e.target.value }))
-                          }
-                          placeholder="0.00"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="space-y-1.5">
-                <FieldLabel label="Motivo del precio personalizado" required />
-                <input
-                  className={inputClass}
-                  value={razon}
-                  onChange={(e) => setRazon(e.target.value)}
-                  placeholder="Ej. Beca excelencia, Promoción verano, Acuerdo especial..."
-                />
-                <FieldError msg={errors.razon} />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Comprobante de pago (opcional) */}
-        <div className="border border-gray-200 rounded-xl overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-3 bg-gray-50">
-            <FileCheck2 className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700 flex-1">
-              Comprobante de pago
-            </span>
-            <span className="text-xs text-gray-400">Opcional</span>
-          </div>
-
-          <div className="p-4 space-y-3 border-t border-gray-200 bg-white">
-            {/* File picker */}
-            <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-lg p-4 cursor-pointer hover:border-[#0056D2]/50 hover:bg-[#F0F6FF]/30 transition-colors">
-              {archivo ? (
-                <div className="flex items-center gap-2">
-                  <FileCheck2 className="w-4 h-4 text-emerald-500" />
-                  <span className="text-xs text-gray-700 font-medium">{archivo.name}</span>
-                </div>
-              ) : (
-                <>
-                  <Upload className="w-5 h-5 text-gray-300" />
-                  <span className="text-xs text-gray-400">PDF, imagen u otro comprobante</span>
-                </>
-              )}
+          <div className="space-y-1.5">
+            <FieldLabel label="Número de parcialidades" />
+            <div className="relative">
+              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <input
-                type="file"
-                accept="image/*,application/pdf"
-                className="hidden"
-                onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
+                type="number"
+                min="1"
+                step="1"
+                className={`${inputClass} pl-9`}
+                value={form.numero_parcialidades}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    numero_parcialidades: e.target.value,
+                  }))
+                }
+                placeholder="Ej. 10"
               />
-            </label>
-
-            {/* Metadata opcional */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs text-gray-500 font-medium flex items-center gap-1">
-                  <DollarSign className="w-3 h-3" /> Monto visible
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className={inputClass}
-                  placeholder="0.00"
-                  value={comprobanteData.monto_visible}
-                  onChange={(e) => setComprobanteData((c) => ({ ...c, monto_visible: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-gray-500 font-medium flex items-center gap-1">
-                  <Landmark className="w-3 h-3" /> Banco emisor
-                </label>
-                <input
-                  className={inputClass}
-                  placeholder="BBVA, HSBC..."
-                  value={comprobanteData.banco_origen}
-                  onChange={(e) => setComprobanteData((c) => ({ ...c, banco_origen: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-gray-500 font-medium flex items-center gap-1">
-                  <Hash className="w-3 h-3" /> Referencia / folio
-                </label>
-                <input
-                  className={inputClass}
-                  placeholder="TXN-123456"
-                  value={comprobanteData.referencia}
-                  onChange={(e) => setComprobanteData((c) => ({ ...c, referencia: e.target.value }))}
-                />
-              </div>
             </div>
+            <p className="text-xs text-gray-400">
+              Si no se indica, usa la duración del programa
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <FieldLabel label="Costo mensualidad" />
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                className={`${inputClass} pl-9`}
+                value={costoMensualidad}
+                onChange={(e) => setCostoMensualidad(e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+            <p className="text-xs text-gray-400">
+              Si no se indica, usa el precio del programa
+            </p>
           </div>
         </div>
+
 
         {/* Notas */}
         <div className="space-y-1.5">
@@ -380,16 +310,12 @@ export default function CourseEnrollment({ estudianteId, campania, setClose }: P
           disabled={isLoading}
           className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-[#0056D2] rounded-lg hover:bg-[#004BB5] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
         >
-          {isLoading
-            ? <Loader2 className="w-4 h-4 animate-spin" />
-            : <GraduationCap className="w-4 h-4" />
-          }
-          {isInscribing
-            ? "Inscribiendo..."
-            : isUploading
-            ? "Subiendo comprobante..."
-            : "Confirmar inscripción"
-          }
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <GraduationCap className="w-4 h-4" />
+          )}
+          {isLoading ? "Inscribiendo..." : "Confirmar inscripción"}
         </button>
       </div>
     </form>

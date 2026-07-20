@@ -12,18 +12,20 @@ const campaniasApiSlice = apiSlice.injectEndpoints({
     }),
     retrieveCampanias: builder.query<
       PaginatedResponse<Campania>,
-      { page?: number; search?: string; instituto?: number } | void
+      { page?: number; search?: string; instituto?: number; status?: string } | void
     >({
       query: (params = {}) => {
-        const { page = 1, search, instituto } = params as {
+        const { page = 1, search, instituto, status } = params as {
           page?: number;
           search?: string;
           instituto?: number;
+          status?: string;
         };
         const qs = new URLSearchParams();
         qs.set("page", String(page));
         if (search) qs.set("search", search);
         if (instituto) qs.set("instituto", String(instituto));
+        if (status && status !== "all") qs.set("status", status);
         return `/control-escolar/campanias/?${qs.toString()}`;
       },
     }),

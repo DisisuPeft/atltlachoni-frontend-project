@@ -104,6 +104,7 @@ export interface FilterConfig {
   key: string;
   placeholder?: string;
   options?: SelectOption[];
+  defaultValue?: string;
 }
 
 // ─── DataTable ────────────────────────────────────────────────────────
@@ -198,10 +199,11 @@ export function DataTable<T>({
             }
 
             if (filter.type === "select") {
+              const fallback = filter.defaultValue ?? "all";
               return (
                 <select
                   key={filter.key}
-                  value={searchParams.get(filter.key) ?? "all"}
+                  value={searchParams.get(filter.key) ?? fallback}
                   onChange={(e) =>
                     setParam({ [filter.key]: e.target.value })
                   }

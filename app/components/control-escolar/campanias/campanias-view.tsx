@@ -103,6 +103,7 @@ export default function CampaniasView() {
   const searchParams = useSearchParams();
   const page = Number(searchParams.get("page") ?? "1");
   const search = searchParams.get("search") ?? "";
+  const statusFilter = searchParams.get("status") ?? "1";
 
   const { data: user } = useRetrieveUserQuery();
   const instituto = user?.departamento_info?.instituto.id;
@@ -116,7 +117,17 @@ export default function CampaniasView() {
     search,
     instituto,
   });
-  console.log(campanias);
+
+  const allResults = campanias?.results ?? [];
+  const filteredResults =
+    statusFilter === "1"
+      ? allResults.filter((c) => c.status === 1)
+      : statusFilter === "0"
+        ? allResults.filter((c) => c.status !== 1)
+        : allResults;
+
+  const activeCount = allResults.filter((c) => c.status === 1).length;
+
   const columns: ColumnDef<Campania>[] = [
     {
       id: "nombre",
@@ -133,6 +144,15 @@ export default function CampaniasView() {
       cell: ({ row }) => (
         <span className="text-sm text-gray-600">
           {row.original.institucion_nombre}
+        </span>
+      ),
+    },
+    {
+      id: "programa",
+      header: "Programa",
+      cell: ({ row }) => (
+        <span className="text-sm text-gray-600">
+          {row.original.programa_nombre ?? "—"}
         </span>
       ),
     },
@@ -193,7 +213,7 @@ export default function CampaniasView() {
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">
-              {campanias?.results?.filter((c) => c.status === 1).length ?? "—"}
+              {isLoading ? "—" : activeCount}
             </p>
             <p className="text-xs text-gray-500">Campañas activas</p>
           </div>
@@ -203,14 +223,24 @@ export default function CampaniasView() {
       {/* Table */}
       <DataTable
         columns={columns}
-        data={campanias?.results ?? []}
+        data={filteredResults}
         isLoading={isLoading}
-        count={campanias?.count ?? 0}
+        count={statusFilter === "todos" ? (campanias?.count ?? 0) : filteredResults.length}
         filters={[
           {
             type: "search",
             key: "search",
             placeholder: "Nombre o institución...",
+          },
+          {
+            type: "select",
+            key: "status",
+            defaultValue: "1",
+            options: [
+              { value: "todos", label: "Todos los estados" },
+              { value: "1", label: "Activas" },
+              { value: "0", label: "Inactivas" },
+            ],
           },
         ]}
         emptyIcon={Megaphone}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAlumnoEditForm } from "@/hooks";
 import { sweetAlert } from "@/sweetalert/sweetalerts";
+import Swal from "sweetalert2";
 import {
   useGetInscripcionesEstudianteQuery,
   useGetComprobantesInscripcionQuery,
@@ -10,6 +11,7 @@ import {
   useRetrieveEstudianteQuery,
   useActivarEstudianteMutation,
   useDesactivarEstudianteMutation,
+  useAplicarPagoMutation,
 } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { PagoInscripcion } from "@/redux/features/types/control-escolar/type";
 import { Modal } from "../../common/modal";
@@ -469,12 +471,196 @@ function fmtDate(iso: string | null) {
   });
 }
 
+// ── Aplicar pago modal ───────────────────────────────────────────────
+
+function AplicarPagoModal({
+  pago,
+  inscripcionId,
+  estudianteId,
+  onClose,
+}: {
+  pago: PagoInscripcion;
+  inscripcionId: number;
+  estudianteId: string;
+  onClose: () => void;
+}) {
+  const [aplicar, { isLoading }] = useAplicarPagoMutation();
+  const [monto, setMonto] = useState(pago.monto);
+
+  const pendiente = parseFloat(pago.monto);
+  const montoNum = parseFloat(monto);
+  const diff = !isNaN(montoNum) && monto !== "" ? montoNum - pendiente : null;
+  const superaLimite = diff !== null && Math.abs(diff) > 100;
+
+  const handleSubmit = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    if (isNaN(montoNum) || montoNum <= 0) return;
+
+    try {
+      const res = await aplicar({
+        inscripcionId,
+        estudianteId,
+        pagos: [{ id: pago.id, monto: montoNum }],
+      }).unwrap();
+
+      const resultado = res.resultados[0];
+      onClose();
+      if (resultado?.resultado === "aplicado_con_residuo") {
+        const tipo = resultado.tipo_diferencia === "excedente" ? "excedente" : "parcial";
+        const absDiff = Math.abs(resultado.diferencia ?? 0).toFixed(2);
+        await Swal.fire({
+          icon: "info",
+          title: "Pago aplicado",
+          html: `Registrado con <b>${tipo}</b> de <b>$${absDiff}</b>.<br/><span style="color:#6b7280">${res.message}</span>`,
+          confirmButtonText: "Entendido",
+          confirmButtonColor: "#0056D2",
+        });
+      } else {
+        await Swal.fire({
+          icon: "success",
+          title: "Pago aplicado",
+          text: res.message,
+          timer: 2500,
+          showConfirmButton: false,
+        });
+      }
+    } catch (err: unknown) {
+      const data = (err as { data?: Record<string, unknown> })?.data;
+      const msg =
+        (data?.error as string) ??
+        (data?.message as string) ??
+        (data?.detail as string) ??
+        "No se pudo aplicar el pago.";
+      Swal.fire({ icon: "error", title: "Error", text: msg });
+    }
+  };
+
+  const inputSm =
+    "w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] transition-colors bg-white";
+
+  return (
+    <form onSubmit={handleSubmit} className="min-w-[360px]">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
+        <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+          <DollarSign className="w-4 h-4 text-emerald-600" />
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">Aplicar pago</h3>
+          <p className="text-xs text-gray-400 truncate max-w-[220px]">
+            {pago.concepto ?? pago.tipo_pago_r}
+          </p>
+        </div>
+      </div>
+
+      <div className="p-6 space-y-4">
+        {/* Info */}
+        <div className="grid grid-cols-2 gap-3 bg-gray-50 rounded-lg p-4">
+          <div>
+            <p className="text-xs text-gray-400">Vence</p>
+            <p className="text-sm font-medium text-gray-800">
+              {fmtDate(pago.fecha_vencimiento)}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400">Monto acordado</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {fmtMXN(pago.monto)}
+            </p>
+          </div>
+        </div>
+
+        {/* Monto input */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">
+            Monto recibido <span className="text-red-400">*</span>
+          </label>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              type="number"
+              step="0.01"
+              min="0.01"
+              required
+              className={`${inputSm} pl-9`}
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <p className="text-xs text-gray-400">
+            Tolerancia ±$100 — diferencias mayores rechazan el lote completo
+          </p>
+        </div>
+
+        {/* Live diff preview */}
+        {diff !== null && diff !== 0 && (
+          <div
+            className={`text-xs px-3 py-2.5 rounded-lg flex items-start gap-2 ${
+              superaLimite
+                ? "bg-red-50 text-red-700"
+                : diff > 0
+                  ? "bg-amber-50 text-amber-700"
+                  : "bg-blue-50 text-blue-700"
+            }`}
+          >
+            <span className="mt-0.5">
+              {superaLimite ? "⚠" : diff > 0 ? "↑" : "↓"}
+            </span>
+            <span>
+              {superaLimite
+                ? `Diferencia de $${Math.abs(diff).toFixed(2)} supera el límite de $100 — el pago será rechazado`
+                : diff > 0
+                  ? `Excedente de $${diff.toFixed(2)} — quedará como "excedente"`
+                  : `Diferencia de $${Math.abs(diff).toFixed(2)} — quedará como "parcial"`}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          disabled={isLoading || superaLimite}
+          className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+        >
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <DollarSign className="w-4 h-4" />
+          )}
+          {isLoading ? "Aplicando..." : "Aplicar pago"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 // ── Pago row ─────────────────────────────────────────────────────────
 
-function PagoRow({ pago }: { pago: PagoInscripcion }) {
+function PagoRow({
+  pago,
+  onApply,
+}: {
+  pago: PagoInscripcion;
+  onApply?: () => void;
+}) {
   const done = pago.estado === "completado";
   return (
-    <div className="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
+    <div
+      className={`flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0 ${
+        !done && onApply ? "cursor-pointer hover:bg-gray-50/80 -mx-2 px-2 rounded-lg transition-colors" : ""
+      }`}
+      onClick={!done ? onApply : undefined}
+    >
       <div
         className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${done ? "bg-emerald-50" : "bg-amber-50"}`}
       >
@@ -495,15 +681,27 @@ function PagoRow({ pago }: { pago: PagoInscripcion }) {
           {pago.metodo_pago_r && ` · ${pago.metodo_pago_r}`}
         </p>
       </div>
-      <div className="text-right flex-shrink-0">
-        <p className="text-xs font-semibold text-gray-900">
-          {fmtMXN(pago.monto)}
-        </p>
-        <span
-          className={`text-xs font-medium ${done ? "text-emerald-600" : "text-amber-500"}`}
-        >
-          {done ? "Pagado" : "Pendiente"}
-        </span>
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="text-right">
+          <p className="text-xs font-semibold text-gray-900">
+            {fmtMXN(pago.monto)}
+          </p>
+          <span
+            className={`text-xs font-medium ${done ? "text-emerald-600" : "text-amber-500"}`}
+          >
+            {done ? "Pagado" : "Pendiente"}
+          </span>
+        </div>
+        {!done && onApply && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onApply(); }}
+            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
+          >
+            <DollarSign className="w-3 h-3" />
+            Aplicar
+          </button>
+        )}
       </div>
     </div>
   );
@@ -516,6 +714,10 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
     useGetInscripcionesEstudianteQuery(uuid);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [comprobantesId, setComprobantesId] = useState<number | null>(null);
+  const [pagoModal, setPagoModal] = useState<{
+    pago: PagoInscripcion;
+    inscripcionId: number;
+  } | null>(null);
 
   if (isLoading) {
     return (
@@ -555,6 +757,17 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
 
   return (
     <div className="space-y-4">
+      <Modal show={!!pagoModal} onClose={() => setPagoModal(null)}>
+        {pagoModal && (
+          <AplicarPagoModal
+            pago={pagoModal.pago}
+            inscripcionId={pagoModal.inscripcionId}
+            estudianteId={uuid}
+            onClose={() => setPagoModal(null)}
+          />
+        )}
+      </Modal>
+
       {inscripciones.map((ins) => {
         const total = ins.pagos.reduce((sum, p) => sum + parseFloat(p.monto), 0);
         const pagado = ins.pagos
@@ -659,7 +872,15 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
             {pagosOpen && (
               <div className="px-5 py-2">
                 {ins.pagos.map((p) => (
-                  <PagoRow key={p.id} pago={p} />
+                  <PagoRow
+                    key={p.id}
+                    pago={p}
+                    onApply={
+                      p.estado !== "completado"
+                        ? () => setPagoModal({ pago: p, inscripcionId: ins.id })
+                        : undefined
+                    }
+                  />
                 ))}
               </div>
             )}

@@ -501,15 +501,12 @@ export interface Material {
 }
 
 export interface InscripcionBody {
-  monto_inicial: number;
-  fecha_primera_mensualidad: string;
+  monto_inicial?: number;
+  fecha_pago_inicial?: string;
+  fecha_primera_mensualidad?: string;
   notas?: string;
-  tieme_precio_custom?: {
-    costo_inscripcion?: number;
-    costo_mensualidad?: number;
-    costo_documentacion?: number;
-  };
-  razon_precio_custom?: string;
+  numero_parcialidades?: number;
+  costo_mensualidad?: number;
 }
 
 export interface ComprobantePago {

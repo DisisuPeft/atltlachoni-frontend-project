@@ -26,6 +26,7 @@ export default function StepEstudiante({ estudianteId, onClose }: Props) {
         estudianteId={estudianteId}
         campania={campania}
         setClose={onClose}
+        onBack={() => { setStep(1); setCampania(undefined); }}
       />
     );
   }

@@ -19,7 +19,21 @@ import {
 
 export interface InscripcionCreatedResponse {
   message: string;
+}
+
+export interface AplicarPagoResultado {
   id: number;
+  resultado: "aplicado" | "aplicado_con_residuo";
+  monto_recibido: number;
+  monto_pendiente: number;
+  diferencia?: number;
+  tipo_diferencia?: "excedente" | "parcial";
+}
+
+export interface AplicarPagoResponse {
+  success: boolean;
+  message: string;
+  resultados: AplicarPagoResultado[];
 }
 
 export interface InscripcionEstudiante {
@@ -158,6 +172,19 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, uuid) => [{ type: "Estudiantes" as const, id: uuid }],
     }),
+    aplicarPago: builder.mutation<
+      AplicarPagoResponse,
+      { inscripcionId: number; estudianteId: string; pagos: { id: number; monto: number }[] }
+    >({
+      query: ({ inscripcionId, pagos }) => ({
+        url: `/control-escolar/inscripciones/${inscripcionId}/aplicar-pago/`,
+        method: "POST",
+        body: { pagos },
+      }),
+      invalidatesTags: (_result, _error, { estudianteId }) => [
+        { type: "Inscripciones" as const, id: estudianteId },
+      ],
+    }),
   }),
 });
 
@@ -179,4 +206,5 @@ export const {
   useGetMisPagosQuery,
   useActivarEstudianteMutation,
   useDesactivarEstudianteMutation,
+  useAplicarPagoMutation,
 } = alumnoApiSlice;
