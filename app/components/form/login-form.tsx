@@ -68,19 +68,13 @@ export default function LoginForm() {
 
       {/* Password Field */}
       <div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-1 sm:gap-0 mb-1.5 sm:mb-2">
+        <div className="mb-1.5 sm:mb-2">
           <label
             htmlFor="password"
             className="block text-xs sm:text-sm font-medium text-gray-700"
           >
             Contraseña
           </label>
-          {/* <button
-            type="button"
-            className="text-xs sm:text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors text-left sm:text-right"
-          >
-            ¿Olvidaste tu contraseña?
-          </button> */}
         </div>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -133,6 +127,14 @@ export default function LoginForm() {
             {errors.password.message}
           </p>
         )}
+        <div className="mt-1.5 text-right">
+          <a
+            href="/recuperar-password"
+            className="text-xs sm:text-sm font-medium text-[#0056D2] hover:underline"
+          >
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
       </div>
 
       {/* Remember me */}

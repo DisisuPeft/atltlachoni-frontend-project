@@ -39,6 +39,23 @@ const authApiSlice = apiSlice.injectEndpoints({
     verifyUser: builder.query<UserVerifyResponse, void>({
       query: () => "/auth/roles/",
     }),
+    solicitarRecuperacion: builder.mutation<{ message: string }, { email: string }>({
+      query: (body) => ({
+        url: "/auth/password/olvide/",
+        method: "POST",
+        body,
+      }),
+    }),
+    resetearPassword: builder.mutation<
+      { message: string },
+      { uid: string; token: string; password: string }
+    >({
+      query: (body) => ({
+        url: "/auth/password/resetear/",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -50,4 +67,6 @@ export const {
   useLogoutMutation,
   useGetPestaniaQuery,
   useVerifyUserQuery,
+  useSolicitarRecuperacionMutation,
+  useResetearPasswordMutation,
 } = authApiSlice;

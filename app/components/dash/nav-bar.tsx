@@ -62,7 +62,7 @@ export default function Navbar() {
 
         {/* Right icons */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          <Badge />
+          {/* <Badge /> */}
           <UserMenu />
         </div>
       </div>
