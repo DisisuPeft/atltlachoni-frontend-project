@@ -8,7 +8,7 @@ interface Children {
 }
 
 export default function Layout({ children }: Children) {
-  const allowedRoles = ["Estudiante", "Guest"];
+  const allowedRoles = ["Estudiante", "Docente", "Guest"];
   return (
     <RequireAuth allowedRoles={allowedRoles}>
       <div className="h-screen bg-white flex flex-col">

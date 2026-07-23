@@ -753,6 +753,59 @@ export interface MiCalificacion {
   intentos: IntentoCalificacion[];
 }
 
+// ─── Maestros (Plantilla Docente) ─────────────────────────────────────────────
+
+export interface UserMaestroData {
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  genero: number;
+  telefono: string;
+  email: string;
+}
+
+export interface MaestroPerfil extends BaseModel {
+  ref: string;
+  status: number;
+  user_nombre: string;
+  user_genero: string;
+  numero_cedula: string | null;
+  nivel_educativo_nombre: string | null;
+  institucion_nombre: string | null;
+  tiene_certificado: boolean;
+}
+
+export interface MaestroPerfilForm extends BaseModel {
+  ref?: string;
+  user: UserMaestroData;
+  user_obj?: UserMaestroData;
+  tiene_certificado: boolean;
+  numero_cedula: string;
+  nivel_educativo: number | null;
+  institucion: number | null;
+  estado_pais: number | null;
+  ciudad: number | null;
+  status: number;
+}
+
+export const maestroPerfilInitialValues: MaestroPerfilForm = {
+  user: {
+    nombre: "",
+    apellido_paterno: "",
+    apellido_materno: "",
+    genero: 0,
+    telefono: "",
+    email: "",
+  },
+  tiene_certificado: false,
+  numero_cedula: "",
+  nivel_educativo: null,
+  institucion: null,
+  estado_pais: null,
+  ciudad: null,
+  status: 1,
+};
+
 export interface SolicitudInformacionInput {
   nombre: string;
   apellido_paterno: string;
