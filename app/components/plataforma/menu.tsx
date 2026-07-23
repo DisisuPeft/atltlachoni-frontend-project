@@ -12,18 +12,38 @@ type NavItem = {
   icon: React.FC<{ className?: string }>;
 };
 
-const navItems: NavItem[] = [
-  { id: 1, nav: "/plataforma", label: "Dashboard", icon: IconDashboard },
-  { id: 2, nav: "/plataforma/educacion", label: "Mi Aprendizaje", icon: IconBook },
-  { id: 3, nav: "/plataforma/ponencias", label: "Ponencias", icon: IconPlayCircle },
-];
-
 export default function PlataformaEducativa() {
   const { data: user } = useRetrieveUserQuery();
   const pathname = usePathname();
 
+  const esDocente =
+    user?.roles_list?.some((r) => r.nombre === "Docente") ?? false;
+
+  const allNavItems: (NavItem & { soloEstudiante?: boolean })[] = [
+    { id: 1, nav: "/plataforma", label: "Dashboard", icon: IconDashboard },
+    {
+      id: 2,
+      nav: "/plataforma/educacion",
+      label: esDocente ? "Mis programas" : "Mi Aprendizaje",
+      icon: IconBook,
+    },
+    {
+      id: 3,
+      nav: "/plataforma/ponencias",
+      label: "Ponencias",
+      icon: IconPlayCircle,
+      soloEstudiante: true,
+    },
+  ];
+
+  const navItems = allNavItems.filter(
+    (item) => !(item.soloEstudiante && esDocente),
+  );
+
   const isActive = (nav: string) =>
-    nav === "/plataforma" ? pathname === "/plataforma" : pathname.startsWith(nav);
+    nav === "/plataforma"
+      ? pathname === "/plataforma"
+      : pathname.startsWith(nav);
 
   // Solo visible en desktop — en móvil la navegación es el BottomNav
   return (
@@ -59,7 +79,9 @@ export default function PlataformaEducativa() {
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{user?.nombre_completo}</p>
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {user?.nombre_completo}
+            </p>
             <p className="text-xs text-gray-400 truncate">{user?.email}</p>
           </div>
         </div>

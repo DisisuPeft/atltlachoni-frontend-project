@@ -2,16 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import { IconDashboard, IconBook, IconPlayCircle } from "./iconst";
 
-const navItems = [
+const allNavItems = [
   { id: 1, nav: "/plataforma", label: "Inicio", icon: IconDashboard },
   { id: 2, nav: "/plataforma/educacion", label: "Aprendizaje", icon: IconBook },
-  { id: 3, nav: "/plataforma/ponencias", label: "Ponencias", icon: IconPlayCircle },
+  { id: 3, nav: "/plataforma/ponencias", label: "Ponencias", icon: IconPlayCircle, soloEstudiante: true },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { data: user } = useRetrieveUserQuery();
+  const esDocente = user?.roles_list?.some((r) => r.nombre === "Docente") ?? false;
+  const navItems = allNavItems.filter((item) => !(item.soloEstudiante && esDocente));
 
   const isActive = (nav: string) =>
     nav === "/plataforma" ? pathname === "/plataforma" : pathname.startsWith(nav);

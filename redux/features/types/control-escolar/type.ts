@@ -806,6 +806,26 @@ export const maestroPerfilInitialValues: MaestroPerfilForm = {
   status: 1,
 };
 
+export interface ProgramaDocenteModulo {
+  id: number;
+  nombre: string;
+}
+
+export interface ProgramaDocente {
+  ref: string;
+  nombre: string;
+  tipo: string;
+  banner_url: string;
+  imagen_url: string;
+  duracion: number;
+  modulos: ProgramaDocenteModulo[];
+}
+
+export interface MisProgramasDocenteResponse {
+  countProgramas: number;
+  programas: ProgramaDocente[];
+}
+
 export interface SolicitudInformacionInput {
   nombre: string;
   apellido_paterno: string;

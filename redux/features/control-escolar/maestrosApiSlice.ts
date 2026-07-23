@@ -2,6 +2,7 @@ import { apiSlice } from "@/redux/services/apiSlice";
 import {
   MaestroPerfil,
   MaestroPerfilForm,
+  MisProgramasDocenteResponse,
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
 import { MessageResponse } from "../types/reponse";
@@ -74,6 +75,9 @@ const maestrosApiSlice = apiSlice.injectEndpoints({
         "Maestros",
       ],
     }),
+    getMisProgramasDocente: builder.query<MisProgramasDocenteResponse, void>({
+      query: () => "/control-escolar/maestros/mis-programas/",
+    }),
   }),
 });
 
@@ -84,4 +88,5 @@ export const {
   useUpdateMaestroMutation,
   useActivarMaestroMutation,
   useDesactivarMaestroMutation,
+  useGetMisProgramasDocenteQuery,
 } = maestrosApiSlice;
