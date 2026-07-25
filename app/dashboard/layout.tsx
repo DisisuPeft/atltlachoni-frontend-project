@@ -12,7 +12,7 @@ export default function Layout({ children }: Children) {
         <Navbar />
         <div className="flex flex-1 overflow-hidden">
           <ModulosGrid />
-          <main className="flex-1 overflow-auto p-6">{children}</main>
+          <main className="flex-1 overflow-auto">{children}</main>
         </div>
       </div>
     </RequireAuth>

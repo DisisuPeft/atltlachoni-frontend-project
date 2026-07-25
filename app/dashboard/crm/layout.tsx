@@ -14,7 +14,7 @@ export default function Layout({ children }: Children) {
         <Sidebar />
 
         {/* El contenido sigue siendo Server Component por defecto */}
-        <main className="md:ml-64 bg-white p-12 font-serif">{children}</main>
+        <main className="md:ml-64 p-4 sm:p-6">{children}</main>
       </div>
     </RequireAuth>
   );

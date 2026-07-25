@@ -13,7 +13,7 @@ export default function Layout({ children }: Children) {
         <TabsPanelWrapper />
 
         {/* El contenido sigue siendo Server Component por defecto */}
-        <main className="bg-white p-12 font-serif">{children}</main>
+        <main className="p-4 sm:p-6">{children}</main>
       </div>
     </RequireAuth>
   );
