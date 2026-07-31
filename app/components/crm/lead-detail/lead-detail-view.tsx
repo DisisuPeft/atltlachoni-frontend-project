@@ -59,23 +59,29 @@ import {
   UserMinus,
   CreditCard,
   Power,
+  Search,
+  ArrowDownUp,
+  UserRound,
+  Activity,
 } from "lucide-react";
 import {
   InteraccionForm,
   SeguimientoForm,
   SeguimientoProgramado,
   InteraccionLead,
+  Lead,
 } from "@/redux/features/types/crm/lead-types";
 import PlanPagoTab from "./plan-pago-tab";
 import { Modal } from "@/app/components/common/modal";
 import { useSearchParams } from "next/navigation";
+import { getApiErrorMessage } from "@/redux/utils/api-error";
 
 interface Props {
   uuid: string;
   refParam?: string;
 }
 
-type Tab = "interacciones" | "seguimientos" | "historial" | "plan-pago";
+type Tab = "resumen" | "interacciones" | "seguimientos" | "historial" | "plan-pago";
 
 // ── Shared primitives ────────────────────────────────────────────────
 
@@ -921,6 +927,56 @@ function EtapasProgress({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function LeadSummaryPanel({ lead }: { lead: Lead }) {
+  const { data: seguimientos, isLoading: isLoadingSeguimientos } =
+    useGetSeguimientosQuery({ lead: lead.id, completado: false });
+  const { data: interacciones, isLoading: isLoadingInteracciones } =
+    useGetInteraccionesQuery({ lead: lead.id });
+  const campania = typeof lead.campania_nombre === "object" ? lead.campania_nombre?.nombre : lead.campania_nombre;
+  const nextFollowUp = seguimientos?.results
+    ?.slice()
+    .sort((a, b) => new Date(a.fecha_programada).getTime() - new Date(b.fecha_programada).getTime())[0];
+  const latestInteraction = interacciones?.results
+    ?.slice()
+    .sort((a, b) => new Date(b.fecha_interaccion).getTime() - new Date(a.fecha_interaccion).getTime())[0];
+  const formatDate = (date?: string) => date ? new Date(date).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" }) : "Sin registrar";
+  const metrics = [
+    { label: "Estado", value: lead.status === 1 ? "Activo" : "Inactivo", tone: lead.status === 1 ? "text-emerald-700 bg-emerald-50" : "text-rose-700 bg-rose-50" },
+    { label: "Prioridad", value: lead.temperatura_actual?.nombre || "Sin definir", tone: "text-slate-700 bg-slate-100" },
+    { label: "Fuente", value: lead.fuente_nombre || "Sin fuente", tone: "text-sky-700 bg-sky-50" },
+    { label: "Asignado a", value: lead.vendedor_nombre || "Sin asignar", tone: "text-violet-700 bg-violet-50" },
+    { label: "Última actividad", value: isLoadingInteracciones ? "Cargando…" : formatDate(latestInteraction?.fecha_interaccion), tone: "text-slate-700 bg-slate-100" },
+    { label: "Próximo seguimiento", value: isLoadingSeguimientos ? "Cargando…" : formatDate(nextFollowUp?.fecha_programada), tone: nextFollowUp ? "text-amber-700 bg-amber-50" : "text-slate-600 bg-slate-100" },
+  ];
+
+  return (
+    <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="min-w-0 space-y-5">
+        <section>
+          <div className="mb-3 flex items-center justify-between gap-3"><h2 className="text-sm font-semibold text-slate-950">Información general</h2><span className="text-xs text-slate-500">Actualizado {formatDate(lead.updated_at)}</span></div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {metrics.map(({ label, value, tone }) => <article key={label} className="min-h-28 rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)]"><p className="text-xs font-medium text-slate-500">{label}</p><p className={`mt-4 inline-flex max-w-full rounded-full px-2.5 py-1 text-sm font-semibold ${tone}`} title={value}>{value}</p></article>)}
+          </div>
+        </section>
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+          <h2 className="text-sm font-semibold text-slate-950">Resumen del lead</h2>
+          <dl className="mt-4 grid gap-x-8 gap-y-5 sm:grid-cols-2 xl:grid-cols-3">
+            {[["Programa", lead.programa_nombre || "Sin programa"], ["Campaña", campania || "Sin campaña"], ["Etapa", lead.etapa_nombre || "Sin etapa"], ["Correo", lead.correo || "Sin correo"], ["Teléfono", lead.telefono || "Sin teléfono"], ["Creado", formatDate(lead.created_at)]].map(([label, value]) => <div key={label}><dt className="text-xs font-medium text-slate-500">{label}</dt><dd className="mt-1 break-words text-sm font-medium text-slate-800">{value}</dd></div>)}
+          </dl>
+        </section>
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+          <h2 className="text-sm font-semibold text-slate-950">Notas internas</h2>
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">{lead.notas || "No hay notas registradas para este lead."}</p>
+        </section>
+      </div>
+      <aside className="space-y-5">
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]"><div className="flex items-center gap-2"><Activity className="h-4 w-4 text-sky-700" /><h2 className="text-sm font-semibold text-slate-950">Actividad reciente</h2></div>{latestInteraction ? <div className="mt-4"><p className="text-sm font-medium text-slate-800">{latestInteraction.asunto || latestInteraction.tipo_detail?.nombre || "Interacción registrada"}</p><p className="mt-1 text-sm leading-5 text-slate-600">{latestInteraction.contenido || "Sin detalle adicional"}</p><p className="mt-3 text-xs text-slate-500">{formatDate(latestInteraction.fecha_interaccion)} · {latestInteraction.usuario || "Sin responsable"}</p></div> : <div className="py-7 text-center"><Activity className="mx-auto h-8 w-8 text-slate-300" /><p className="mt-3 text-sm font-medium text-slate-700">Aún no hay actividad</p><p className="mt-1 text-xs text-slate-500">Las interacciones aparecerán aquí.</p></div>}</section>
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]"><div className="flex items-center gap-2"><UserRound className="h-4 w-4 text-sky-700" /><h2 className="text-sm font-semibold text-slate-950">Próxima acción</h2></div><p className="mt-4 text-sm font-medium text-slate-800">{nextFollowUp?.descripcion || "Sin seguimiento programado"}</p><p className="mt-1 text-xs text-slate-500">{nextFollowUp ? `${formatDate(nextFollowUp.fecha_programada)}${nextFollowUp.responsable_nombre ? ` · ${nextFollowUp.responsable_nombre}` : ""}` : "Programa una acción desde Seguimientos."}</p></section>
+      </aside>
     </div>
   );
 }
@@ -1907,6 +1963,8 @@ function SeguimientosTab({ leadId }: { leadId: number }) {
 
   const [open, setOpen] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [search, setSearch] = useState("");
+  const [sortAscending, setSortAscending] = useState(true);
   const [form, setForm] = useState<Partial<SeguimientoForm>>({});
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -1925,6 +1983,12 @@ function SeguimientosTab({ leadId }: { leadId: number }) {
   const [updateSeguimiento, { isLoading: isUpdating }] =
     useUpdateSeguimientoMutation();
   const [completar] = useCompletarSeguimientoMutation();
+  const visibleSeguimientos = (seguimientos?.results ?? [])
+    .filter((seg) => `${seg.tipo_detail?.nombre ?? ""} ${seg.descripcion} ${seg.responsable_nombre ?? ""}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
+    .slice()
+    .sort((a, b) => sortAscending
+      ? new Date(a.fecha_programada).getTime() - new Date(b.fecha_programada).getTime()
+      : new Date(b.fecha_programada).getTime() - new Date(a.fecha_programada).getTime());
 
   const handleSubmit = async () => {
     if (!form.tipo || !form.fecha_programada || !form.descripcion) return;
@@ -2042,6 +2106,15 @@ function SeguimientosTab({ leadId }: { leadId: number }) {
         </div>
       </div>
 
+      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <label className="relative block">
+          <span className="sr-only">Buscar seguimientos</span>
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por actividad o responsable" className="min-h-10 w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-600 focus:ring-2 focus:ring-sky-100" />
+        </label>
+        <button type="button" onClick={() => setSortAscending((value) => !value)} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-600"><ArrowDownUp className="h-4 w-4" />{sortAscending ? "Más próximos" : "Más recientes"}</button>
+      </div>
+
       <Modal show={open} onClose={() => setOpen(false)}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h3 className="text-base font-semibold text-gray-900">
@@ -2137,29 +2210,41 @@ function SeguimientosTab({ leadId }: { leadId: number }) {
           ))}
         </div>
       ) : !seguimientos?.results?.length ? (
-        <div className="py-12 text-center border-2 border-dashed border-gray-200 rounded-xl">
-          <CalendarClock className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-sm text-gray-400">
+        <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/60 py-12 text-center">
+          <CalendarClock className="mx-auto mb-3 h-9 w-9 text-slate-300" />
+          <p className="text-sm font-medium text-slate-700">
             {showCompleted
               ? "Sin seguimientos completados"
               : "Sin seguimientos pendientes"}
           </p>
+          {!showCompleted && (
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white outline-none transition hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2"
+            >
+              <Plus className="h-4 w-4" />
+              Crear seguimiento
+            </button>
+          )}
         </div>
+      ) : !visibleSeguimientos.length ? (
+        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 py-10 text-center"><Search className="mx-auto h-7 w-7 text-slate-300" /><p className="mt-3 text-sm font-medium text-slate-700">No encontramos seguimientos</p><button type="button" onClick={() => setSearch("")} className="mt-2 text-sm font-medium text-sky-700 hover:text-sky-800">Limpiar búsqueda</button></div>
       ) : (
-        <div className="space-y-3">
-          {seguimientos.results.map((seg) => {
+        <div className="relative space-y-3 before:absolute before:bottom-5 before:left-4 before:top-5 before:w-px before:bg-slate-200">
+          {visibleSeguimientos.map((seg) => {
             const isPast = new Date(seg.fecha_programada) < new Date();
             const isExpanded = expandedId === seg.id || editingId === seg.id;
             return (
               <div
                 key={seg.id}
-                className="bg-white rounded-xl border border-gray-200 p-4"
+                className="relative bg-white rounded-xl border border-gray-200 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-shadow hover:shadow-sm"
               >
                 {/* Card header */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0">
                     <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isPast ? "bg-red-50" : "bg-amber-50"}`}
+                      className={`relative z-[1] w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isPast ? "bg-red-50" : "bg-amber-50"}`}
                     >
                       <Clock
                         className={`w-4 h-4 ${isPast ? "text-red-500" : "text-amber-500"}`}
@@ -2419,9 +2504,59 @@ function HistorialTab({ leadId }: { leadId: number }) {
 
 // ── Main view ─────────────────────────────────────────────────────────
 
+function LeadActionBar({ lead, refetchLead }: { lead: Lead; refetchLead: () => void }) {
+  const { unidadId } = useAppSelector((state) => state.changeUnidad);
+  const { data: verify } = useVerifyUserQuery();
+  const [editing, setEditing] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const [form, setForm] = useState({ nombre: "", apellido_paterno: "", apellido_materno: "", correo: "", telefono: "", contacto_alterno: "", fuente: "", estatus: "", campania: "", programa_objetivo: "" });
+  const [vendedor, setVendedor] = useState<number | "">("");
+  const { data: fuentes } = useGetFuentesQuery(unidadId ? { instituto: unidadId } : undefined);
+  const { data: estatuses } = useGetEstatusQuery(unidadId ? { instituto: unidadId } : undefined);
+  const { data: campanias } = useRetrieveCampaniasQuery();
+  const { data: programas } = useRetrieveProgramasQuery();
+  const { data: vendedores } = useGetVendedoresQuery();
+  const [updateLead, { isLoading: isSaving }] = useUpdateLeadMutation();
+  const [asignarVendedor, { isLoading: isAssigning }] = useAsignarVendedorMutation();
+  const [apagarLead, { isLoading: isApagando }] = useApagarLeadMutation();
+  const [reactivarLead, { isLoading: isReactivando }] = useReactivarLeadMutation();
+  const canEdit = verify?.superuser === true || lead.etapa_nombre?.trim().toLocaleLowerCase() !== "venta";
+  const openEdit = () => {
+    const campania = typeof lead.campania_nombre === "object" ? lead.campania_nombre?.id : lead.campania;
+    setForm({ nombre: lead.nombre || "", apellido_paterno: lead.apellido_paterno || "", apellido_materno: lead.apellido_materno || "", correo: lead.correo || "", telefono: lead.telefono || "", contacto_alterno: lead.contacto_alterno || "", fuente: String(lead.fuente || ""), estatus: String(lead.estatus || ""), campania: String(campania || ""), programa_objetivo: String(lead.programa_objetivo || "") });
+    setEditing(true);
+  };
+  const save = async () => {
+    try {
+      await updateLead({ uuid: lead.uuid, data: { ...form, fuente: form.fuente ? Number(form.fuente) : undefined, estatus: form.estatus ? Number(form.estatus) : undefined, campania: form.campania ? Number(form.campania) : undefined, programa_objetivo: form.programa_objetivo ? Number(form.programa_objetivo) : undefined } }).unwrap();
+      setEditing(false); refetchLead();
+    } catch (error) { Swal.fire({ icon: "error", title: "No se pudieron guardar los cambios", text: getApiErrorMessage(error) }); }
+  };
+  const assign = async () => {
+    if (!vendedor) return;
+    try { await asignarVendedor({ uuid: lead.uuid, vendedor: Number(vendedor) }).unwrap(); setAssigning(false); setVendedor(""); refetchLead(); }
+    catch (error) { Swal.fire({ icon: "error", title: "No se pudo asignar el vendedor", text: getApiErrorMessage(error) }); }
+  };
+  const toggleStatus = async () => {
+    const willDeactivate = lead.status === 1;
+    const result = await Swal.fire({ icon: willDeactivate ? "warning" : "question", title: willDeactivate ? "Cambiar estado del lead" : "Reactivar lead", text: willDeactivate ? "Indica el motivo para descartar este lead." : "Se restaurará el estatus anterior.", input: willDeactivate ? "textarea" : undefined, inputPlaceholder: "Escribe el motivo...", showCancelButton: true, confirmButtonText: willDeactivate ? "Cambiar estado" : "Reactivar", cancelButtonText: "Cancelar", inputValidator: willDeactivate ? (value: string) => (!value?.trim() ? "El motivo es obligatorio" : undefined) : undefined });
+    if (!result.isConfirmed) return;
+    try { if (willDeactivate) await apagarLead({ uuid: lead.uuid, motivo: result.value.trim() }).unwrap(); else await reactivarLead(lead.uuid).unwrap(); refetchLead(); }
+    catch (error) { Swal.fire({ icon: "error", title: "No se pudo actualizar el estado", text: getApiErrorMessage(error) }); }
+  };
+  const fields = [
+    ["Nombre", "nombre", "text"], ["Apellido paterno", "apellido_paterno", "text"], ["Apellido materno", "apellido_materno", "text"], ["Correo", "correo", "email"], ["Teléfono", "telefono", "tel"], ["Contacto alterno", "contacto_alterno", "tel"],
+  ] as const;
+  return <>
+    <div className="flex flex-wrap gap-2"><button type="button" onClick={openEdit} disabled={!canEdit} title={!canEdit ? "Los leads en etapa Venta solo pueden editarlos superusuarios." : undefined} className="inline-flex min-h-10 items-center rounded-lg border border-slate-200 px-3.5 text-sm font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-600 disabled:cursor-not-allowed disabled:opacity-50"><Pencil className="mr-1.5 h-4 w-4" />Editar lead</button><button type="button" onClick={() => setAssigning(true)} className="inline-flex min-h-10 items-center rounded-lg border border-slate-200 px-3.5 text-sm font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-600"><UserPlus className="mr-1.5 h-4 w-4" />{lead.vendedor_nombre ? "Reasignar" : "Asignar vendedor"}</button><button type="button" onClick={toggleStatus} disabled={isApagando || isReactivando} className="inline-flex min-h-10 items-center rounded-lg border border-slate-200 px-3.5 text-sm font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-600 disabled:opacity-60"><Power className="mr-1.5 h-4 w-4" />{lead.status === 1 ? "Cambiar estado" : "Reactivar"}</button></div>
+    <Modal show={editing} onClose={() => setEditing(false)}><div className="max-h-[85vh] overflow-y-auto"><div className="flex items-center justify-between border-b border-slate-200 px-6 py-4"><div><h2 className="text-base font-semibold text-slate-950">Editar lead</h2><p className="mt-0.5 text-sm text-slate-500">Actualiza la información sin perder el contexto.</p></div><button type="button" onClick={() => setEditing(false)} aria-label="Cerrar" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button></div><div className="grid gap-4 p-6 sm:grid-cols-2">{fields.map(([label, key, type]) => <label key={key} className="space-y-1.5"><span className="text-xs font-medium text-slate-600">{label}</span><input type={type} value={form[key]} onChange={(event) => setForm((current) => ({ ...current, [key]: event.target.value }))} className={inputClass} /></label>)}<label className="space-y-1.5"><span className="text-xs font-medium text-slate-600">Fuente</span><select value={form.fuente} onChange={(event) => setForm((current) => ({ ...current, fuente: event.target.value }))} className={selectClass}><option value="">Seleccionar</option>{fuentes?.results?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select></label><label className="space-y-1.5"><span className="text-xs font-medium text-slate-600">Estatus</span><select value={form.estatus} onChange={(event) => setForm((current) => ({ ...current, estatus: event.target.value }))} className={selectClass}><option value="">Seleccionar</option>{estatuses?.results?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select></label><label className="space-y-1.5"><span className="text-xs font-medium text-slate-600">Campaña</span><select value={form.campania} onChange={(event) => setForm((current) => ({ ...current, campania: event.target.value }))} className={selectClass}><option value="">Seleccionar</option>{campanias?.results?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select></label><label className="space-y-1.5"><span className="text-xs font-medium text-slate-600">Programa</span><select value={form.programa_objetivo} onChange={(event) => setForm((current) => ({ ...current, programa_objetivo: event.target.value }))} className={selectClass}><option value="">Seleccionar</option>{programas?.results?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select></label></div><div className="flex justify-end gap-2 border-t border-slate-200 px-6 py-4"><button type="button" onClick={() => setEditing(false)} className="min-h-10 rounded-lg border border-slate-200 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancelar</button><button type="button" onClick={save} disabled={isSaving} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60">{isSaving && <Loader2 className="h-4 w-4 animate-spin" />}Guardar cambios</button></div></div></Modal>
+    <Modal show={assigning} onClose={() => setAssigning(false)}><div className="p-6"><div className="flex items-start justify-between gap-4"><div><h2 className="text-base font-semibold text-slate-950">Asignar vendedor</h2><p className="mt-1 text-sm text-slate-500">Selecciona a la persona responsable de este lead.</p></div><button type="button" onClick={() => setAssigning(false)} aria-label="Cerrar" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button></div><label className="mt-5 block space-y-1.5"><span className="text-xs font-medium text-slate-600">Vendedor</span><select value={vendedor} onChange={(event) => setVendedor(event.target.value ? Number(event.target.value) : "")} className={selectClass}><option value="">Seleccionar vendedor</option>{(vendedores ?? []).map((item) => <option key={item.id} value={item.id}>{item.nombre_completo}</option>)}</select></label><div className="mt-6 flex justify-end gap-2"><button type="button" onClick={() => setAssigning(false)} className="min-h-10 rounded-lg border border-slate-200 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancelar</button><button type="button" onClick={assign} disabled={!vendedor || isAssigning} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60">{isAssigning && <Loader2 className="h-4 w-4 animate-spin" />}Asignar</button></div></div></Modal>
+  </>;
+}
+
 export default function LeadDetailView({ uuid }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>("interacciones");
-  const searhParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<Tab>("resumen");
+  const searchParams = useSearchParams();
   const { data: lead, refetch: refetchLead } = useGetLeadQuery(uuid);
   const { unidadId } = useAppSelector((state) => state.changeUnidad);
   const { data: pipelines } = useGetPipelinesQuery(
@@ -2442,89 +2577,63 @@ export default function LeadDetailView({ uuid }: Props) {
     label: string;
     icon: React.ComponentType<{ className?: string }>;
   }[] = [
+    { key: "resumen", label: "Resumen", icon: CheckCircle2 },
     { key: "interacciones", label: "Interacciones", icon: MessageSquare },
     { key: "seguimientos", label: "Seguimientos", icon: CalendarClock },
     { key: "historial", label: "Historial", icon: GitBranch },
     { key: "plan-pago", label: "Plan de Pago", icon: CreditCard },
   ];
-  console.log(searhParams.get("ref"));
+  const ref = searchParams.get("ref");
+  const nombre = lead?.nombre_completo || (lead ? `${lead.nombre} ${lead.apellido_paterno}` : "Cargando lead");
+  const campaniaNombre = typeof lead?.campania_nombre === "object" ? lead.campania_nombre?.nombre : lead?.campania_nombre;
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      {/* Back */}
+    <div className="mx-auto max-w-[1500px] space-y-5">
       <Link
-        href={`/dashboard/crm/leads?ref=${searhParams.get("ref")}`}
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        href={`/dashboard/crm/leads${ref ? `?ref=${ref}` : ""}`}
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-md px-1 text-sm font-medium text-slate-600 outline-none transition hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-sky-600"
       >
         <ArrowLeft className="w-4 h-4" />
-        Volver al tablero
+        Volver a leads
       </Link>
 
-      {/* 2-column layout */}
-      <div className="mt-5 grid grid-cols-1 lg:grid-cols-[320px,1fr] gap-5 items-start">
-        {/* Left — sticky sidebar */}
-        <div className="lg:sticky lg:top-6">
-          <LeadInfoSidebar uuid={uuid} refetchLead={refetchLead} />
+      <header className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+        <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-lg font-bold text-white">{lead ? initials(nombre) : "…"}</div>
+            <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h1 className="truncate text-xl font-semibold tracking-tight text-slate-950">{nombre}</h1>{lead?.status === 1 ? <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Activo</span> : <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Inactivo</span>}</div><div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">{lead?.correo && <a href={`mailto:${lead.correo}`} className="hover:text-sky-700">{lead.correo}</a>}{lead?.telefono && <a href={`tel:${lead.telefono}`} className="hover:text-sky-700">{lead.telefono}</a>}</div></div>
+          </div>
+          <div className="flex flex-wrap gap-2"><>{lead && <LeadActionBar lead={lead} refetchLead={refetchLead} />}</><button type="button" onClick={() => setActiveTab("interacciones")} className="min-h-10 rounded-lg border border-slate-200 px-3.5 text-sm font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-600">Registrar interacción</button><button type="button" onClick={() => setActiveTab("seguimientos")} className="min-h-10 rounded-lg bg-slate-950 px-3.5 text-sm font-semibold text-white outline-none transition hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2"><CalendarClock className="mr-1.5 inline h-4 w-4" />Agregar seguimiento</button></div>
         </div>
+        {lead && <div className="grid border-t border-slate-200 sm:grid-cols-2 lg:grid-cols-5"><div className="border-b border-slate-100 p-4 lg:border-b-0 lg:border-r"><p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">Programa</p><p className="mt-1 text-sm font-medium text-slate-800">{lead.programa_nombre || "Sin programa"}</p></div><div className="border-b border-slate-100 p-4 lg:border-b-0 lg:border-r"><p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">Etapa</p><p className="mt-1 text-sm font-medium text-slate-800">{lead.etapa_nombre || "—"}</p></div><div className="border-b border-slate-100 p-4 lg:border-b-0 lg:border-r"><p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">Fuente</p><p className="mt-1 text-sm font-medium text-slate-800">{lead.fuente_nombre || "—"}</p></div><div className="border-b border-slate-100 p-4 sm:border-b-0 lg:border-r"><p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">Campaña</p><p className="mt-1 text-sm font-medium text-slate-800">{campaniaNombre || "—"}</p></div><div className="p-4"><p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">Asignado a</p><p className="mt-1 text-sm font-medium text-slate-800">{lead.vendedor_nombre || "Sin asignar"}</p></div></div>}
+      </header>
 
-        {/* Right — pipeline + tabs */}
-        <div className="space-y-5 min-w-0">
-          {/* Pipeline progress */}
+      <div className="grid grid-cols-1 items-start gap-5">
+        <div className="min-w-0 space-y-5">
           {lead && etapas.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 px-6 py-4">
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                Progreso en el pipeline
-              </h3>
+            <div className="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+              <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold text-slate-950">Progreso en el pipeline</h2><span className="text-xs text-slate-500">{lead.etapa_nombre}</span></div>
               <EtapasProgress etapas={etapas} currentEtapaId={lead.etapa} />
             </div>
           )}
 
-          {/* Tabs card */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="flex border-b border-gray-100 overflow-x-auto">
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+            <div className="sticky top-0 z-10 flex overflow-x-auto border-b border-slate-200 bg-white" role="tablist" aria-label="Detalle del lead">
               {tabs.map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setActiveTab(key)}
-                  className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
-                    activeTab === key
-                      ? "border-[#0056D2] text-[#0056D2]"
-                      : "border-transparent text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </button>
+                <button key={key} type="button" role="tab" aria-selected={activeTab === key} onClick={() => setActiveTab(key)} className={`flex min-h-12 items-center gap-2 border-b-2 px-4 text-sm font-medium whitespace-nowrap outline-none transition focus-visible:bg-sky-50 ${activeTab === key ? "border-sky-700 text-sky-800" : "border-transparent text-slate-500 hover:text-slate-800"}`}><Icon className="h-4 w-4" />{label}</button>
               ))}
             </div>
-
-            <div className="p-6">
-              {activeTab === "interacciones" && lead && (
-                <InteraccionesTab
-                  leadId={lead.id}
-                  uuid={uuid}
-                  telefono={lead.telefono}
-                  refetchLead={refetchLead}
-                />
-              )}
-              {activeTab === "seguimientos" && lead && (
-                <SeguimientosTab leadId={lead.id} />
-              )}
-              {activeTab === "historial" && lead && (
-                <HistorialTab leadId={lead.id} />
-              )}
-              {activeTab === "plan-pago" && lead && (
-                <PlanPagoTab
-                  leadId={lead.id}
-                  campania={resolvedCampania}
-                  instituto={resolvedInstituto}
-                  correo={lead.correo}
-                  refetchLead={refetchLead}
-                />
-              )}
+            <div className="min-h-[360px] p-4 sm:p-6" role="tabpanel">
+              {activeTab === "resumen" && lead && <LeadSummaryPanel lead={lead} />}
+              {activeTab === "interacciones" && lead && <InteraccionesTab leadId={lead.id} uuid={uuid} telefono={lead.telefono} refetchLead={refetchLead} />}
+              {activeTab === "seguimientos" && lead && <SeguimientosTab leadId={lead.id} />}
+              {activeTab === "historial" && lead && <HistorialTab leadId={lead.id} />}
+              {activeTab === "plan-pago" && lead && <PlanPagoTab leadId={lead.id} campania={resolvedCampania} instituto={resolvedInstituto} correo={lead.correo} refetchLead={refetchLead} />}
             </div>
-          </div>
+          </section>
         </div>
+        <aside id="lead-info" className="hidden min-w-0 xl:sticky xl:top-6">
+          <LeadInfoSidebar uuid={uuid} refetchLead={refetchLead} />
+        </aside>
       </div>
     </div>
   );

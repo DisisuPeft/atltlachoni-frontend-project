@@ -69,18 +69,20 @@ export default function SeguimientosView() {
   };
 
   return (
-    <div>
+    <div className="mx-auto max-w-5xl">
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-lg w-fit">
+      <div className="mb-5 flex w-fit gap-1 rounded-lg border border-slate-200 bg-white p-1 shadow-sm" role="tablist" aria-label="Estado de seguimientos">
         {(["pendientes", "completados"] as const).map((t) => (
           <button
             key={t}
             type="button"
+            role="tab"
+            aria-selected={tab === t}
             onClick={() => handleTabChange(t)}
             className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
               tab === t
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-slate-950 text-white shadow-sm"
+                : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
             }`}
           >
             {t}
@@ -90,17 +92,17 @@ export default function SeguimientosView() {
 
       {/* Summary */}
       {!isLoading && data && (
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="mb-4 text-sm text-slate-600">
           {data.count} seguimiento{data.count !== 1 ? "s" : ""} {tab}
         </p>
       )}
 
       {/* List */}
-      <div className="space-y-3">
+      <div className="space-y-3" role="tabpanel">
         {isLoading && Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
 
         {!isLoading && seguimientos.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400 border border-gray-200 rounded-xl">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-16 text-slate-400">
             <CheckCheck className="w-10 h-10 mb-3" />
             <p className="text-sm font-medium text-gray-500">
               No hay seguimientos {tab}
@@ -114,7 +116,7 @@ export default function SeguimientosView() {
             return (
               <div
                 key={seg.id}
-                className={`border rounded-xl p-4 flex items-start gap-4 transition-colors ${
+                className={`flex items-start gap-4 rounded-xl border p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-colors ${
                   vencido
                     ? "border-red-200 bg-red-50"
                     : seg.completado

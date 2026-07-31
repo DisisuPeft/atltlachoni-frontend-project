@@ -9,12 +9,13 @@ export default function Layout({ children }: Children) {
   const allowedRoles = ["Administrador", "Vendedor"];
   return (
     <RequireAuth allowedRoles={allowedRoles}>
-      <div className="w-full">
-        {/* Client Component solo para las tabs */}
+      <div className="min-h-full bg-[#f8fafc]">
         <Sidebar />
-
-        {/* El contenido sigue siendo Server Component por defecto */}
-        <main className="md:ml-64 p-4 sm:p-6">{children}</main>
+        <main className="min-h-full pt-14 md:ml-72 md:pt-0">
+          <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">
+            {children}
+          </div>
+        </main>
       </div>
     </RequireAuth>
   );

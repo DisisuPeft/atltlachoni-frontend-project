@@ -78,29 +78,29 @@ export default function MultiSelect({
       className={`relative flex flex-col gap-1.5 ${containerClassName || ""}`}
       ref={containerRef}
     >
-      <label className="text-sm font-medium text-black">
+      <label className="block text-sm font-medium text-slate-700">
         {label}
-        {required && <span className="text-red-500 ml-1 font-bold">*</span>}
+        {required && <span className="text-red-400 ml-1">*</span>}
       </label>
 
       <div
-        className="relative px-3 py-2 border border-border rounded-lg bg-white text-gray-800 focus-within:ring-2 focus-within:ring-ring focus-within:border-gray-500 transition-all cursor-pointer min-h-[42px]"
+        className="relative min-h-11 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none transition focus-within:border-sky-600 focus-within:ring-2 focus-within:ring-sky-100"
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex flex-wrap gap-1.5 pr-8">
           {selected.length === 0 ? (
-            <span className="text-gray-400">{placeholder}</span>
+            <span className="py-1 text-slate-400">{placeholder}</span>
           ) : (
             selected.map((val) => (
               <span
                 key={val}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-medium"
+                className="inline-flex items-center gap-1 rounded-md bg-sky-50 px-2 py-1 text-sm font-medium text-sky-700"
               >
                 {getLabel(val)}
                 <button
                   type="button"
                   onClick={(e) => handleRemove(val, e)}
-                  className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                  className="rounded-full p-0.5 transition-colors hover:bg-sky-100"
                 >
                   <svg
                     width="14"
@@ -121,10 +121,10 @@ export default function MultiSelect({
           )}
         </div>
 
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+        <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
           <svg
-            width="20"
-            height="20"
+            width="18"
+            height="18"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -139,39 +139,43 @@ export default function MultiSelect({
       </div>
 
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto top-full">
-          {options.map((option) => {
-            const isSelected = selected.includes(option[valueKey]);
-            return (
-              <div
-                key={option[valueKey]}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleToggle(option[valueKey]);
-                }}
-                className={`px-3 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2 ${
-                  isSelected ? "bg-blue-50" : ""
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => {}}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                />
-                <span className={isSelected ? "font-medium text-blue-800" : ""}>
-                  {option[labelKey]}
-                </span>
-              </div>
-            );
-          })}
+        <div className="absolute top-full z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+          {options.length === 0 ? (
+            <p className="px-3 py-2 text-sm text-slate-400">Sin opciones disponibles</p>
+          ) : (
+            options.map((option) => {
+              const isSelected = selected.includes(option[valueKey]);
+              return (
+                <div
+                  key={option[valueKey]}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggle(option[valueKey]);
+                  }}
+                  className={`flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-slate-50 ${
+                    isSelected ? "bg-sky-50" : ""
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => {}}
+                    className="h-4 w-4 rounded text-sky-600 focus:ring-2 focus:ring-sky-500"
+                  />
+                  <span className={isSelected ? "font-medium text-sky-700" : "text-slate-700"}>
+                    {option[labelKey]}
+                  </span>
+                </div>
+              );
+            })
+          )}
         </div>
       )}
 
-      {error && <span className="text-sm text-red-500">{error}</span>}
+      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
 
       {selected.length > 0 && (
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-slate-500">
           {selected.length}{" "}
           {selected.length === 1
             ? "elemento seleccionado"

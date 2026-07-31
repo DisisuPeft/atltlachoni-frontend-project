@@ -2,6 +2,12 @@ import { apiSlice } from "@/redux/services/apiSlice";
 import { PaginatedResponse } from "../types/paginated";
 import { UserFormData } from "@/hooks/users/user-create-form";
 
+export type CreateUserPayload = Omit<UserFormData, "password">;
+export type UpdateUserPayload = Omit<Partial<UserFormData>, "password" | "roles"> & {
+  password?: string;
+  roles?: string[];
+};
+
 export interface User {
   uuid: string;
   nombre: string;
@@ -29,7 +35,7 @@ const userApiSlice = apiSlice.injectEndpoints({
         return `/sistema/usuarios/?${params.toString()}`;
       },
     }),
-    addUser: builder.mutation({
+    addUser: builder.mutation<string, CreateUserPayload>({
       query: (formData) => ({
         url: "/sistema/usuarios/",
         method: "POST",
@@ -39,9 +45,7 @@ const userApiSlice = apiSlice.injectEndpoints({
     getUser: builder.query<UserFormData, string | null | undefined>({
       query: (uuid) => `/sistema/usuarios/${uuid}/`,
     }),
-    editUser: builder.mutation<
-      string,
-      { formData: UserFormData; id: string | null | undefined }
+    editUser: builder.mutation<string, { formData: UpdateUserPayload; id: string | null | undefined }
     >({
       query: ({ formData, id }) => ({
         url: `/sistema/usuarios/${id}/`,

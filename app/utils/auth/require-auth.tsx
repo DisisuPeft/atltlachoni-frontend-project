@@ -35,7 +35,7 @@ export default function RequireAuth({ children, allowedRoles }: Props) {
     const isEstudianteorGuest =
       verify.roles.length > 0 &&
       verify.roles.some((r: Role) =>
-        ["Estudiante", "Guest", "Docente"].includes(r.nombre),
+        ["Estudiante", "Docente"].includes(r.nombre),
       );
 
     if (isEstudianteorGuest && !tieneAcceso) {

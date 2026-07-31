@@ -1,6 +1,13 @@
 import { apiSlice } from "@/redux/services/apiSlice";
 import { PaginatedResponse } from "../types/paginated";
 
+export interface PermisoDetail {
+  id: number;
+  name: string;
+  codename: string;
+  content_type__app_label: string;
+}
+
 export interface PestaniaAdminDetail {
   id: number;
   nombre: string;
@@ -11,10 +18,14 @@ export interface PestaniaAdminDetail {
 
 export interface ModuloAdmin {
   id: number;
+  uuid: string;
   nombre: string;
   href: string;
   orden: number;
+  status: number;
   pestanias: PestaniaAdminDetail[];
+  permisos_ids: number[];
+  permisos_detail: PermisoDetail[];
 }
 
 export interface PestaniaBody {
@@ -29,6 +40,8 @@ export interface ModuloBody {
   nombre: string;
   href: string;
   orden: number;
+  status?: number;
+  permisos_ids?: number[];
   pestanias: PestaniaBody[];
 }
 
@@ -44,7 +57,10 @@ const modulosAdminApiSlice = apiSlice.injectEndpoints({
         body,
       }),
     }),
-    updateModulo: builder.mutation<ModuloAdmin, { id: number; body: Partial<ModuloBody> & { pestanias: PestaniaBody[] } }>({
+    updateModulo: builder.mutation<
+      ModuloAdmin,
+      { id: number; body: Partial<ModuloBody> & { pestanias: PestaniaBody[] } }
+    >({
       query: ({ id, body }) => ({
         url: `/sistema/modulos/${id}/`,
         method: "PATCH",
@@ -55,6 +71,29 @@ const modulosAdminApiSlice = apiSlice.injectEndpoints({
       query: (id) => ({
         url: `/sistema/modulos/${id}/`,
         method: "DELETE",
+      }),
+    }),
+    getModuloPermisos: builder.query<PermisoDetail[], number>({
+      query: (id) => `/sistema/modulos/${id}/permisos/`,
+    }),
+    asignarPermisosModulo: builder.mutation<
+      void,
+      { id: number; permisos: number[] }
+    >({
+      query: ({ id, permisos }) => ({
+        url: `/sistema/modulos/${id}/permisos/asignar/`,
+        method: "POST",
+        body: { permisos },
+      }),
+    }),
+    quitarPermisosModulo: builder.mutation<
+      void,
+      { id: number; permisos: number[] }
+    >({
+      query: ({ id, permisos }) => ({
+        url: `/sistema/modulos/${id}/permisos/quitar/`,
+        method: "POST",
+        body: { permisos },
       }),
     }),
     asignarPermisosPestania: builder.mutation<
@@ -75,5 +114,8 @@ export const {
   useCreateModuloMutation,
   useUpdateModuloMutation,
   useDeleteModuloMutation,
+  useGetModuloPermisosQuery,
+  useAsignarPermisosModuloMutation,
+  useQuitarPermisosModuloMutation,
   useAsignarPermisosPestaniaMutation,
 } = modulosAdminApiSlice;

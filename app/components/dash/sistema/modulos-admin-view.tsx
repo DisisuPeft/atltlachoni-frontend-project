@@ -29,6 +29,8 @@ import {
   Square,
   AlertCircle,
   LayoutDashboard,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -46,6 +48,8 @@ interface ModuloForm {
   nombre: string;
   href: string;
   orden: number;
+  status: number;
+  permisos_ids: number[];
   tabs: TabForm[];
 }
 
@@ -56,7 +60,7 @@ function emptyTab(orden: number): TabForm {
 }
 
 function emptyForm(): ModuloForm {
-  return { nombre: "", href: "", orden: 1, tabs: [emptyTab(1)] };
+  return { nombre: "", href: "", orden: 1, status: 1, permisos_ids: [], tabs: [] };
 }
 
 function formFromModulo(m: ModuloAdmin): ModuloForm {
@@ -64,16 +68,15 @@ function formFromModulo(m: ModuloAdmin): ModuloForm {
     nombre: m.nombre,
     href: m.href,
     orden: m.orden,
-    tabs:
-      m.pestanias.length > 0
-        ? m.pestanias.map((p) => ({
-            id: p.id,
-            nombre: p.nombre,
-            href: p.href,
-            orden: p.orden,
-            permisos_ids: p.permisos_ids,
-          }))
-        : [emptyTab(1)],
+    status: m.status ?? 1,
+    permisos_ids: m.permisos_ids ?? [],
+    tabs: m.pestanias.map((p) => ({
+      id: p.id,
+      nombre: p.nombre,
+      href: p.href,
+      orden: p.orden,
+      permisos_ids: p.permisos_ids,
+    })),
   };
 }
 
@@ -107,7 +110,7 @@ function PermisoPicker({
   };
 
   return (
-    <div className="border border-gray-200 rounded-xl bg-white overflow-hidden shadow-sm">
+    <div className="border border-gray-200 rounded-xl bg-white overflow-hidden">
       {/* Search */}
       <div className="p-2.5 border-b border-gray-100 bg-gray-50">
         <div className="relative">
@@ -122,7 +125,7 @@ function PermisoPicker({
       </div>
 
       {/* List */}
-      <div className="max-h-52 overflow-y-auto divide-y divide-gray-50">
+      <div className="max-h-48 overflow-y-auto divide-y divide-gray-50">
         {isLoading || isFetching ? (
           <div className="flex items-center justify-center py-6 gap-2 text-gray-400">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -173,14 +176,10 @@ function PermisoPicker({
             <ChevronLeft className="w-3.5 h-3.5" />
             Anterior
           </button>
-
           <span className="text-xs text-gray-500">
             Pág. <span className="font-semibold text-gray-700">{page}</span>
-            {total > 0 && (
-              <> · {total} total</>
-            )}
+            {total > 0 && <> · {total} total</>}
           </span>
-
           <button
             type="button"
             onClick={() => setPage((p) => p + 1)}
@@ -220,6 +219,7 @@ function PermisoPicker({
 }
 
 // ── TabRow ─────────────────────────────────────────────────────────────────
+// Rediseñado: layout vertical en card, evita que inputs se oculten entre sí
 
 function TabRow({
   tab,
@@ -238,55 +238,38 @@ function TabRow({
 }) {
   const [showPermisos, setShowPermisos] = useState(false);
 
-  const inputCls =
-    "px-2.5 py-2 text-sm border rounded-lg bg-white focus:outline-none focus:ring-1 transition-colors";
-  const inputNormal = `${inputCls} border-gray-200 focus:border-[#0056D2] focus:ring-[#0056D2]`;
-  const inputError = `${inputCls} border-red-300 focus:border-red-400 focus:ring-red-200`;
+  const inputBase =
+    "w-full px-3 py-2 text-sm border rounded-lg bg-white focus:outline-none focus:ring-1 transition-colors";
+  const inputNormal = `${inputBase} border-gray-200 focus:border-[#0056D2] focus:ring-[#0056D2]`;
+  const inputError = `${inputBase} border-red-300 focus:border-red-400 focus:ring-red-200`;
 
   return (
     <div
-      className={`border rounded-xl overflow-hidden bg-white shadow-sm ${
+      className={`rounded-xl border overflow-hidden shadow-sm ${
         hasError ? "border-red-200" : "border-gray-200"
       }`}
     >
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50/80">
+      {/* ── Card header ── */}
+      <div className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 border-b border-gray-100">
+        {/* Tab number badge */}
         <span className="w-6 h-6 rounded-lg bg-[#0056D2]/10 text-[#0056D2] text-xs font-bold flex items-center justify-center shrink-0 select-none">
           {idx + 1}
         </span>
 
+        {/* Name — full width */}
         <input
           className={`flex-1 min-w-0 ${!tab.nombre && hasError ? inputError : inputNormal}`}
-          placeholder="Nombre de pestaña *"
+          placeholder="Nombre de la pestaña *"
           value={tab.nombre}
           onChange={(e) => onChange({ ...tab, nombre: e.target.value })}
         />
 
-        <div className="relative w-36 shrink-0">
-          <Link2 className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-          <input
-            className={`w-full pl-8 font-mono text-xs ${!tab.href && hasError ? inputError : inputNormal}`}
-            placeholder="/ruta"
-            value={tab.href}
-            onChange={(e) => onChange({ ...tab, href: e.target.value })}
-          />
-        </div>
-
-        <div className="relative w-16 shrink-0">
-          <Hash className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-          <input
-            type="number"
-            className={`w-full pl-7 text-center ${inputNormal}`}
-            placeholder="1"
-            min={1}
-            value={tab.orden}
-            onChange={(e) => onChange({ ...tab, orden: Number(e.target.value) })}
-          />
-        </div>
-
+        {/* Permisos toggle */}
         <button
           type="button"
           onClick={() => setShowPermisos((v) => !v)}
-          className={`flex items-center gap-1.5 px-2.5 py-2 text-xs font-medium rounded-lg border transition-colors shrink-0 ${
+          title="Configurar permisos"
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors shrink-0 ${
             showPermisos
               ? "bg-[#0056D2] text-white border-[#0056D2]"
               : tab.permisos_ids.length > 0
@@ -305,21 +288,65 @@ function TabRow({
           )}
         </button>
 
+        {/* Delete */}
         {canRemove && (
           <button
             type="button"
             onClick={onRemove}
-            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0"
             title="Eliminar pestaña"
+            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
         )}
       </div>
 
+      {/* ── Card body: href + orden ── */}
+      <div className="px-3 py-3 bg-white grid grid-cols-[1fr,90px] gap-3">
+        {/* Href */}
+        <div className="space-y-1">
+          <label className="text-[11px] font-medium text-gray-500 flex items-center gap-1">
+            <Link2 className="w-3 h-3" />
+            Ruta (href) <span className="text-red-400">*</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-mono select-none pointer-events-none">
+              /
+            </span>
+            <input
+              className={`${!tab.href && hasError ? inputError : inputNormal} pl-6 font-mono text-sm`}
+              placeholder="ruta"
+              value={tab.href.replace(/^\//, "")}
+              onChange={(e) =>
+                onChange({ ...tab, href: `/${e.target.value}` })
+              }
+            />
+          </div>
+        </div>
+
+        {/* Orden */}
+        <div className="space-y-1">
+          <label className="text-[11px] font-medium text-gray-500 flex items-center gap-1">
+            <Hash className="w-3 h-3" />
+            Orden
+          </label>
+          <input
+            type="number"
+            className={`${inputNormal} text-center`}
+            placeholder="1"
+            min={1}
+            value={tab.orden}
+            onChange={(e) =>
+              onChange({ ...tab, orden: Number(e.target.value) })
+            }
+          />
+        </div>
+      </div>
+
+      {/* ── Permisos expandable ── */}
       {showPermisos && (
-        <div className="p-3 border-t border-gray-100 bg-white">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+        <div className="px-3 pb-3 bg-white border-t border-gray-100">
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 pt-3 flex items-center gap-1.5">
             <Lock className="w-3.5 h-3.5" />
             Permisos requeridos para esta pestaña
           </p>
@@ -360,10 +387,7 @@ function ModuloEditor({
     })),
   };
 
-  const hasErrors =
-    errors.nombre ||
-    errors.href ||
-    errors.tabs.some((t) => t.nombre || t.href);
+  const hasErrors = errors.nombre || errors.href;
 
   const updateTab = useCallback(
     (idx: number, tab: TabForm) =>
@@ -399,9 +423,9 @@ function ModuloEditor({
   const inputError = `${inputCls} border-red-300 focus:border-red-400 focus:ring-red-200`;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+    <div className="space-y-5">
+      {/* ── Editor header ── */}
+      <div className="flex items-center justify-between gap-4 pb-4 border-b border-gray-200">
         <div>
           <h2 className="text-base font-semibold text-gray-900">
             {editingId ? "Editar módulo" : "Nuevo módulo"}
@@ -412,7 +436,7 @@ function ModuloEditor({
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={onCancel}
@@ -432,11 +456,12 @@ function ModuloEditor({
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {isSaving ? "Guardando..." : "Guardar cambios"}
+            {isSaving ? "Guardando..." : "Guardar"}
           </button>
         </div>
       </div>
 
+      {/* ── Error banner ── */}
       {submitted && hasErrors && (
         <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
           <AlertCircle className="w-4 h-4 shrink-0" />
@@ -444,85 +469,131 @@ function ModuloEditor({
         </div>
       )}
 
-      {/* Module fields */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4">
-        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-          <LayoutDashboard className="w-3.5 h-3.5" />
-          Datos del módulo
-        </h3>
+      {/* ── Module fields ── */}
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+          <LayoutDashboard className="w-3.5 h-3.5 text-gray-400" />
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Datos del módulo
+          </h3>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr,200px,80px] gap-3">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-gray-600">
-              Nombre <span className="text-red-400">*</span>
-            </label>
-            <input
-              className={submitted && errors.nombre ? inputError : inputNormal}
-              placeholder="Ej. CRM"
-              value={form.nombre}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, nombre: e.target.value }))
+        <div className="p-4 space-y-4">
+          {/* Nombre + Status toggle */}
+          <div className="flex items-end gap-3">
+            <div className="flex-1 space-y-1.5">
+              <label className="block text-xs font-medium text-gray-600">
+                Nombre <span className="text-red-400">*</span>
+              </label>
+              <input
+                className={submitted && errors.nombre ? inputError : inputNormal}
+                placeholder="Ej. CRM"
+                value={form.nombre}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, nombre: e.target.value }))
+                }
+              />
+            </div>
+            {/* Status toggle */}
+            <button
+              type="button"
+              onClick={() =>
+                setForm((f) => ({ ...f, status: f.status === 1 ? 0 : 1 }))
               }
-            />
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-colors shrink-0 ${
+                form.status === 1
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : "bg-gray-100 border-gray-200 text-gray-400"
+              }`}
+              title={form.status === 1 ? "Módulo activo — clic para desactivar" : "Módulo inactivo — clic para activar"}
+            >
+              {form.status === 1 ? (
+                <ToggleRight className="w-5 h-5" />
+              ) : (
+                <ToggleLeft className="w-5 h-5" />
+              )}
+              {form.status === 1 ? "Activo" : "Inactivo"}
+            </button>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-gray-600">
-              Ruta (href) <span className="text-red-400">*</span>
-            </label>
-            <div className="relative">
-              <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          {/* Href + Orden — side by side */}
+          <div className="grid grid-cols-[1fr,100px] gap-3">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-gray-600">
+                Ruta (href) <span className="text-red-400">*</span>
+              </label>
+              <div className="relative">
+                <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input
+                  className={`${submitted && errors.href ? inputError : inputNormal} pl-9 font-mono`}
+                  placeholder="/dashboard/crm"
+                  value={form.href}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, href: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-gray-600">
+                Orden
+              </label>
               <input
-                className={`${submitted && errors.href ? inputError : inputNormal} pl-9 font-mono`}
-                placeholder="/crm"
-                value={form.href}
+                type="number"
+                min={1}
+                className={`${inputNormal} text-center`}
+                value={form.orden}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, href: e.target.value }))
+                  setForm((f) => ({ ...f, orden: Number(e.target.value) }))
                 }
               />
             </div>
           </div>
 
+          {/* Permisos del módulo */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-gray-600">
-              Orden
+            <label className="block text-xs font-medium text-gray-600 flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5" />
+              Permisos del módulo
+              <span className="text-gray-400 font-normal">(para módulos sin pestañas)</span>
             </label>
-            <input
-              type="number"
-              min={1}
-              className={`${inputNormal} text-center`}
-              value={form.orden}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, orden: Number(e.target.value) }))
-              }
+            <PermisoPicker
+              selected={form.permisos_ids}
+              onChange={(ids) => setForm((f) => ({ ...f, permisos_ids: ids }))}
             />
           </div>
         </div>
       </div>
 
-      {/* Tabs section */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Layers className="w-3.5 h-3.5" />
-            Pestañas ({form.tabs.length})
-          </h3>
+      {/* ── Tabs section ── */}
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Layers className="w-3.5 h-3.5 text-gray-400" />
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Pestañas
+              <span className="ml-1.5 px-1.5 py-0.5 bg-gray-200 text-gray-600 rounded-md font-mono">
+                {form.tabs.length}
+              </span>
+            </h3>
+          </div>
           <button
             type="button"
             onClick={addTab}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#0056D2] border border-[#0056D2]/30 rounded-xl bg-[#F0F6FF] hover:bg-[#E5EFFC] transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#0056D2] border border-[#0056D2]/30 rounded-lg bg-[#F0F6FF] hover:bg-[#E5EFFC] transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Añadir pestaña
           </button>
         </div>
 
-        <p className="text-xs text-gray-400">
-          Cada pestaña puede tener permisos requeridos. Haz clic en{" "}
-          <Shield className="w-3 h-3 inline text-gray-400" /> para configurarlos.
-        </p>
+        <div className="p-4 space-y-3">
+          <p className="text-xs text-gray-400 flex items-center gap-1.5">
+            <Shield className="w-3 h-3" />
+            Las pestañas son opcionales. Haz clic en el escudo para configurar permisos.
+          </p>
 
-        <div className="space-y-2.5">
           {form.tabs.map((tab, idx) => (
             <TabRow
               key={tab.id ?? `new-${idx}`}
@@ -530,11 +601,8 @@ function ModuloEditor({
               idx={idx}
               onChange={(t) => updateTab(idx, t)}
               onRemove={() => removeTab(idx)}
-              canRemove={form.tabs.length > 1}
-              hasError={
-                submitted &&
-                (errors.tabs[idx]?.nombre || errors.tabs[idx]?.href)
-              }
+              canRemove={true}
+              hasError={false}
             />
           ))}
         </div>
@@ -579,6 +647,11 @@ function ModuleCard({
             <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-md font-mono shrink-0">
               #{modulo.orden}
             </span>
+            {modulo.status === 0 && (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-gray-200 text-gray-500 uppercase tracking-wide shrink-0">
+                Inactivo
+              </span>
+            )}
           </div>
           <p className="text-xs text-gray-400 font-mono mt-0.5 truncate">
             {modulo.href}
@@ -598,16 +671,28 @@ function ModuleCard({
         </button>
       </div>
 
-      <div className="flex items-center gap-3 mt-2.5">
-        <span className="flex items-center gap-1 text-xs text-gray-400">
-          <Layers className="w-3 h-3" />
-          {modulo.pestanias.length}{" "}
-          {modulo.pestanias.length === 1 ? "pestaña" : "pestañas"}
-        </span>
+      <div className="flex items-center gap-3 mt-2.5 flex-wrap">
+        {modulo.pestanias.length === 0 ? (
+          <span className="text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md">
+            Módulo plano (sin pestañas)
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 text-xs text-gray-400">
+            <Layers className="w-3 h-3" />
+            {modulo.pestanias.length}{" "}
+            {modulo.pestanias.length === 1 ? "pestaña" : "pestañas"}
+          </span>
+        )}
         {totalPermisos > 0 && (
           <span className="flex items-center gap-1 text-xs text-[#0056D2]/70">
             <Shield className="w-3 h-3" />
-            {totalPermisos} permiso{totalPermisos !== 1 ? "s" : ""}
+            {totalPermisos} permisos en tabs
+          </span>
+        )}
+        {(modulo.permisos_ids?.length ?? 0) > 0 && (
+          <span className="flex items-center gap-1 text-xs text-emerald-600">
+            <Shield className="w-3 h-3" />
+            {modulo.permisos_ids.length} permisos propios
           </span>
         )}
       </div>
@@ -663,6 +748,8 @@ export default function ModulosAdminView() {
         nombre: form.nombre,
         href: form.href,
         orden: form.orden,
+        status: form.status,
+        permisos_ids: form.permisos_ids,
         pestanias: form.tabs.map((t) => ({
           ...(t.id !== undefined ? { id: t.id } : {}),
           nombre: t.nombre,
@@ -714,7 +801,6 @@ export default function ModulosAdminView() {
     }
   };
 
-  // Superuser guard — only block once we've received the verify response
   if (verify !== undefined && !isSuperUser) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-center px-4">
@@ -735,70 +821,75 @@ export default function ModulosAdminView() {
   const sorted = [...modulos].sort((a, b) => a.orden - b.orden);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      {/* Page header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-8 h-8 rounded-xl bg-[#0056D2]/10 flex items-center justify-center">
-            <Shield className="w-4 h-4 text-[#0056D2]" />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+      {/* ── Page header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-[#0056D2]/10 flex items-center justify-center shrink-0">
+            <Shield className="w-5 h-5 text-[#0056D2]" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900">
-            Módulos y permisos
-          </h1>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">
+              Módulos y permisos
+            </h1>
+            <p className="text-sm text-gray-400">
+              Gestiona los módulos del sistema, sus pestañas y permisos de acceso.
+            </p>
+          </div>
         </div>
-        <p className="text-sm text-gray-400 ml-11">
-          Gestiona los módulos del sistema, sus pestañas y los permisos
-          requeridos para acceder a cada sección.
-        </p>
       </div>
 
-      {/* Split layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-[300px,1fr] gap-5 items-start">
-        {/* Left: module list */}
-        <div className="space-y-3 lg:sticky lg:top-6">
+      {/* ── Split layout — paneles con scroll propio, sin sticky ── */}
+      <div className="flex flex-col lg:flex-row gap-5 items-start">
+
+        {/* ── Left: lista de módulos (ancho fijo, scroll propio) ── */}
+        <div className="w-full lg:w-[300px] shrink-0 flex flex-col gap-3">
           <button
             type="button"
             onClick={openCreate}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-[#0056D2] rounded-xl hover:bg-[#004BB5] transition-colors shadow-sm"
+            className="inline-flex w-full items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-[#0056D2] rounded-xl hover:bg-[#004BB5] transition-colors shadow-sm"
           >
             <Plus className="w-4 h-4" />
             Nuevo módulo
           </button>
 
-          {isLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-20 rounded-2xl bg-gray-100 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : sorted.length === 0 ? (
-            <div className="py-10 text-center border-2 border-dashed border-gray-200 rounded-2xl">
-              <Layers className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">Sin módulos creados</p>
-              <p className="text-xs text-gray-300 mt-1">
-                Crea el primero con el botón de arriba
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {sorted.map((m) => (
-                <ModuleCard
-                  key={m.id}
-                  modulo={m}
-                  isActive={editingModulo?.id === m.id}
-                  onSelect={() => openEdit(m)}
-                  onDelete={() => handleDelete(m)}
-                />
-              ))}
-            </div>
-          )}
+          {/* Lista con max-height para scroll propio */}
+          <div className="max-h-[72vh] overflow-y-auto pr-1">
+            {isLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-20 rounded-2xl bg-gray-100 animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : sorted.length === 0 ? (
+              <div className="py-10 text-center border-2 border-dashed border-gray-200 rounded-2xl">
+                <Layers className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">Sin módulos creados</p>
+                <p className="text-xs text-gray-300 mt-1">
+                  Crea el primero con el botón de arriba
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2 pb-4">
+                {sorted.map((m) => (
+                  <ModuleCard
+                    key={m.id}
+                    modulo={m}
+                    isActive={editingModulo?.id === m.id}
+                    onSelect={() => openEdit(m)}
+                    onDelete={() => handleDelete(m)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Right: editor or empty state */}
-        <div>
+        {/* ── Right: editor (flujo normal, crece con el contenido) ── */}
+        <div className="flex-1 min-w-0">
           {mode === "idle" ? (
             <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-gray-200 rounded-2xl text-center">
               <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mb-3">
@@ -812,20 +903,18 @@ export default function ModulosAdminView() {
               </p>
             </div>
           ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
-              <ModuloEditor
-                key={editorKey}
-                initial={
-                  mode === "edit" && editingModulo
-                    ? formFromModulo(editingModulo)
-                    : emptyForm()
-                }
-                editingId={editingModulo?.id ?? null}
-                onSave={handleSave}
-                onCancel={closePanel}
-                isSaving={isSaving}
-              />
-            </div>
+            <ModuloEditor
+              key={editorKey}
+              initial={
+                mode === "edit" && editingModulo
+                  ? formFromModulo(editingModulo)
+                  : emptyForm()
+              }
+              editingId={editingModulo?.id ?? null}
+              onSave={handleSave}
+              onCancel={closePanel}
+              isSaving={isSaving}
+            />
           )}
         </div>
       </div>

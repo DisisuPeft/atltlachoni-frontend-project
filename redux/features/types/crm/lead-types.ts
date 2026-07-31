@@ -115,6 +115,20 @@ export interface Lead {
   instituto?: number;
 }
 
+/** Response returned by PATCH /crm/leads/:uuid/. It intentionally excludes
+ * presentation fields such as nombre_completo and *_nombre; refetch the read
+ * endpoint when those derived values are needed. */
+export type LeadWriteResponse = Omit<
+  Lead,
+  | "nombre_completo"
+  | "fuente_nombre"
+  | "etapa_nombre"
+  | "vendedor_nombre"
+  | "campania_nombre"
+  | "programa_nombre"
+  | "temperatura_actual"
+>;
+
 export interface LeadQueryParams {
   instituto?: number;
   etapa?: number;

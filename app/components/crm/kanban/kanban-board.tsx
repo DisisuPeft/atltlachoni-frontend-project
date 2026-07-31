@@ -56,7 +56,7 @@ function LeadCard({ lead, refParam }: { lead: Lead; refParam: string | null }) {
       {/* Top row: temp + initials avatar */}
       <div className="flex items-start justify-between gap-2">
         <Link
-          href={`/dashboard/crm/detalle-lead/${lead.uuid}?ref=${refParam}`}
+          href={`/dashboard/crm/detalle-lead/${lead.uuid}${refParam ? `?ref=${refParam}` : ""}`}
           className="flex items-center gap-2.5 min-w-0 flex-1"
         >
           <div
@@ -143,7 +143,7 @@ function KanbanColumn({
           </span>
         </div>
         <Link
-          href={`/dashboard/crm/nuevo-lead?ref=${refParam}`}
+          href={`/dashboard/crm/nuevo-lead${refParam ? `?ref=${refParam}` : ""}`}
           className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
         >
           <Plus className="w-4 h-4" />

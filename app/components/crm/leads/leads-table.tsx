@@ -1,282 +1,74 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import {
-  useGetLeadsQuery,
-  useGetVendedoresQuery,
-} from "@/redux/features/crm/leadsApiSlice";
-import {
-  useGetFuentesQuery,
-  useGetEstatusQuery,
-  useGetEtapasQuery,
-} from "@/redux/features/crm/catalogosCrmApiSlice";
+import { ChevronLeft, ChevronRight, ExternalLink, Search, SlidersHorizontal, Users, X } from "lucide-react";
 import { useChangeUnidad } from "@/hooks";
-import { Search, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { useGetLeadsQuery, useGetVendedoresQuery } from "@/redux/features/crm/leadsApiSlice";
+import { useGetEstatusQuery, useGetEtapasQuery, useGetFuentesQuery } from "@/redux/features/crm/catalogosCrmApiSlice";
 
-function fmt(iso: string) {
-  return new Date(iso).toLocaleDateString("es-MX", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
+const fmt = (iso: string) => new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
 
 function SkeletonRow() {
-  return (
-    <tr className="animate-pulse">
-      {Array.from({ length: 8 }).map((_, j) => (
-        <td key={j} className="px-4 py-3">
-          <div className="h-4 bg-gray-100 rounded w-3/4" />
-        </td>
-      ))}
-    </tr>
-  );
+  return <tr className="animate-pulse">{Array.from({ length: 9 }).map((_, index) => <td key={index} className="px-4 py-4"><div className="h-4 w-3/4 rounded bg-slate-100" /></td>)}</tr>;
 }
 
 export default function LeadsTable() {
   const { unidadId } = useChangeUnidad();
-  const instituto = unidadId ?? undefined;
   const ref = useSearchParams().get("ref");
-
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [filterFuente, setFilterFuente] = useState<number | undefined>();
-  const [filterEstatus, setFilterEstatus] = useState<number | undefined>();
-  const [filterEtapa, setFilterEtapa] = useState<number | undefined>();
-  const [filterVendedor, setFilterVendedor] = useState<number | undefined>();
+  const [fuente, setFuente] = useState<number>();
+  const [estatus, setEstatus] = useState<number>();
+  const [etapa, setEtapa] = useState<number>();
+  const [vendedor, setVendedor] = useState<number>();
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 400);
-    return () => clearTimeout(t);
+    const timer = window.setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 350);
+    return () => window.clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading } = useGetLeadsQuery({
-    instituto,
-    page,
-    search: debouncedSearch || undefined,
-    fuente: filterFuente,
-    estatus: filterEstatus,
-    etapa: filterEtapa,
-    vendedor: filterVendedor,
-  });
-
+  const instituto = unidadId ?? undefined;
+  const { data, isLoading } = useGetLeadsQuery({ instituto, page, search: debouncedSearch || undefined, fuente, estatus, etapa, vendedor });
   const { data: fuentesData } = useGetFuentesQuery({ instituto });
   const { data: estatusData } = useGetEstatusQuery({ instituto });
   const { data: etapasData } = useGetEtapasQuery({ instituto });
   const { data: vendedoresData } = useGetVendedoresQuery();
-
   const leads = data?.results ?? [];
-  const fuentes = fuentesData?.results ?? [];
-  const estatus = estatusData?.results ?? [];
-  const etapas = etapasData?.results ?? [];
-  const vendedores = vendedoresData ?? [];
+  const hasFilters = Boolean(search || fuente || estatus || etapa || vendedor);
+  const totalPages = data ? Math.max(1, Math.ceil(data.count / 20)) : 1;
+  const selectClass = "min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-sky-600 focus:ring-2 focus:ring-sky-100";
 
-  const totalPages = data ? Math.ceil(data.count / 20) : 1;
-
-  const selectCls =
-    "border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:border-blue-400 transition-colors";
+  const reset = () => { setSearch(""); setFuente(undefined); setEstatus(undefined); setEtapa(undefined); setVendedor(undefined); setPage(1); };
+  const toggle = (uuid: string) => setSelected((current) => current.includes(uuid) ? current.filter((id) => id !== uuid) : [...current, uuid]);
+  const toggleAll = () => setSelected((current) => current.length === leads.length ? [] : leads.map((lead) => lead.uuid));
 
   return (
-    <div>
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-5">
-        <div className="relative flex-1 min-w-[220px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por nombre, teléfono…"
-            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 transition-colors"
-          />
+    <section aria-label="Lista de leads" className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+      <div className="border-b border-slate-200 p-4 sm:p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nombre, correo o teléfono…" className="min-h-10 w-full rounded-lg border border-slate-200 py-2 pl-9 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-600 focus:ring-2 focus:ring-sky-100" /></div>
+          <div className="flex items-center gap-1.5"><button type="button" onClick={() => setFiltersOpen((value) => !value)} aria-expanded={filtersOpen} className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-3 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-sky-600 ${filtersOpen || hasFilters ? "border-sky-200 bg-sky-50 text-sky-800" : "border-slate-200 text-slate-700 hover:bg-slate-50"}`}><SlidersHorizontal className="h-4 w-4" />Filtros{hasFilters ? " activos" : ""}</button>{hasFilters && <button type="button" onClick={reset} className="inline-flex min-h-10 items-center gap-1 rounded-lg px-2 text-sm font-medium text-slate-600 outline-none hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-sky-600"><X className="h-4 w-4" />Limpiar</button>}</div>
         </div>
-
-        <select
-          value={filterFuente ?? ""}
-          onChange={(e) => {
-            setFilterFuente(e.target.value ? Number(e.target.value) : undefined);
-            setPage(1);
-          }}
-          className={selectCls}
-        >
-          <option value="">Todas las fuentes</option>
-          {fuentes.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.nombre}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={filterEstatus ?? ""}
-          onChange={(e) => {
-            setFilterEstatus(e.target.value ? Number(e.target.value) : undefined);
-            setPage(1);
-          }}
-          className={selectCls}
-        >
-          <option value="">Todos los estatus</option>
-          {estatus.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.nombre}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={filterEtapa ?? ""}
-          onChange={(e) => {
-            setFilterEtapa(e.target.value ? Number(e.target.value) : undefined);
-            setPage(1);
-          }}
-          className={selectCls}
-        >
-          <option value="">Todas las etapas</option>
-          {etapas.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.nombre}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={filterVendedor ?? ""}
-          onChange={(e) => {
-            setFilterVendedor(e.target.value ? Number(e.target.value) : undefined);
-            setPage(1);
-          }}
-          className={selectCls}
-        >
-          <option value="">Todos los asesores</option>
-          {vendedores.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.nombre_completo}
-            </option>
-          ))}
-        </select>
+        {filtersOpen && <div className="mt-3 grid gap-2 border-t border-slate-100 pt-3 sm:grid-cols-2 xl:grid-cols-4">
+          <select value={fuente ?? ""} onChange={(event) => { setFuente(event.target.value ? Number(event.target.value) : undefined); setPage(1); }} className={selectClass}><option value="">Todas las fuentes</option>{fuentesData?.results.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select>
+          <select value={estatus ?? ""} onChange={(event) => { setEstatus(event.target.value ? Number(event.target.value) : undefined); setPage(1); }} className={selectClass}><option value="">Todos los estatus</option>{estatusData?.results.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select>
+          <select value={etapa ?? ""} onChange={(event) => { setEtapa(event.target.value ? Number(event.target.value) : undefined); setPage(1); }} className={selectClass}><option value="">Todas las etapas</option>{etapasData?.results.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select>
+          <select value={vendedor ?? ""} onChange={(event) => { setVendedor(event.target.value ? Number(event.target.value) : undefined); setPage(1); }} className={selectClass}><option value="">Todos los asesores</option>{vendedoresData?.map((item) => <option key={item.id} value={item.id}>{item.nombre_completo}</option>)}</select>
+        </div>}
       </div>
 
-      {/* Summary */}
-      {!isLoading && data && (
-        <p className="text-sm text-gray-500 mb-3">
-          {data.count} lead{data.count !== 1 ? "s" : ""} encontrado
-          {data.count !== 1 ? "s" : ""}
-        </p>
-      )}
+      {!isLoading && data && <div className="flex min-h-12 items-center justify-between gap-3 border-b border-slate-100 px-4 sm:px-5"><p className="text-sm text-slate-600"><span className="font-semibold text-slate-950">{data.count}</span> lead{data.count !== 1 ? "s" : ""} encontrado{data.count !== 1 ? "s" : ""}</p>{selected.length > 0 && <div className="flex items-center gap-2 text-sm font-medium text-sky-800"><Users className="h-4 w-4" />{selected.length} seleccionado{selected.length > 1 ? "s" : ""}<button type="button" onClick={() => setSelected([])} className="rounded p-1 hover:bg-sky-100" aria-label="Quitar selección"><X className="h-4 w-4" /></button></div>}</div>}
 
-      {/* Table */}
-      <div className="overflow-x-auto border border-gray-200 rounded-xl">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              {[
-                "Nombre",
-                "Teléfono",
-                "Fuente",
-                "Etapa",
-                "Estatus",
-                "Asesor",
-                "Fecha",
-                "",
-              ].map((col) => (
-                <th
-                  key={col}
-                  className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap"
-                >
-                  {col}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {isLoading &&
-              Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)}
-
-            {!isLoading && leads.length === 0 && (
-              <tr>
-                <td
-                  colSpan={8}
-                  className="px-4 py-12 text-center text-sm text-gray-400"
-                >
-                  No se encontraron leads con los filtros aplicados
-                </td>
-              </tr>
-            )}
-
-            {!isLoading &&
-              leads.map((lead) => (
-                <tr
-                  key={lead.uuid}
-                  className="hover:bg-gray-50 transition-colors"
-                >
-                  <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
-                    {lead.nombre} {lead.apellido_paterno}{" "}
-                    {lead.apellido_materno}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                    {lead.telefono}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {lead.fuente_nombre ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {lead.etapa_nombre ?? "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                      {lead.estatus_nombre ?? "—"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {lead.vendedor_nombre ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
-                    {fmt(lead.created_at)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/dashboard/crm/detalle-lead/${lead.uuid}${ref ? `?ref=${ref}` : ""}`}
-                      className="text-blue-500 hover:text-blue-700 transition-colors"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      {(data?.next || data?.previous) && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-gray-500">
-            Página {page} de {totalPages}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              disabled={!data.previous}
-              onClick={() => setPage((p) => p - 1)}
-              className="p-1.5 rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50 transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              disabled={!data.next}
-              onClick={() => setPage((p) => p + 1)}
-              className="p-1.5 rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50 transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_rgb(226,232,240)]"><tr><th className="w-12 px-4 py-3.5"><input type="checkbox" aria-label="Seleccionar todos los leads de esta página" checked={leads.length > 0 && selected.length === leads.length} onChange={toggleAll} className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-600" /></th>{["Nombre", "Teléfono", "Fuente", "Etapa", "Estatus", "Asesor", "Fecha", ""].map((column) => <th key={column} className="px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500 whitespace-nowrap">{column}</th>)}</tr></thead>
+        <tbody className="divide-y divide-slate-100">{isLoading && Array.from({ length: 8 }).map((_, index) => <SkeletonRow key={index} />)}
+        {!isLoading && leads.length === 0 && <tr><td colSpan={9} className="px-4 py-14 text-center"><Search className="mx-auto mb-3 h-7 w-7 text-slate-300" /><p className="font-medium text-slate-700">No encontramos leads con estos criterios</p><button type="button" onClick={reset} className="mt-2 text-sm font-medium text-sky-700 hover:text-sky-900">Limpiar filtros</button></td></tr>}
+        {!isLoading && leads.map((lead) => <tr key={lead.uuid} className={`transition-colors hover:bg-sky-50/50 ${selected.includes(lead.uuid) ? "bg-sky-50" : ""}`}><td className="px-4 py-3.5"><input type="checkbox" aria-label={`Seleccionar ${lead.nombre} ${lead.apellido_paterno}`} checked={selected.includes(lead.uuid)} onChange={() => toggle(lead.uuid)} className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-600" /></td><td className="px-4 py-3.5 font-medium whitespace-nowrap text-slate-950"><Link href={`/dashboard/crm/detalle-lead/${lead.uuid}${ref ? `?ref=${ref}` : ""}`} className="outline-none hover:text-sky-700 focus-visible:rounded focus-visible:ring-2 focus-visible:ring-sky-600">{lead.nombre} {lead.apellido_paterno} {lead.apellido_materno}</Link></td><td className="px-4 py-3.5 whitespace-nowrap text-slate-600">{lead.telefono}</td><td className="px-4 py-3.5 text-slate-600">{lead.fuente_nombre ?? "—"}</td><td className="px-4 py-3.5 text-slate-600">{lead.etapa_nombre ?? "—"}</td><td className="px-4 py-3.5"><span className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-800">{lead.estatus_nombre ?? "—"}</span></td><td className="px-4 py-3.5 text-slate-600">{lead.vendedor_nombre ?? "—"}</td><td className="px-4 py-3.5 whitespace-nowrap text-slate-500">{fmt(lead.created_at)}</td><td className="px-4 py-3.5"><Link href={`/dashboard/crm/detalle-lead/${lead.uuid}${ref ? `?ref=${ref}` : ""}`} aria-label={`Abrir lead de ${lead.nombre} ${lead.apellido_paterno}`} className="inline-flex rounded-md p-1.5 text-slate-500 outline-none transition hover:bg-slate-100 hover:text-sky-700 focus-visible:ring-2 focus-visible:ring-sky-600"><ExternalLink className="h-4 w-4" /></Link></td></tr>)}</tbody></table></div>
+      {(data?.next || data?.previous) && <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 sm:px-5"><p className="text-sm text-slate-600">Página {page} de {totalPages}</p><div className="flex gap-2"><button type="button" disabled={!data.previous} onClick={() => setPage((current) => current - 1)} aria-label="Página anterior" className="rounded-lg border border-slate-200 p-2 text-slate-700 outline-none transition hover:bg-slate-50 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-sky-600"><ChevronLeft className="h-4 w-4" /></button><button type="button" disabled={!data.next} onClick={() => setPage((current) => current + 1)} aria-label="Página siguiente" className="rounded-lg border border-slate-200 p-2 text-slate-700 outline-none transition hover:bg-slate-50 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-sky-600"><ChevronRight className="h-4 w-4" /></button></div></div>}
+    </section>
   );
 }

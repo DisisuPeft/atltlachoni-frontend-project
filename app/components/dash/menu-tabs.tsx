@@ -39,9 +39,16 @@ export default function TabsPanelWrapper() {
     router.push(`${tab.href}?ref=${q}`);
   };
 
-  if (isLoading || !activeTab) {
+  if (isLoading) {
     return <div className="p-4">Cargando tabs...</div>;
   }
+
+  // Módulo plano: sin pestañas → no mostrar barra de tabs
+  if (!pestanias || pestanias.length === 0) {
+    return null;
+  }
+
+  if (!activeTab) return null;
 
   return (
     <Tabs

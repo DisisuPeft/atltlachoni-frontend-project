@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useComprobanteStream } from "@/hooks";
 import { X } from "lucide-react";
+import { getApiErrorMessage } from "@/redux/utils/api-error";
 
 function ComprobanteImg({ validacionId }: { validacionId: number }) {
   const { url, isLoading, error } = useComprobanteStream(validacionId);
@@ -217,12 +218,17 @@ export default function PlanPagoTab({
     notas_vendedor: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // ─ Comprobante en creación de plan
+  // ─ Comprobante en creación de plan (obligatorio: comprobante, monto y fecha)
   const [comprobanteCrear, setComprobanteCrear] = useState<File | null>(null);
   const [comprobanteCrearPreview, setComprobanteCrearPreview] = useState<
     string | null
   >(null);
+  const [montoPagadoCrear, setMontoPagadoCrear] = useState("");
+  const [fechaPagoCrear, setFechaPagoCrear] = useState(
+    () => new Date().toISOString().split("T")[0],
+  );
 
   // ─ Validacion form state
   const [showValForm, setShowValForm] = useState(false);
@@ -248,28 +254,54 @@ export default function PlanPagoTab({
       errs.fecha_primera_mensualidad = "Requerida";
     else if (new Date(form.fecha_primera_mensualidad) <= new Date())
       errs.fecha_primera_mensualidad = "Debe ser una fecha futura";
+    // El comprobante de pago (archivo, monto y fecha) ahora es obligatorio
+    // para crear el plan — ya no se puede registrar la venta sin él.
+    if (!comprobanteCrear)
+      errs.comprobante_pago = "El comprobante de pago es obligatorio";
+    if (!montoPagadoCrear || Number(montoPagadoCrear) <= 0)
+      errs.monto_pagado_crear = "Debe ser mayor a 0";
+    if (!fechaPagoCrear) errs.fecha_pago_crear = "Requerida";
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   const handleCreatePlan = async () => {
+    setSubmitError(null);
     if (!validatePlanForm() || !campania || !instituto || !empresaId) return;
-    const plan = await createPlanPago({
-      ...form,
-      lead: leadId,
-      campania,
-      instituto,
-      empresa: empresaId,
-      mensualidad_monto: form.mensualidad_monto ?? 0,
-    }).unwrap();
-    if (comprobanteCrear && plan?.id) {
+
+    let plan;
+    try {
+      plan = await createPlanPago({
+        ...form,
+        lead: leadId,
+        campania,
+        instituto,
+        empresa: empresaId,
+        mensualidad_monto: form.mensualidad_monto ?? 0,
+      }).unwrap();
+    } catch (error) {
+      setSubmitError(
+        getApiErrorMessage(error, "No se pudo crear el plan de pago."),
+      );
+      return;
+    }
+
+    try {
       await createValidacion({
         plan_pago: plan.id,
-        comprobante_pago: comprobanteCrear,
-        monto_pagado: form.inscripcion_monto,
-        fecha_pago: new Date().toISOString().split("T")[0],
-      });
+        comprobante_pago: comprobanteCrear as File,
+        monto_pagado: Number(montoPagadoCrear),
+        fecha_pago: fechaPagoCrear,
+      }).unwrap();
+    } catch (error) {
+      setSubmitError(
+        getApiErrorMessage(
+          error,
+          "El plan se creó, pero no se pudo subir el comprobante. Puedes volver a intentarlo desde 'Subir comprobante'.",
+        ),
+      );
     }
+
     refetchPlan();
     refetchLead?.();
   };
@@ -283,13 +315,21 @@ export default function PlanPagoTab({
   const handleUploadValidacion = async () => {
     if (!plan || !comprobante || !valForm.monto_pagado || !valForm.fecha_pago)
       return;
-    await createValidacion({
-      plan_pago: plan.id,
-      comprobante_pago: comprobante,
-      monto_pagado: Number(valForm.monto_pagado),
-      fecha_pago: valForm.fecha_pago,
-      notas_internas: valForm.notas_internas || undefined,
-    });
+    setSubmitError(null);
+    try {
+      await createValidacion({
+        plan_pago: plan.id,
+        comprobante_pago: comprobante,
+        monto_pagado: Number(valForm.monto_pagado),
+        fecha_pago: valForm.fecha_pago,
+        notas_internas: valForm.notas_internas || undefined,
+      }).unwrap();
+    } catch (error) {
+      setSubmitError(
+        getApiErrorMessage(error, "No se pudo subir el comprobante."),
+      );
+      return;
+    }
     setShowValForm(false);
     setValForm({ monto_pagado: "", fecha_pago: "", notas_internas: "" });
     setComprobante(null);
@@ -563,52 +603,118 @@ export default function PlanPagoTab({
               />
             </div>
 
-            {/* Comprobante de transferencia */}
-            <div className="space-y-1.5">
-              <FieldLabel label="Captura de transferencia (opcional)" />
-              <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-xl p-5 cursor-pointer hover:border-[#0056D2]/50 hover:bg-[#F0F6FF]/50 transition-colors">
-                {comprobanteCrearPreview ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={comprobanteCrearPreview}
-                    alt="Comprobante"
-                    className="max-h-40 rounded-lg object-contain"
+            {/* Comprobante de pago (obligatorio) */}
+            <div className="space-y-4 pt-2 border-t border-gray-200">
+              <div>
+                <FieldLabel label="Comprobante de pago" required />
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Ya no se puede crear el plan sin registrar el pago con el
+                  que se origina.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <FieldLabel label="Monto pagado" required />
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      className={`${inputClass} pl-9`}
+                      value={montoPagadoCrear}
+                      onChange={(e) => setMontoPagadoCrear(e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  {formErrors.monto_pagado_crear && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {formErrors.monto_pagado_crear}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <FieldLabel label="Fecha de pago" required />
+                  <div className="relative">
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      type="date"
+                      className={`${inputClass} pl-9`}
+                      value={fechaPagoCrear}
+                      onChange={(e) => setFechaPagoCrear(e.target.value)}
+                    />
+                  </div>
+                  {formErrors.fecha_pago_crear && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {formErrors.fecha_pago_crear}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <FieldLabel label="Captura del comprobante" required />
+                <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-xl p-5 cursor-pointer hover:border-[#0056D2]/50 hover:bg-[#F0F6FF]/50 transition-colors">
+                  {comprobanteCrearPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={comprobanteCrearPreview}
+                      alt="Comprobante"
+                      className="max-h-40 rounded-lg object-contain"
+                    />
+                  ) : (
+                    <>
+                      <FileImage className="w-7 h-7 text-gray-300" />
+                      <span className="text-xs text-gray-400">
+                        Haz clic para adjuntar la captura de pago
+                      </span>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] ?? null;
+                      setComprobanteCrear(file);
+                      setComprobanteCrearPreview(
+                        file ? URL.createObjectURL(file) : null,
+                      );
+                    }}
                   />
-                ) : (
-                  <>
-                    <FileImage className="w-7 h-7 text-gray-300" />
-                    <span className="text-xs text-gray-400">
-                      Haz clic para adjuntar la captura de pago
-                    </span>
-                  </>
+                </label>
+                {comprobanteCrear && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setComprobanteCrear(null);
+                      setComprobanteCrearPreview(null);
+                    }}
+                    className="text-xs text-red-500 hover:text-red-600"
+                  >
+                    Quitar imagen
+                  </button>
                 )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] ?? null;
-                    setComprobanteCrear(file);
-                    setComprobanteCrearPreview(
-                      file ? URL.createObjectURL(file) : null,
-                    );
-                  }}
-                />
-              </label>
-              {comprobanteCrear && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setComprobanteCrear(null);
-                    setComprobanteCrearPreview(null);
-                  }}
-                  className="text-xs text-red-500 hover:text-red-600"
-                >
-                  Quitar imagen
-                </button>
-              )}
+                {formErrors.comprobante_pago && (
+                  <p className="text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {formErrors.comprobante_pago}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
+
+          {submitError && (
+            <div className="flex items-start gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-500" />
+              <span>{submitError}</span>
+            </div>
+          )}
 
           <div className="flex justify-end">
             <button
@@ -633,6 +739,13 @@ export default function PlanPagoTab({
 
   return (
     <div className="space-y-6">
+      {submitError && (
+        <div className="flex items-start gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-500" />
+          <span>{submitError}</span>
+        </div>
+      )}
+
       {/* Plan detail card */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-5">
         <div className="flex items-start justify-between gap-3">
@@ -746,7 +859,10 @@ export default function PlanPagoTab({
           {canUploadValidacion && (
             <button
               type="button"
-              onClick={() => setShowValForm((v) => !v)}
+              onClick={() => {
+                setSubmitError(null);
+                setShowValForm((v) => !v);
+              }}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#0056D2] border border-[#0056D2]/30 rounded-lg hover:bg-[#F0F6FF] transition-colors"
             >
               <Upload className="w-3.5 h-3.5" />

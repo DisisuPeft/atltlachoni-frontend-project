@@ -11,6 +11,7 @@ import { setAlert } from "@/redux/features/alert/alertSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { getApiErrorMessage } from "@/redux/utils/api-error";
 
 export interface UserFormData {
   nombre: string;
@@ -23,7 +24,7 @@ export interface UserFormData {
   email: string;
   status: number | null;
   roles: string[];
-  password: string;
+  password?: string;
 }
 
 export function useUserForm(
@@ -38,7 +39,7 @@ export function useUserForm(
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, dirtyFields, isSubmitting },
     control,
     reset,
   } = useForm<UserFormData>({
@@ -84,9 +85,10 @@ export function useUserForm(
   const onSubmit = async (data: UserFormData) => {
     if (!edit) {
       try {
-        await addUser(data).unwrap();
+        const { password: _password, ...payload } = data;
+        const message = await addUser(payload).unwrap();
         dispatch(
-          setAlert({ type: "success", message: "Usuario creado con exito" })
+          setAlert({ type: "success", message: message || "Usuario creado. Se envió un correo de activación." })
         );
         refetch();
         router.replace(`/dashboard/sistema/usuarios?ref=${ref}`);
@@ -94,23 +96,28 @@ export function useUserForm(
         dispatch(
           setAlert({
             type: "error",
-            message: "Ocurrio un error al crear al usuario",
+            message: getApiErrorMessage(error, "No se pudo crear el usuario."),
           })
         );
       }
     } else {
-      console.log(data);
       try {
-        await editUser({ formData: data, id: uuid }).unwrap();
+        const { password, roles, ...rest } = data;
+        const payload = {
+          ...rest,
+          ...(dirtyFields.roles ? { roles } : {}),
+          ...(password && password.length >= 6 ? { password } : {}),
+        };
+        const message = await editUser({ formData: payload, id: uuid }).unwrap();
         dispatch(
-          setAlert({ type: "success", message: "Usuario editado con exito" })
+          setAlert({ type: "success", message: message || "Usuario actualizado con éxito" })
         );
         refetch();
       } catch (error) {
         dispatch(
           setAlert({
             type: "error",
-            message: "Ocurrio un error al actualizar al usuario",
+            message: getApiErrorMessage(error, "No se pudo actualizar el usuario."),
           })
         );
       }
@@ -121,6 +128,7 @@ export function useUserForm(
     register,
     handleSubmit,
     errors,
+    isSubmitting,
     onSubmit,
     generos,
     rol,

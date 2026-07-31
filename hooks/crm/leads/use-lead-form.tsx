@@ -14,7 +14,7 @@ import {
 import { useEffect } from "react";
 import { useCreateLeadMutation } from "@/redux/features/crm/leadsApiSlice";
 import { sweetAlert } from "@/sweetalert/sweetalerts";
-import { ErrorResponse } from "@/redux/features/types/reponse";
+import { getApiErrorMessage } from "@/redux/utils/api-error";
 import { useAppSelector } from "@/redux/hooks";
 import { useRouter } from "next/navigation";
 
@@ -88,7 +88,6 @@ export default function useLeadForm() {
 
   const onSubmit = async (data: LeadFormData) => {
     try {
-      console.log(data);
       const res = await createLead(data).unwrap();
       // sweetAlert("success", `${res.message}`, "Exito");
       Swal.fire({
@@ -110,9 +109,7 @@ export default function useLeadForm() {
         }
       });
     } catch (error) {
-      console.log(error);
-      const e = error as ErrorResponse;
-      sweetAlert("error", `${e.data.detail}`, "Error");
+      sweetAlert("error", getApiErrorMessage(error, "No se pudo crear el lead."), "Error");
     }
   };
 

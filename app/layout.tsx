@@ -22,15 +22,15 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "CINFA | Diplomados en línea para profesionales de la salud",
+  title: "CINFA | Diplomados en línea para profesionales",
   description:
-    "Especialízate con programas en línea diseñados para profesionales de la salud. Formación flexible, docentes expertos y acompañamiento académico personalizado.",
+    "Especialízate con programas en línea diseñados para profesionales. Formación flexible, docentes expertos y acompañamiento académico personalizado.",
   keywords:
     "diplomados en línea, formación médica, salud, enfermería, CINFA, THALES, IESDA, nutrición ginecológica, enfermería nefrológica, urgencias pediátricas",
   openGraph: {
-    title: "CINFA | Diplomados en línea para profesionales de la salud",
+    title: "CINFA | Diplomados en línea para profesionales",
     description:
-      "Especialízate con programas en línea diseñados para profesionales de la salud. Formación flexible, docentes expertos y acompañamiento académico personalizado.",
+      "Especialízate con programas en línea diseñados para profesionales. Formación flexible, docentes expertos y acompañamiento académico personalizado.",
     type: "website",
     locale: "es_MX",
   },
@@ -52,14 +52,14 @@ export default function RootLayout({
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-K6X6B699');`,
+})(window,document,'script','dataLayer','GTM-NWVHPQ7L');`,
           }}
         />
       </head>
       <body className="antialiased">
         <noscript>
           <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-K6X6B699"
+            src="https://www.googletagmanager.com/ns.html?id=GTM-NWVHPQ7L"
             height="0"
             width="0"
             style={{ display: "none", visibility: "hidden" }}

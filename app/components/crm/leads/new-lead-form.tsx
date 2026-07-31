@@ -42,7 +42,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide">
+      <label className="block text-sm font-medium text-slate-700">
         {label}
         {required && <span className="text-red-400 ml-1">*</span>}
       </label>
@@ -53,10 +53,10 @@ function Field({
 }
 
 const inputClass =
-  "w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] transition-colors disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed";
+  "min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-sky-600 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400";
 
 const selectClass =
-  "w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] transition-colors disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed";
+  "min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 outline-none transition focus:border-sky-600 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400";
 
 // ── Form ─────────────────────────────────────────────────────────────
 
@@ -78,18 +78,10 @@ export default function NewLeadForm() {
   const programaSeleccionado = watch("programa_objetivo");
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Nuevo Lead</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Registra los datos del prospecto para iniciar el seguimiento
-        </p>
-      </div>
-
+    <div className="mx-auto max-w-5xl">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Datos personales */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] sm:p-6">
           <SectionHeader
             icon={User}
             title="Datos Personales"
@@ -128,7 +120,7 @@ export default function NewLeadForm() {
         </div>
 
         {/* Datos de contacto */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] sm:p-6">
           <SectionHeader
             icon={Mail}
             title="Datos de Contacto"
@@ -181,7 +173,7 @@ export default function NewLeadForm() {
         </div>
 
         {/* Información comercial */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] sm:p-6">
           <SectionHeader
             icon={Briefcase}
             title="Información Comercial"
@@ -265,7 +257,7 @@ export default function NewLeadForm() {
         </div>
 
         {/* Notas */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] sm:p-6">
           <SectionHeader
             icon={FileText}
             title="Notas Adicionales"
@@ -283,19 +275,19 @@ export default function NewLeadForm() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-3 pt-2 pb-8">
+        <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-end gap-3 border-t border-slate-200 bg-[#f8fafc]/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
           <button
             type="button"
             onClick={() => window.history.back()}
             disabled={isSubmitting}
-            className="px-5 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            className="min-h-10 rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 outline-none transition hover:bg-white disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-sky-600"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-[#0056D2] rounded-lg hover:bg-[#004BB5] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-6 py-2.5 text-sm font-semibold text-white outline-none transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2"
           >
             {isSubmitting ? (
               <>

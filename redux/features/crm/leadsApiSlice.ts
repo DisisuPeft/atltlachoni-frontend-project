@@ -3,6 +3,7 @@ import { type LeadCreatedResponse } from "../types/reponse";
 import { LeadFormData } from "@/hooks/crm/leads/use-lead-form";
 import {
   Lead,
+  LeadWriteResponse,
   LeadQueryParams,
   InteraccionLead,
   InteraccionForm,
@@ -68,7 +69,9 @@ const leadsApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: [{ type: "Leads", id: "LIST" }],
     }),
 
-    updateLead: builder.mutation<Lead, { uuid: string; data: Partial<Lead> }>({
+    // PATCH uses the write serializer, so callers must refetch the rich read
+    // representation before consuming *_nombre or nombre_completo fields.
+    updateLead: builder.mutation<LeadWriteResponse, { uuid: string; data: Partial<Lead> }>({
       query: ({ uuid, data }) => ({
         url: `/crm/leads/${uuid}/`,
         method: "PATCH",
@@ -280,6 +283,7 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         }),
         invalidatesTags: (_result, _error, { uuid }) => [
           { type: "Leads", id: uuid },
+          { type: "Leads", id: "LIST" },
         ],
       },
     ),
@@ -291,6 +295,7 @@ const leadsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, uuid) => [
         { type: "Leads", id: uuid },
+        { type: "Leads", id: "LIST" },
       ],
     }),
 

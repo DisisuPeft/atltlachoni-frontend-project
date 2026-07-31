@@ -427,7 +427,7 @@ export default function BienvenidaView({ programaId }: Props) {
               className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Mis cursos
+              Mis {programa?.tipo_nombre ? `${programa.tipo_nombre}s` : "programas"}
             </Link>
           </div>
 
@@ -487,7 +487,7 @@ export default function BienvenidaView({ programaId }: Props) {
                   className="shrink-0 inline-flex items-center gap-2 bg-white text-[#0056D2] font-semibold text-sm px-5 py-3 rounded-xl hover:bg-blue-50 transition-colors shadow-lg"
                 >
                   <PlayCircle className="w-4 h-4" />
-                  Continuar curso
+                  Continuar {programa?.tipo_nombre ?? "programa"}
                 </button>
               </div>
             </div>
@@ -535,7 +535,7 @@ export default function BienvenidaView({ programaId }: Props) {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-bold text-gray-900">
-                Contenido del curso
+                Contenido del {programa?.tipo_nombre ?? "programa"}
               </h2>
               {moduloGroups.length > 0 && (
                 <button
