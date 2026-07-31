@@ -139,7 +139,7 @@ export default function MultiSelect({
       </div>
 
       {isOpen && (
-        <div className="absolute top-full z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+        <div className="absolute top-full z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-slate-200 bg-white shadow-lg">
           {options.length === 0 ? (
             <p className="px-3 py-2 text-sm text-slate-400">Sin opciones disponibles</p>
           ) : (
