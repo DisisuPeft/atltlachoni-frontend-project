@@ -137,6 +137,9 @@ export interface LeadQueryParams {
   fuente?: number;
   page?: number;
   search?: string;
+  /** GET /leads/ solo regresa activos (status=1) por default; mandar true
+   * para ver activos e inactivos ("apagados") mezclados. */
+  incluir_inactivos?: boolean;
 }
 
 // ─── Interacciones ───────────────────────────────────────────────────

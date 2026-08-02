@@ -32,6 +32,7 @@ const leadsApiSlice = apiSlice.injectEndpoints({
           fuente,
           page = 1,
           search,
+          incluir_inactivos,
         } = params as LeadQueryParams;
         const qs = new URLSearchParams();
         qs.set("page", String(page));
@@ -41,6 +42,7 @@ const leadsApiSlice = apiSlice.injectEndpoints({
         if (vendedor) qs.set("vendedor", String(vendedor));
         if (fuente) qs.set("fuente", String(fuente));
         if (search) qs.set("search", search);
+        if (incluir_inactivos) qs.set("incluir_inactivos", "true");
         return `/crm/leads/?${qs.toString()}`;
       },
       providesTags: (result) =>
