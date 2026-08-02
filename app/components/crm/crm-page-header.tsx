@@ -10,6 +10,8 @@ type CrmPageHeaderProps = {
   description: string;
   action?: { href: string; label: string };
   backHref?: string;
+  /** Botones adicionales (ej. recargar) que se muestran junto a `action`. */
+  extra?: React.ReactNode;
 };
 
 /** Shared page framing keeps CRM tasks recognisable across every module. */
@@ -19,6 +21,7 @@ export default function CrmPageHeader({
   description,
   action,
   backHref,
+  extra,
 }: CrmPageHeaderProps) {
   const ref = useSearchParams().get("ref");
   const actionHref = action ? `${action.href}${ref ? `?ref=${ref}` : ""}` : "";
@@ -42,14 +45,19 @@ export default function CrmPageHeader({
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-600">{description}</p>
       </div>
-      {action && (
-        <Link
-          href={actionHref}
-          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm outline-none transition hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2"
-        >
-          <Plus className="h-4 w-4" aria-hidden="true" />
-          {action.label}
-        </Link>
+      {(action || extra) && (
+        <div className="flex shrink-0 items-center gap-2">
+          {extra}
+          {action && (
+            <Link
+              href={actionHref}
+              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm outline-none transition hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              {action.label}
+            </Link>
+          )}
+        </div>
       )}
     </header>
   );

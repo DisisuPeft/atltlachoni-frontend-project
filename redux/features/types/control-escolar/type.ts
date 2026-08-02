@@ -241,11 +241,40 @@ export interface Campania {
   institucion_nombre: string;
   programa_nombre: string;
   status: number;
+  /** Solo lectura: configuraciones de Meta Ads vinculadas a esta campaña.
+   * Para crear/editar/quitar usar el endpoint /campanias-anuncios-meta/. */
+  anuncios_meta?: CampaniaAnuncioMeta[];
 }
 
 export interface CampaniaPrograma {
   id: number;
   nombre: string;
+}
+
+/** Vincula un anuncio/conjunto/campaña de Meta Ads a una Campania del
+ * sistema, para resolver programa/campaña de leads que llegan por
+ * WhatsApp desde ese anuncio. */
+export type NivelAnuncioMeta = "campaign" | "adset" | "ad";
+export type PresupuestoTipoAnuncioMeta = "total" | "diario";
+
+export interface CampaniaAnuncioMeta {
+  id: number;
+  campania: number;
+  identificador: string;
+  nivel: NivelAnuncioMeta;
+  presupuesto_monto: string | null;
+  presupuesto_tipo: PresupuestoTipoAnuncioMeta | null;
+  status: number;
+  created_at: string;
+}
+
+export interface CampaniaAnuncioMetaBody {
+  campania: number;
+  identificador: string;
+  nivel?: NivelAnuncioMeta;
+  presupuesto_monto?: number | null;
+  presupuesto_tipo?: PresupuestoTipoAnuncioMeta | null;
+  status?: number;
 }
 
 /**Campanias */

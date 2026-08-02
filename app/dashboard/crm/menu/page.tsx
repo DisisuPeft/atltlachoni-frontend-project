@@ -1,5 +1,6 @@
 import KanbanBoard from "@/app/components/crm/kanban/kanban-board";
 import CrmPageHeader from "@/app/components/crm/crm-page-header";
+import ReloadButton from "@/app/components/crm/reload-button";
 
 export default function Page() {
   return (
@@ -9,6 +10,7 @@ export default function Page() {
         title="Tablero de oportunidades"
         description="Una vista clara para detectar bloqueos, distribuir el trabajo y mover cada oportunidad a su siguiente paso."
         action={{ href: "/dashboard/crm/nuevo-lead", label: "Nuevo lead" }}
+        extra={<ReloadButton />}
       />
 
       <KanbanBoard />

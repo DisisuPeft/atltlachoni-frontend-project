@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/app/utils/data-table";
 import { Campania } from "@/redux/features/types/control-escolar/type";
@@ -11,7 +12,7 @@ import {
 } from "@/redux/features/control-escolar/campaniasApiSlice";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import { formatCurrency } from "@/lib/format-currency";
-import { Loader2, Megaphone } from "lucide-react";
+import { Loader2, Megaphone, Settings2 } from "lucide-react";
 import Swal from "sweetalert2";
 
 // ── Status toggle ─────────────────────────────────────────────────────
@@ -104,6 +105,7 @@ export default function CampaniasView() {
   const page = Number(searchParams.get("page") ?? "1");
   const search = searchParams.get("search") ?? "";
   const statusFilter = searchParams.get("status") ?? "1";
+  const ref = searchParams.get("ref");
 
   const { data: user } = useRetrieveUserQuery();
   const instituto = user?.departamento_info?.instituto.id;
@@ -188,6 +190,19 @@ export default function CampaniasView() {
       header: "Estado",
       cell: ({ row }) => (
         <StatusToggle campania={row.original} onRefetch={refetch} />
+      ),
+    },
+    {
+      id: "acciones",
+      header: "",
+      cell: ({ row }) => (
+        <Link
+          href={`/dashboard/control-escolar/campanias/${row.original.id}${ref ? `?ref=${ref}` : ""}`}
+          title="Anuncios de Meta Ads"
+          className="inline-flex items-center gap-1.5 p-2 rounded-lg text-gray-400 hover:text-[#0056D2] hover:bg-[#F0F6FF] transition-colors"
+        >
+          <Settings2 className="w-4 h-4" />
+        </Link>
       ),
     },
   ];
