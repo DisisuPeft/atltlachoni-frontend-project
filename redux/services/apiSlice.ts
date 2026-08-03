@@ -92,6 +92,7 @@ export const apiSlice = createApi({
     "TiposSolicitud",
     "AreasResponsables",
     "Users",
+    "Notifications",
   ],
   endpoints: (builder) => ({}),
 });

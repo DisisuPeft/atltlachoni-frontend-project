@@ -110,6 +110,9 @@ export default function CampaniasView() {
   const { data: user } = useRetrieveUserQuery();
   const instituto = user?.departamento_info?.instituto.id;
 
+  // El status se filtra del lado del backend (paginado) — filtrar aquí en
+  // cliente rompía la paginación, porque solo se filtraba lo que ya había
+  // llegado en la página actual, no el total real.
   const {
     data: campanias,
     isLoading,
@@ -118,17 +121,25 @@ export default function CampaniasView() {
     page,
     search,
     instituto,
+    status: statusFilter === "todos" ? undefined : statusFilter,
   });
 
-  const allResults = campanias?.results ?? [];
-  const filteredResults =
-    statusFilter === "1"
-      ? allResults.filter((c) => c.status === 1)
-      : statusFilter === "0"
-        ? allResults.filter((c) => c.status !== 1)
-        : allResults;
+  // Consultas aparte (baratas, cacheadas por RTK Query) solo para los
+  // stats de arriba, que deben reflejar el total real sin importar el
+  // filtro de status o la página que se esté viendo en la tabla.
+  const { data: totalData } = useRetrieveCampaniasQuery({
+    instituto,
+    search,
+    page: 1,
+  });
+  const { data: activasData } = useRetrieveCampaniasQuery({
+    instituto,
+    search,
+    status: "1",
+    page: 1,
+  });
 
-  const activeCount = allResults.filter((c) => c.status === 1).length;
+  const results = campanias?.results ?? [];
 
   const columns: ColumnDef<Campania>[] = [
     {
@@ -217,7 +228,7 @@ export default function CampaniasView() {
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">
-              {campanias?.count ?? "—"}
+              {totalData?.count ?? "—"}
             </p>
             <p className="text-xs text-gray-500">Total campañas</p>
           </div>
@@ -228,7 +239,7 @@ export default function CampaniasView() {
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">
-              {isLoading ? "—" : activeCount}
+              {activasData?.count ?? "—"}
             </p>
             <p className="text-xs text-gray-500">Campañas activas</p>
           </div>
@@ -238,9 +249,9 @@ export default function CampaniasView() {
       {/* Table */}
       <DataTable
         columns={columns}
-        data={filteredResults}
+        data={results}
         isLoading={isLoading}
-        count={statusFilter === "todos" ? (campanias?.count ?? 0) : filteredResults.length}
+        count={campanias?.count ?? 0}
         filters={[
           {
             type: "search",

@@ -72,6 +72,7 @@ import {
   Lead,
 } from "@/redux/features/types/crm/lead-types";
 import PlanPagoTab from "./plan-pago-tab";
+import AssignVendedorModal from "@/app/components/crm/leads/assign-vendedor-modal";
 import { Modal } from "@/app/components/common/modal";
 import { useSearchParams } from "next/navigation";
 import { getApiErrorMessage } from "@/redux/utils/api-error";
@@ -163,7 +164,10 @@ function LeadInfoSidebar({
   const { data: lead } = useGetLeadQuery(uuid);
   const { data: verify } = useVerifyUserQuery();
   const { unidadId } = useAppSelector((state) => state.changeUnidad);
-  const isSuperUser = verify?.superuser === true;
+  // Solo Administrador o superuser pueden asignar/reasignar/desasignar vendedor.
+  const isAdmin =
+    verify?.superuser === true ||
+    verify?.roles?.some((r) => r.nombre === "Administrador");
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
@@ -714,7 +718,7 @@ function LeadInfoSidebar({
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F0F6FF] text-[#0056D2] text-sm font-medium">
                   {lead.vendedor_nombre}
                 </span>
-                {isSuperUser && (
+                {isAdmin && (
                   <button
                     type="button"
                     onClick={() => {
@@ -727,7 +731,7 @@ function LeadInfoSidebar({
                     Reasignar
                   </button>
                 )}
-                {isSuperUser && (
+                {isAdmin && (
                   <button
                     type="button"
                     onClick={handleDesasignar}
@@ -746,19 +750,21 @@ function LeadInfoSidebar({
             ) : (
               <>
                 <span className="text-sm text-gray-400">Sin asignar</span>
-                <button
-                  type="button"
-                  onClick={() => setAssignOpen((v) => !v)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#0056D2] border border-[#0056D2]/30 rounded-lg hover:bg-[#F0F6FF] transition-colors"
-                >
-                  <UserPlus className="w-3.5 h-3.5" />
-                  Asignar vendedor
-                </button>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => setAssignOpen((v) => !v)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#0056D2] border border-[#0056D2]/30 rounded-lg hover:bg-[#F0F6FF] transition-colors"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    Asignar vendedor
+                  </button>
+                )}
               </>
             )}
           </div>
 
-          {assignOpen && (
+          {isAdmin && assignOpen && (
             <div className="mt-3 space-y-2">
               <select
                 className={selectClass}
@@ -2510,17 +2516,18 @@ function LeadActionBar({ lead, refetchLead }: { lead: Lead; refetchLead: () => v
   const [editing, setEditing] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [form, setForm] = useState({ nombre: "", apellido_paterno: "", apellido_materno: "", correo: "", telefono: "", contacto_alterno: "", fuente: "", estatus: "", campania: "", programa_objetivo: "" });
-  const [vendedor, setVendedor] = useState<number | "">("");
   const { data: fuentes } = useGetFuentesQuery(unidadId ? { instituto: unidadId } : undefined);
   const { data: estatuses } = useGetEstatusQuery(unidadId ? { instituto: unidadId } : undefined);
   const { data: campanias } = useRetrieveCampaniasQuery();
   const { data: programas } = useRetrieveProgramasQuery();
-  const { data: vendedores } = useGetVendedoresQuery();
   const [updateLead, { isLoading: isSaving }] = useUpdateLeadMutation();
-  const [asignarVendedor, { isLoading: isAssigning }] = useAsignarVendedorMutation();
   const [apagarLead, { isLoading: isApagando }] = useApagarLeadMutation();
   const [reactivarLead, { isLoading: isReactivando }] = useReactivarLeadMutation();
   const canEdit = verify?.superuser === true || lead.etapa_nombre?.trim().toLocaleLowerCase() !== "venta";
+  // Solo Administrador o superuser pueden asignar/reasignar vendedor.
+  const isAdmin =
+    verify?.superuser === true ||
+    verify?.roles?.some((r) => r.nombre === "Administrador");
   const openEdit = () => {
     const campania = typeof lead.campania_nombre === "object" ? lead.campania_nombre?.id : lead.campania;
     setForm({ nombre: lead.nombre || "", apellido_paterno: lead.apellido_paterno || "", apellido_materno: lead.apellido_materno || "", correo: lead.correo || "", telefono: lead.telefono || "", contacto_alterno: lead.contacto_alterno || "", fuente: String(lead.fuente || ""), estatus: String(lead.estatus || ""), campania: String(campania || ""), programa_objetivo: String(lead.programa_objetivo || "") });
@@ -2531,11 +2538,6 @@ function LeadActionBar({ lead, refetchLead }: { lead: Lead; refetchLead: () => v
       await updateLead({ uuid: lead.uuid, data: { ...form, fuente: form.fuente ? Number(form.fuente) : undefined, estatus: form.estatus ? Number(form.estatus) : undefined, campania: form.campania ? Number(form.campania) : undefined, programa_objetivo: form.programa_objetivo ? Number(form.programa_objetivo) : undefined } }).unwrap();
       setEditing(false); refetchLead();
     } catch (error) { Swal.fire({ icon: "error", title: "No se pudieron guardar los cambios", text: getApiErrorMessage(error) }); }
-  };
-  const assign = async () => {
-    if (!vendedor) return;
-    try { await asignarVendedor({ uuid: lead.uuid, vendedor: Number(vendedor) }).unwrap(); setAssigning(false); setVendedor(""); refetchLead(); }
-    catch (error) { Swal.fire({ icon: "error", title: "No se pudo asignar el vendedor", text: getApiErrorMessage(error) }); }
   };
   const toggleStatus = async () => {
     const willDeactivate = lead.status === 1;
@@ -2548,9 +2550,14 @@ function LeadActionBar({ lead, refetchLead }: { lead: Lead; refetchLead: () => v
     ["Nombre", "nombre", "text"], ["Apellido paterno", "apellido_paterno", "text"], ["Apellido materno", "apellido_materno", "text"], ["Correo", "correo", "email"], ["Teléfono", "telefono", "tel"], ["Contacto alterno", "contacto_alterno", "tel"],
   ] as const;
   return <>
-    <div className="flex flex-wrap gap-2"><button type="button" onClick={openEdit} disabled={!canEdit} title={!canEdit ? "Los leads en etapa Venta solo pueden editarlos superusuarios." : undefined} className="inline-flex min-h-10 items-center rounded-lg border border-slate-200 px-3.5 text-sm font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-600 disabled:cursor-not-allowed disabled:opacity-50"><Pencil className="mr-1.5 h-4 w-4" />Editar lead</button><button type="button" onClick={() => setAssigning(true)} className="inline-flex min-h-10 items-center rounded-lg border border-slate-200 px-3.5 text-sm font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-600"><UserPlus className="mr-1.5 h-4 w-4" />{lead.vendedor_nombre ? "Reasignar" : "Asignar vendedor"}</button><button type="button" onClick={toggleStatus} disabled={isApagando || isReactivando} className="inline-flex min-h-10 items-center rounded-lg border border-slate-200 px-3.5 text-sm font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-600 disabled:opacity-60"><Power className="mr-1.5 h-4 w-4" />{lead.status === 1 ? "Cambiar estado" : "Reactivar"}</button></div>
+    <div className="flex flex-wrap gap-2"><button type="button" onClick={openEdit} disabled={!canEdit} title={!canEdit ? "Los leads en etapa Venta solo pueden editarlos superusuarios." : undefined} className="inline-flex min-h-10 items-center rounded-lg border border-slate-200 px-3.5 text-sm font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-600 disabled:cursor-not-allowed disabled:opacity-50"><Pencil className="mr-1.5 h-4 w-4" />Editar lead</button>{isAdmin && <button type="button" onClick={() => setAssigning(true)} className="inline-flex min-h-10 items-center rounded-lg border border-slate-200 px-3.5 text-sm font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-600"><UserPlus className="mr-1.5 h-4 w-4" />{lead.vendedor_nombre ? "Reasignar" : "Asignar vendedor"}</button>}<button type="button" onClick={toggleStatus} disabled={isApagando || isReactivando} className="inline-flex min-h-10 items-center rounded-lg border border-slate-200 px-3.5 text-sm font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-600 disabled:opacity-60"><Power className="mr-1.5 h-4 w-4" />{lead.status === 1 ? "Cambiar estado" : "Reactivar"}</button></div>
     <Modal show={editing} onClose={() => setEditing(false)}><div className="max-h-[85vh] overflow-y-auto"><div className="flex items-center justify-between border-b border-slate-200 px-6 py-4"><div><h2 className="text-base font-semibold text-slate-950">Editar lead</h2><p className="mt-0.5 text-sm text-slate-500">Actualiza la información sin perder el contexto.</p></div><button type="button" onClick={() => setEditing(false)} aria-label="Cerrar" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button></div><div className="grid gap-4 p-6 sm:grid-cols-2">{fields.map(([label, key, type]) => <label key={key} className="space-y-1.5"><span className="text-xs font-medium text-slate-600">{label}</span><input type={type} value={form[key]} onChange={(event) => setForm((current) => ({ ...current, [key]: event.target.value }))} className={inputClass} /></label>)}<label className="space-y-1.5"><span className="text-xs font-medium text-slate-600">Fuente</span><select value={form.fuente} onChange={(event) => setForm((current) => ({ ...current, fuente: event.target.value }))} className={selectClass}><option value="">Seleccionar</option>{fuentes?.results?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select></label><label className="space-y-1.5"><span className="text-xs font-medium text-slate-600">Estatus</span><select value={form.estatus} onChange={(event) => setForm((current) => ({ ...current, estatus: event.target.value }))} className={selectClass}><option value="">Seleccionar</option>{estatuses?.results?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select></label><label className="space-y-1.5"><span className="text-xs font-medium text-slate-600">Campaña</span><select value={form.campania} onChange={(event) => setForm((current) => ({ ...current, campania: event.target.value }))} className={selectClass}><option value="">Seleccionar</option>{campanias?.results?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select></label><label className="space-y-1.5"><span className="text-xs font-medium text-slate-600">Programa</span><select value={form.programa_objetivo} onChange={(event) => setForm((current) => ({ ...current, programa_objetivo: event.target.value }))} className={selectClass}><option value="">Seleccionar</option>{programas?.results?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select></label></div><div className="flex justify-end gap-2 border-t border-slate-200 px-6 py-4"><button type="button" onClick={() => setEditing(false)} className="min-h-10 rounded-lg border border-slate-200 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancelar</button><button type="button" onClick={save} disabled={isSaving} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60">{isSaving && <Loader2 className="h-4 w-4 animate-spin" />}Guardar cambios</button></div></div></Modal>
-    <Modal show={assigning} onClose={() => setAssigning(false)}><div className="p-6"><div className="flex items-start justify-between gap-4"><div><h2 className="text-base font-semibold text-slate-950">Asignar vendedor</h2><p className="mt-1 text-sm text-slate-500">Selecciona a la persona responsable de este lead.</p></div><button type="button" onClick={() => setAssigning(false)} aria-label="Cerrar" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button></div><label className="mt-5 block space-y-1.5"><span className="text-xs font-medium text-slate-600">Vendedor</span><select value={vendedor} onChange={(event) => setVendedor(event.target.value ? Number(event.target.value) : "")} className={selectClass}><option value="">Seleccionar vendedor</option>{(vendedores ?? []).map((item) => <option key={item.id} value={item.id}>{item.nombre_completo}</option>)}</select></label><div className="mt-6 flex justify-end gap-2"><button type="button" onClick={() => setAssigning(false)} className="min-h-10 rounded-lg border border-slate-200 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancelar</button><button type="button" onClick={assign} disabled={!vendedor || isAssigning} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60">{isAssigning && <Loader2 className="h-4 w-4 animate-spin" />}Asignar</button></div></div></Modal>
+    <AssignVendedorModal
+      open={assigning}
+      onClose={() => setAssigning(false)}
+      leads={[{ uuid: lead.uuid, label: lead.nombre_completo || `${lead.nombre} ${lead.apellido_paterno}` }]}
+      onAssigned={refetchLead}
+    />
   </>;
 }
 

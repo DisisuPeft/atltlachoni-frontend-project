@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { UserMenu } from "../plataforma/drop-down-menu";
+import NotificationBell from "./notifications/notification-bell";
 
 export default function Navbar() {
   return (
@@ -24,7 +25,10 @@ export default function Navbar() {
         </Link>
 
         {/* Right */}
-        <UserMenu />
+        <div className="flex items-center gap-1 sm:gap-2">
+          <NotificationBell />
+          <UserMenu />
+        </div>
       </div>
     </header>
   );
