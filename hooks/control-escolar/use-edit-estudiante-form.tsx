@@ -16,13 +16,11 @@ import {
   useUpdateEstudianteMutation,
   useRetrieveEstudianteQuery,
 } from "@/redux/features/control-escolar/alumnosApiSlice";
-import { useAppDispatch } from "@/redux/hooks";
-import { setAlert } from "@/redux/features/alert/alertSlice";
+import { sweetAlert } from "@/sweetalert/sweetalerts";
 import { useRetrieveUserQuery, useVerifyUserQuery } from "@/redux/features/auth/authApiSlice";
 
 export default function useAlumnoEditForm(uuid: string) {
   const { data: estudiante, isLoading } = useRetrieveEstudianteQuery(uuid);
-  const dispatch = useAppDispatch();
   const { data: user } = useRetrieveUserQuery();
   const { data: verifyData } = useVerifyUserQuery();
   const ins = user?.departamento_info?.instituto.id;
@@ -57,12 +55,13 @@ export default function useAlumnoEditForm(uuid: string) {
     try {
       await updateEstudiantes({ uuid: uuid, formData: data }).unwrap();
       reset();
-      dispatch(
-        setAlert({ message: "Alumno creado con exito", type: "success" }),
-      );
+      sweetAlert("success", "Datos del alumno actualizados.", "Guardado");
     } catch (error) {
-      dispatch(
-        setAlert({ message: "El alumno no pudo ser creado", type: "error" }),
+      const detail = (error as { data?: { detail?: string } })?.data?.detail;
+      sweetAlert(
+        "error",
+        detail ?? "El alumno no pudo ser actualizado.",
+        "Error",
       );
     }
   };

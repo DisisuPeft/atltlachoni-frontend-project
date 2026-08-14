@@ -18,6 +18,7 @@ import {
 } from "../types/alumnos/inscription";
 
 export interface InscripcionCreatedResponse {
+  id: number;
   message: string;
 }
 

@@ -24,8 +24,7 @@ import {
   FolderOpen,
   X,
 } from "lucide-react";
-import { useAppDispatch } from "@/redux/hooks";
-import { setAlert } from "@/redux/features/alert/alertSlice";
+import { sweetAlert } from "@/sweetalert/sweetalerts";
 import { Modal } from "@/app/components/common/modal";
 import { useRetrieveCampaniasQuery } from "@/redux/features/control-escolar/campaniasApiSlice";
 import { useModulosProgramaQuery } from "@/redux/features/control-escolar/programasApiSlice";
@@ -326,7 +325,6 @@ interface Props {
 }
 
 export default function ProgramMaterialesTab({ programaId }: Props) {
-  const dispatch = useAppDispatch();
   const [filterTipo, setFilterTipo] = useState("all");
   const [selectedCampania, setSelectedCampania] = useState<
     number | undefined
@@ -372,11 +370,10 @@ export default function ProgramMaterialesTab({ programaId }: Props) {
     try {
       await deleteMaterial(id).unwrap();
       refetchModulos();
-      dispatch(setAlert({ type: "success", message: "Material eliminado" }));
-    } catch {
-      dispatch(
-        setAlert({ type: "error", message: "Error al eliminar el material" }),
-      );
+      sweetAlert("success", "Material eliminado.", "Listo");
+    } catch (err) {
+      const detail = (err as { data?: { detail?: string } })?.data?.detail;
+      sweetAlert("error", detail ?? "Error al eliminar el material.", "Error");
     } finally {
       setDeleting(null);
     }

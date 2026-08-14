@@ -117,11 +117,11 @@ function ProfileHeader({
 
   const handleToggleStatus = async () => {
     try {
-      if (estudiante?.status === 1) {
-        await desactivar(uuid).unwrap();
-      } else {
-        await activar(uuid).unwrap();
-      }
+      const res =
+        estudiante?.status === 1
+          ? await desactivar(uuid).unwrap()
+          : await activar(uuid).unwrap();
+      sweetAlert("success", res.detail ?? "Estado actualizado.", "Listo");
     } catch (err) {
       const detail = (err as { data?: { detail?: string } })?.data?.detail;
       sweetAlert("error", detail ?? "No se pudo cambiar el estado", "Error");
@@ -283,6 +283,7 @@ function ComprobantesPanel({ inscripcionId }: { inscripcionId: number }) {
         referencia: "",
         notas: "",
       });
+      sweetAlert("success", "Comprobante subido correctamente.", "Listo");
     } catch (err) {
       const detail = (err as { data?: { detail?: string } })?.data?.detail;
       sweetAlert("error", detail ?? "No se pudo subir el comprobante", "Error");

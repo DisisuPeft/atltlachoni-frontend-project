@@ -74,7 +74,7 @@ export default function useAlumnoForm() {
       const result = await Swal.fire({
         icon: "success",
         title: "Alumno creado",
-        text: "¿Deseas inscribir al alumno ahora?",
+        text: `${response.message ?? "Alumno creado."} ¿Deseas inscribir al alumno ahora?`,
         confirmButtonText: "Sí, inscribir",
         denyButtonText: "Registrar otro",
         cancelButtonText: "No",
@@ -94,10 +94,11 @@ export default function useAlumnoForm() {
       } else if (result.dismiss === Swal.DismissReason.cancel) {
         router.push(`/dashboard/control-escolar/alumnos?ref=${pestaniaRef}`);
       }
-    } catch {
+    } catch (error) {
+      const detail = (error as { data?: { detail?: string } })?.data?.detail;
       sweetAlert(
         "error",
-        "No fue posible crear al alumno. Intenta de nuevo.",
+        detail ?? "No fue posible crear al alumno. Intenta de nuevo.",
         "Error",
       );
     }

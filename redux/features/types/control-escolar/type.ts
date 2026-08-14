@@ -535,7 +535,10 @@ export interface InscripcionBody {
   fecha_primera_mensualidad?: string;
   notas?: string;
   numero_parcialidades?: number;
+  costo_inscripcion?: number;
   costo_mensualidad?: number;
+  costo_documentacion?: number;
+  notas_precio_custom?: string;
 }
 
 export interface ComprobantePago {

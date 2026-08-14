@@ -285,9 +285,10 @@ export default function DocenteMaterialesView() {
     try {
       await deleteMaterial(id).unwrap();
       refetch();
-      sweetAlert("success", "Material eliminado", "Listo");
-    } catch {
-      sweetAlert("error", "Error al eliminar el material", "Error");
+      sweetAlert("success", "Material eliminado.", "Listo");
+    } catch (err) {
+      const detail = (err as { data?: { detail?: string } })?.data?.detail;
+      sweetAlert("error", detail ?? "Error al eliminar el material.", "Error");
     } finally {
       setDeleting(null);
     }

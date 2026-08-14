@@ -71,7 +71,12 @@ export default function CourseEnrollment({
     notas: "",
   });
 
-  const [costoMensualidad, setCostoMensualidad] = useState<string | number>("");
+  const [precios, setPrecios] = useState({
+    costo_inscripcion: "" as string | number,
+    costo_mensualidad: "" as string | number,
+    costo_documentacion: "" as string | number,
+    notas_precio_custom: "",
+  });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -101,8 +106,14 @@ export default function CourseEnrollment({
         10,
       );
     if (form.notas.trim()) body.notas = form.notas.trim();
-    if (costoMensualidad !== "")
-      body.costo_mensualidad = Number(costoMensualidad);
+    if (precios.costo_inscripcion !== "")
+      body.costo_inscripcion = Number(precios.costo_inscripcion);
+    if (precios.costo_mensualidad !== "")
+      body.costo_mensualidad = Number(precios.costo_mensualidad);
+    if (precios.costo_documentacion !== "")
+      body.costo_documentacion = Number(precios.costo_documentacion);
+    if (precios.notas_precio_custom.trim())
+      body.notas_precio_custom = precios.notas_precio_custom.trim();
 
     try {
       const res = await makeInscription({
@@ -214,8 +225,8 @@ export default function CourseEnrollment({
           </div>
         </div>
 
-        {/* Primera mensualidad + parcialidades + costo mensualidad */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Primera mensualidad + parcialidades */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <FieldLabel label="Primera mensualidad" />
             <div className="relative">
@@ -261,9 +272,12 @@ export default function CourseEnrollment({
               Si no se indica, usa la duración del programa
             </p>
           </div>
+        </div>
 
-          <div className="space-y-1.5">
-            <FieldLabel label="Costo mensualidad" />
+        {/* Precios acordados por concepto */}
+        <div className="space-y-1.5">
+          <FieldLabel label="Precios acordados (opcional, por concepto)" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="relative">
               <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <input
@@ -271,17 +285,60 @@ export default function CourseEnrollment({
                 step="0.01"
                 min="0"
                 className={`${inputClass} pl-9`}
-                value={costoMensualidad}
-                onChange={(e) => setCostoMensualidad(e.target.value)}
-                placeholder="0.00"
+                value={precios.costo_inscripcion}
+                onChange={(e) =>
+                  setPrecios((p) => ({ ...p, costo_inscripcion: e.target.value }))
+                }
+                placeholder="Costo inscripción"
               />
             </div>
-            <p className="text-xs text-gray-400">
-              Si no se indica, usa el precio del programa
-            </p>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                className={`${inputClass} pl-9`}
+                value={precios.costo_mensualidad}
+                onChange={(e) =>
+                  setPrecios((p) => ({ ...p, costo_mensualidad: e.target.value }))
+                }
+                placeholder="Costo mensualidad"
+              />
+            </div>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                className={`${inputClass} pl-9`}
+                value={precios.costo_documentacion}
+                onChange={(e) =>
+                  setPrecios((p) => ({ ...p, costo_documentacion: e.target.value }))
+                }
+                placeholder="Costo documentación"
+              />
+            </div>
           </div>
+          <p className="text-xs text-gray-400">
+            Un concepto en $0 es válido (ej. beca). Si se deja vacío, usa el precio del programa.
+          </p>
         </div>
 
+        {/* Notas del precio personalizado */}
+        <div className="space-y-1.5">
+          <FieldLabel label="Notas del precio (opcional)" />
+          <input
+            type="text"
+            className={inputClass}
+            value={precios.notas_precio_custom}
+            onChange={(e) =>
+              setPrecios((p) => ({ ...p, notas_precio_custom: e.target.value }))
+            }
+            placeholder='Ej. "Beca del 47%"'
+          />
+        </div>
 
         {/* Notas */}
         <div className="space-y-1.5">
