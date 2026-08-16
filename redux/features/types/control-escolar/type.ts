@@ -208,6 +208,14 @@ export interface EstudiantePerfil extends BaseModel {
   matricula: string;
   fecha_ingreso: string | null;
 }
+
+export interface EstudianteExistente {
+  ref: string;
+  nombre_completo: string;
+  email: string;
+  status: number;
+  institucion: number | null;
+}
 /**Campanias */
 export type CampaniaFormFields = {
   nombre: string;

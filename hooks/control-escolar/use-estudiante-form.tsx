@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import {
+  EstudianteExistente,
   EstudiantePerfilForm,
   estudiantePerfilInitialValues,
 } from "@/redux/features/types/control-escolar/type";
@@ -95,10 +96,38 @@ export default function useAlumnoForm() {
         router.push(`/dashboard/control-escolar/alumnos?ref=${pestaniaRef}`);
       }
     } catch (error) {
-      const detail = (error as { data?: { detail?: string } })?.data?.detail;
+      const errData = (
+        error as {
+          data?: { detail?: string; estudiante_existente?: EstudianteExistente };
+        }
+      )?.data;
+      const existente = errData?.estudiante_existente;
+
+      if (existente) {
+        const inactivoNota =
+          existente.status === 0 ? " (está inactivo)" : "";
+        const result = await Swal.fire({
+          icon: "warning",
+          title: "Este alumno ya existe",
+          text: `${existente.nombre_completo}${inactivoNota} ya está registrado con estos datos. ¿Deseas ir a matricularlo?`,
+          confirmButtonText: "Sí, matricular",
+          cancelButtonText: "Cancelar",
+          showCancelButton: true,
+          confirmButtonColor: "#0056D2",
+          cancelButtonColor: "#6B7280",
+        });
+
+        if (result.isConfirmed) {
+          router.push(
+            `/dashboard/control-escolar/alumnos/${existente.ref}?ref=${pestaniaRef}`,
+          );
+        }
+        return;
+      }
+
       sweetAlert(
         "error",
-        detail ?? "No fue posible crear al alumno. Intenta de nuevo.",
+        errData?.detail ?? "No fue posible crear al alumno. Intenta de nuevo.",
         "Error",
       );
     }
