@@ -23,7 +23,8 @@ const selectBaseQuery = (args: string | FetchArgs) => {
   return url.startsWith("/control-escolar/materiales") ||
     url.startsWith("/control-escolar/comunidad") ||
     url.startsWith("/control-escolar/ponencias") ||
-    url.startsWith("/control-escolar/plantillas-constancia")
+    url.startsWith("/control-escolar/plantillas-constancia") ||
+    url.startsWith("/control-escolar/entregas-actividad")
     ? baseQueryUpload
     : baseQuery;
 };
@@ -93,6 +94,8 @@ export const apiSlice = createApi({
     "AreasResponsables",
     "Users",
     "Notifications",
+    "Actividades",
+    "EntregasActividad",
   ],
   endpoints: (builder) => ({}),
 });

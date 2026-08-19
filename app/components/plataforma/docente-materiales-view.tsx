@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { Modal } from "@/app/components/common/modal";
 import { sweetAlert } from "@/sweetalert/sweetalerts";
+import MaterialPreviewModal from "@/app/components/control-escolar/materiales/material-preview-modal";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -203,16 +204,27 @@ function SectionUploader({ programaRef, moduloId, onSuccess }: SectionUploaderPr
 function MaterialRow({
   material,
   onDelete,
+  onPreview,
 }: {
   material: Material;
   onDelete: (id: number) => void;
+  onPreview: (material: Material) => void;
 }) {
   const [confirming, setConfirming] = useState(false);
 
   return (
     <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 group">
-      <span className="shrink-0">{fileIcon(material.file_type)}</span>
-      <span className="flex-1 text-sm text-gray-800 truncate min-w-0">{material.original_name}</span>
+      <button
+        type="button"
+        onClick={() => onPreview(material)}
+        className="flex items-center gap-3 flex-1 min-w-0 text-left"
+        title={`Ver ${material.original_name}`}
+      >
+        <span className="shrink-0">{fileIcon(material.file_type)}</span>
+        <span className="flex-1 text-sm text-gray-800 truncate min-w-0 group-hover:text-purple-600 group-hover:underline">
+          {material.original_name}
+        </span>
+      </button>
       {typeBadge(material.file_type)}
       <span className="text-xs text-gray-400 shrink-0">{formatBytes(material.size)}</span>
 
@@ -262,6 +274,7 @@ export default function DocenteMaterialesView() {
     modulo: ModuloConMateriales;
   } | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [previewing, setPreviewing] = useState<Material | null>(null);
 
   const { data: modulos, refetch } = useGetMaterialesProgramaQuery(activeRef!, {
     skip: !activeRef,
@@ -429,7 +442,12 @@ export default function DocenteMaterialesView() {
                 ) : (
                   <div className="divide-y divide-gray-100">
                     {materials.map((m) => (
-                      <MaterialRow key={m.id} material={m} onDelete={handleDelete} />
+                      <MaterialRow
+                        key={m.id}
+                        material={m}
+                        onDelete={handleDelete}
+                        onPreview={setPreviewing}
+                      />
                     ))}
                   </div>
                 )}
@@ -471,6 +489,15 @@ export default function DocenteMaterialesView() {
           )}
         </div>
       </Modal>
+
+      {previewing && (
+        <MaterialPreviewModal
+          material={previewing}
+          programaId={activeRef ?? undefined}
+          onClose={() => setPreviewing(null)}
+          hideVideoDownload
+        />
+      )}
     </div>
   );
 }

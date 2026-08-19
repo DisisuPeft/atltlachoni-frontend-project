@@ -28,6 +28,7 @@ import { sweetAlert } from "@/sweetalert/sweetalerts";
 import { Modal } from "@/app/components/common/modal";
 import { useRetrieveCampaniasQuery } from "@/redux/features/control-escolar/campaniasApiSlice";
 import { useModulosProgramaQuery } from "@/redux/features/control-escolar/programasApiSlice";
+import MaterialPreviewModal from "@/app/components/control-escolar/materiales/material-preview-modal";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -254,20 +255,29 @@ function SectionUploader({
 function MaterialRow({
   material,
   onDelete,
+  onPreview,
   showCampania = false,
 }: {
   material: Material;
   onDelete: (id: number) => void;
+  onPreview: (material: Material) => void;
   showCampania?: boolean;
 }) {
   const [confirming, setConfirming] = useState(false);
 
   return (
     <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 group">
-      <span className="shrink-0">{fileIcon(material.file_type)}</span>
-      <span className="flex-1 text-sm text-gray-800 truncate min-w-0">
-        {material.original_name}
-      </span>
+      <button
+        type="button"
+        onClick={() => onPreview(material)}
+        className="flex items-center gap-3 flex-1 min-w-0 text-left"
+        title={`Ver ${material.original_name}`}
+      >
+        <span className="shrink-0">{fileIcon(material.file_type)}</span>
+        <span className="flex-1 text-sm text-gray-800 truncate min-w-0 group-hover:text-blue-600 group-hover:underline">
+          {material.original_name}
+        </span>
+      </button>
       {typeBadge(material.file_type)}
       {showCampania && material.campania_nombre && (
         <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium shrink-0">
@@ -337,6 +347,7 @@ export default function ProgramMaterialesTab({ programaId }: Props) {
   } | null>(null);
   const [uploadCampania, setUploadCampania] = useState<number | undefined>();
   const [uploadModulo, setUploadModulo] = useState<number | undefined>();
+  const [previewing, setPreviewing] = useState<Material | null>(null);
 
   const { data: campaniasData } = useRetrieveCampaniasQuery();
   const campaniasList: Campania[] = campaniasData?.results ?? [];
@@ -493,6 +504,7 @@ export default function ProgramMaterialesTab({ programaId }: Props) {
                         key={m.id}
                         material={m}
                         onDelete={handleDelete}
+                        onPreview={setPreviewing}
                         showCampania={selectedCampania === undefined}
                       />
                     ))}
@@ -593,6 +605,14 @@ export default function ProgramMaterialesTab({ programaId }: Props) {
           )}
         </div>
       </Modal>
+
+      {previewing && (
+        <MaterialPreviewModal
+          material={previewing}
+          programaId={programaId}
+          onClose={() => setPreviewing(null)}
+        />
+      )}
     </div>
   );
 }

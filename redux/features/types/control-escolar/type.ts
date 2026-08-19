@@ -537,6 +537,58 @@ export interface Material {
   campania_nombre: string | null;
 }
 
+export interface Actividad {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  programa: number | null;
+  programa_nombre: string | null;
+  modulo: number | null;
+  modulo_nombre: string | null;
+  submodulo: number | null;
+  submodulo_nombre: string | null;
+  campania: number | null;
+  campania_nombre: string | null;
+  fecha_limite: string | null;
+  permite_entrega_tardia: boolean;
+  calificacion_maxima: number;
+  total_entregas: number;
+}
+
+export interface ActividadBody {
+  nombre: string;
+  descripcion?: string;
+  programa?: number | string | null;
+  modulo?: number | null;
+  submodulo?: number | null;
+  campania?: number | null;
+  fecha_limite?: string | null;
+  permite_entrega_tardia?: boolean;
+  calificacion_maxima?: number;
+}
+
+export interface EntregaActividad {
+  id: number;
+  original_name: string;
+  mime_type: string;
+  size: number;
+  size_formatted: string;
+  file_type: string;
+  download_url: string | null;
+  preview_url: string | null;
+  actividad: number;
+  actividad_nombre: string;
+  estudiante: number;
+  estudiante_nombre?: string | null;
+  comentario: string | null;
+  entregado_tarde: boolean;
+  calificacion: number | null;
+  retroalimentacion: string | null;
+  calificado_por: number | null;
+  calificado_en: string | null;
+  esta_calificada: boolean;
+}
+
 export interface InscripcionBody {
   monto_inicial?: number;
   fecha_pago_inicial?: string;

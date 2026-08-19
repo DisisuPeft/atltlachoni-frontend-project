@@ -14,10 +14,19 @@ import Button from "@/app/ui/components/button";
 import { useState } from "react";
 import Acordeon from "@/app/ui/components/acordeon";
 import ProgramMaterialesTab from "./program-materiales-tab";
+import ProgramActividadesTab from "./program-actividades-tab";
 import ProgramEnlacesTab from "./program-enlaces-tab";
 import ProgramEvaluacionesTab from "./program-evaluaciones-tab";
 
-type Tab = "programa" | "materiales" | "clases" | "evaluaciones";
+type Tab = "programa" | "materiales" | "actividades" | "clases" | "evaluaciones";
+
+const TAB_LABELS: Record<Tab, string> = {
+  programa: "Información",
+  materiales: "Materiales",
+  actividades: "Actividades",
+  clases: "Clases en Vivo",
+  evaluaciones: "Evaluaciones",
+};
 
 interface Props {
   uuid: string;
@@ -53,7 +62,7 @@ export default function EditProgramaPage({ uuid }: Props) {
         <div className="bg-white border border-gray-200 rounded-t-lg border-b-0">
           <div className="flex items-center justify-between px-6 border-b border-gray-200">
             <nav className="-mb-px flex gap-1">
-              {(["programa", "materiales", "clases", "evaluaciones"] as Tab[]).map((tab) => (
+              {(["programa", "materiales", "actividades", "clases", "evaluaciones"] as Tab[]).map((tab) => (
                 <button
                   key={tab}
                   type="button"
@@ -64,13 +73,7 @@ export default function EditProgramaPage({ uuid }: Props) {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  {tab === "programa"
-                    ? "Información"
-                    : tab === "materiales"
-                      ? "Materiales"
-                      : tab === "clases"
-                        ? "Clases en Vivo"
-                        : "Evaluaciones"}
+                  {TAB_LABELS[tab]}
                 </button>
               ))}
             </nav>
@@ -87,6 +90,13 @@ export default function EditProgramaPage({ uuid }: Props) {
           <div className="bg-white border border-gray-200 border-t-0 rounded-b-lg p-6">
             <ProgramMaterialesTab programaId={uuid} />
             {/* <div>Materiales</div>. */}
+          </div>
+        )}
+
+        {/* Tab: Actividades */}
+        {activeTab === "actividades" && (
+          <div className="bg-white border border-gray-200 border-t-0 rounded-b-lg p-6">
+            <ProgramActividadesTab programaId={uuid} />
           </div>
         )}
 

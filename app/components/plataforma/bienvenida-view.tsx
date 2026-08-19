@@ -14,16 +14,18 @@ import {
   FileText,
   Music,
   File,
+  ImageIcon,
   Download,
   Loader2,
   BookOpen,
   Clock,
-  ClipboardList,
+  ListChecks,
+  GraduationCap,
   ArrowLeft,
   ArrowRight,
-  Circle,
 } from "lucide-react";
 import ExamenesView from "@/app/components/plataforma/examenes-view";
+import ActividadesAlumnoView from "@/app/components/plataforma/actividades-alumno-view";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -202,25 +204,65 @@ function MaterialViewer({
   );
 }
 
-// ── File type badge ────────────────────────────────────────────────────────
+// ── File type visual system ──────────────────────────────────────────────
+// Un solo mapeo color+ícono por tipo de archivo, reusado en la insignia y en
+// el ícono de cada fila del acordeón — así el alumno reconoce el tipo de
+// contenido de un vistazo, sin tener que leer.
+
+const FILE_TYPE_META: Record<
+  string,
+  { label: string; badge: string; chip: string; icon: typeof FileText }
+> = {
+  video: {
+    label: "Video",
+    badge: "bg-blue-100 text-blue-700",
+    chip: "bg-blue-50 text-blue-500",
+    icon: PlayCircle,
+  },
+  document: {
+    label: "Documento",
+    badge: "bg-orange-100 text-orange-700",
+    chip: "bg-orange-50 text-orange-500",
+    icon: FileText,
+  },
+  pdf: {
+    label: "PDF",
+    badge: "bg-red-100 text-red-700",
+    chip: "bg-red-50 text-red-500",
+    icon: FileText,
+  },
+  image: {
+    label: "Imagen",
+    badge: "bg-green-100 text-green-700",
+    chip: "bg-green-50 text-green-500",
+    icon: ImageIcon,
+  },
+  audio: {
+    label: "Audio",
+    badge: "bg-purple-100 text-purple-700",
+    chip: "bg-purple-50 text-purple-500",
+    icon: Music,
+  },
+};
+
+function fileTypeMeta(fileType: string) {
+  return (
+    FILE_TYPE_META[fileType] ?? {
+      label: fileType,
+      badge: "bg-gray-100 text-gray-600",
+      chip: "bg-gray-100 text-gray-400",
+      icon: File,
+    }
+  );
+}
 
 function FileTypeBadge({ fileType }: { fileType: string }) {
-  const map: Record<string, { label: string; className: string }> = {
-    video: { label: "Video", className: "bg-blue-100 text-blue-700" },
-    document: { label: "Documento", className: "bg-orange-100 text-orange-700" },
-    pdf: { label: "PDF", className: "bg-red-100 text-red-700" },
-    image: { label: "Imagen", className: "bg-green-100 text-green-700" },
-    audio: { label: "Audio", className: "bg-purple-100 text-purple-700" },
-  };
-  const config = map[fileType] ?? {
-    label: fileType,
-    className: "bg-gray-100 text-gray-600",
-  };
+  const meta = fileTypeMeta(fileType);
   return (
     <span
-      className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${config.className}`}
+      className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${meta.badge}`}
     >
-      {config.label}
+      {meta.label}
     </span>
   );
 }
@@ -278,22 +320,27 @@ function ModuloAccordion({
           )}
           {group.materiales.map((material) => {
             const active = material.id === selectedId;
+            const meta = fileTypeMeta(material.file_type);
+            const Icon = meta.icon;
             return (
               <button
                 key={material.id}
                 type="button"
                 onClick={() => onSelect(material)}
-                className={`w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors ${
+                title={`Ver ${meta.label.toLowerCase()}: ${material.original_name}`}
+                className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-colors ${
                   active
-                    ? "bg-blue-50 border-l-[3px] border-[#0056D2]"
-                    : "hover:bg-gray-50"
+                    ? "bg-blue-50 border-l-[3px] border-[#0056D2] pl-[17px]"
+                    : "hover:bg-gray-50 border-l-[3px] border-transparent"
                 }`}
               >
-                {active ? (
-                  <PlayCircle className="w-5 h-5 text-[#0056D2] shrink-0" />
-                ) : (
-                  <Circle className="w-5 h-5 text-gray-200 shrink-0" />
-                )}
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                    active ? "bg-[#0056D2] text-white" : meta.chip
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                </div>
                 <span
                   className={`flex-1 text-sm truncate ${
                     active ? "text-[#0056D2] font-medium" : "text-gray-700"
@@ -301,8 +348,13 @@ function ModuloAccordion({
                 >
                   {material.original_name}
                 </span>
-                <FileTypeBadge fileType={material.file_type} />
-                <ArrowRight className="w-4 h-4 text-gray-300 shrink-0" />
+                {active ? (
+                  <span className="shrink-0 text-[10px] font-semibold text-[#0056D2] bg-blue-100 px-2 py-0.5 rounded-full">
+                    Viendo
+                  </span>
+                ) : (
+                  <ArrowRight className="w-4 h-4 text-gray-300 shrink-0" />
+                )}
               </button>
             );
           })}
@@ -319,14 +371,33 @@ interface Props {
   slug: string;
 }
 
-type Tab = "inicio" | "examenes";
+type Tab = "inicio" | "actividades" | "examenes";
 
-const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
-  { key: "inicio", label: "Inicio", icon: <BookOpen className="w-4 h-4" /> },
+// Cada tab tiene su propio color de acento — así el alumno siempre sabe en
+// qué sección está con solo mirar el color, sin depender del texto.
+const TABS: {
+  key: Tab;
+  label: string;
+  icon: React.ReactNode;
+  active: string;
+}[] = [
+  {
+    key: "inicio",
+    label: "Inicio",
+    icon: <BookOpen className="w-4 h-4" />,
+    active: "border-[#0056D2] text-[#0056D2]",
+  },
+  {
+    key: "actividades",
+    label: "Actividades",
+    icon: <ListChecks className="w-4 h-4" />,
+    active: "border-amber-500 text-amber-600",
+  },
   {
     key: "examenes",
     label: "Exámenes",
-    icon: <ClipboardList className="w-4 h-4" />,
+    icon: <GraduationCap className="w-4 h-4" />,
+    active: "border-violet-500 text-violet-600",
   },
 ];
 
@@ -341,6 +412,18 @@ export default function BienvenidaView({ programaId }: Props) {
   const videoMaterial = nullGroup?.materiales.find(
     (m) => m.file_type === "video",
   );
+
+  // El video más reciente que trae el backend (último de la lista, en el
+  // orden en que ya vienen los materiales) — es el que abre "Continuar".
+  const lastVideo = useMemo(() => {
+    const videos: Material[] = [];
+    for (const g of grupos) {
+      for (const m of g.materiales) {
+        if (m.file_type === "video") videos.push(m);
+      }
+    }
+    return videos[videos.length - 1];
+  }, [grupos]);
 
   const moduloGroups = useMemo<ModuloConMateriales[]>(() => {
     return grupos
@@ -386,9 +469,15 @@ export default function BienvenidaView({ programaId }: Props) {
   };
 
   const handleContinuar = () => {
-    const first = videoMaterial ?? moduloGroups[0]?.materiales[0];
-    if (first) {
-      handleSelect(first);
+    const target = lastVideo ?? videoMaterial ?? moduloGroups[0]?.materiales[0];
+    if (target) {
+      handleSelect(target);
+      const owningGroup = grupos.find((g) =>
+        g.materiales.some((m) => m.id === target.id),
+      );
+      if (owningGroup) {
+        setOpenSet((prev) => new Set(prev).add(groupKey(owningGroup)));
+      }
     } else if (moduloGroups[0]) {
       setOpenSet(new Set([groupKey(moduloGroups[0])]));
     }
@@ -399,14 +488,14 @@ export default function BienvenidaView({ programaId }: Props) {
       {/* ── Tab strip ─────────────────────────────────────────────────── */}
       <div className="border-b border-gray-200 px-6">
         <div className="flex max-w-4xl mx-auto">
-          {TABS.map(({ key, label, icon }) => (
+          {TABS.map(({ key, label, icon, active }) => (
             <button
               key={key}
               type="button"
               onClick={() => setTab(key)}
               className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 transition-colors ${
                 tab === key
-                  ? "border-[#0056D2] text-[#0056D2]"
+                  ? active
                   : "border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300"
               }`}
             >
@@ -505,9 +594,12 @@ export default function BienvenidaView({ programaId }: Props) {
                   <ArrowLeft className="w-3 h-3" />
                   Volver a la bienvenida
                 </button>
-                <h2 className="font-semibold text-gray-900">
-                  {selectedMaterial.original_name}
-                </h2>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="font-semibold text-gray-900">
+                    {selectedMaterial.original_name}
+                  </h2>
+                  <FileTypeBadge fileType={selectedMaterial.file_type} />
+                </div>
                 {selectedMaterial.description && (
                   <p className="text-sm text-gray-500 mt-0.5">
                     {selectedMaterial.description}
@@ -547,8 +639,13 @@ export default function BienvenidaView({ programaId }: Props) {
                         : new Set(moduloGroups.map(groupKey)),
                     )
                   }
-                  className="text-xs text-[#0056D2] hover:underline font-medium"
+                  className="flex items-center gap-1 text-xs text-[#0056D2] hover:underline font-medium"
                 >
+                  {allExpanded ? (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
                   {allExpanded ? "Colapsar todo" : "Expandir todo"}
                 </button>
               )}
@@ -581,6 +678,9 @@ export default function BienvenidaView({ programaId }: Props) {
           </div>
         </div>
       )}
+
+      {/* ── Actividades ───────────────────────────────────────────────── */}
+      {tab === "actividades" && <ActividadesAlumnoView programaId={programaId} />}
 
       {/* ── Exámenes ─────────────────────────────────────────────────── */}
       {tab === "examenes" && <ExamenesView programaId={programaId} />}
