@@ -126,6 +126,7 @@ export default function useAlumnoEditForm(uuid: string) {
     estados,
     localidades,
     disabled,
+    setDisabled,
     isAdmin,
   };
 }

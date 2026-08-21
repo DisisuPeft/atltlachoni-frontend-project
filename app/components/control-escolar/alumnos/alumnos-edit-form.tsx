@@ -919,15 +919,13 @@ export default function EstudianteEditPage({ uuid, initialRef }: Props) {
     estados,
     localidades,
     disabled,
+    setDisabled,
     isAdmin,
   } = useAlumnoEditForm(uuid);
 
   const handleEdit = () => {
-    sweetAlert(
-      "info",
-      "En breve se podra editar la informacion del estudiante",
-      "Alerta",
-    );
+    setActiveTab("info");
+    setDisabled((prev) => !prev);
   };
 
   const tabs: { key: Tab; label: string }[] = [
