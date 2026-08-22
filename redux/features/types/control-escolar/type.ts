@@ -541,7 +541,7 @@ export interface Actividad {
   id: number;
   nombre: string;
   descripcion: string | null;
-  programa: number | null;
+  programa: string | null;
   programa_nombre: string | null;
   modulo: number | null;
   modulo_nombre: string | null;
@@ -551,8 +551,10 @@ export interface Actividad {
   campania_nombre: string | null;
   fecha_limite: string | null;
   permite_entrega_tardia: boolean;
-  calificacion_maxima: number;
+  // DecimalField del backend — llega como string ("100.00"), no como number.
+  calificacion_maxima: string;
   total_entregas: number;
+  created_at?: string;
 }
 
 export interface ActividadBody {

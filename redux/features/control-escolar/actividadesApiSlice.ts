@@ -18,12 +18,16 @@ export interface CalificarEntregaBody {
   retroalimentacion?: string;
 }
 
+// El backend de este módulo no pagina sus listas (regresa un array plano),
+// a diferencia de otros endpoints de control-escolar — normalizamos aquí
+// por si en algún punto empieza a envolverlas en {results: [...]}.
+function toArray<T>(response: T[] | PaginatedResponse<T>): T[] {
+  return Array.isArray(response) ? response : response.results;
+}
+
 const actividadesApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getActividades: builder.query<
-      PaginatedResponse<Actividad>,
-      ActividadFiltros | void
-    >({
+    getActividades: builder.query<Actividad[], ActividadFiltros | void>({
       query: (params) => {
         const { programa, modulo, submodulo, campania } =
           (params ?? {}) as ActividadFiltros;
@@ -35,10 +39,12 @@ const actividadesApiSlice = apiSlice.injectEndpoints({
         const search = qs.toString();
         return `/control-escolar/actividades/${search ? `?${search}` : ""}`;
       },
+      transformResponse: (response: Actividad[] | PaginatedResponse<Actividad>) =>
+        toArray(response),
       providesTags: (result) =>
         result
           ? [
-              ...result.results.map((a) => ({
+              ...result.map((a) => ({
                 type: "Actividades" as const,
                 id: a.id,
               })),
@@ -55,7 +61,7 @@ const actividadesApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: [{ type: "Actividades" as const, id: "LIST" }],
     }),
     getEntregasActividad: builder.query<
-      PaginatedResponse<EntregaActividad>,
+      EntregaActividad[],
       { actividad: number; estudiante?: number }
     >({
       query: ({ actividad, estudiante }) => {
@@ -65,6 +71,9 @@ const actividadesApiSlice = apiSlice.injectEndpoints({
           qs.set("estudiante", String(estudiante));
         return `/control-escolar/entregas-actividad/?${qs.toString()}`;
       },
+      transformResponse: (
+        response: EntregaActividad[] | PaginatedResponse<EntregaActividad>,
+      ) => toArray(response),
       providesTags: (_result, _error, { actividad }) => [
         { type: "EntregasActividad" as const, id: actividad },
       ],

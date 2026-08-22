@@ -257,7 +257,7 @@ export default function DocenteActividadesView() {
 
   const grupos = useMemo(() => {
     const map = new Map<string, { key: string; label: string; items: Actividad[] }>();
-    for (const a of actividadesData?.results ?? []) {
+    for (const a of actividadesData ?? []) {
       const key = a.modulo ? String(a.modulo) : "sin-modulo";
       const label = a.modulo_nombre ?? "Sin módulo";
       if (!map.has(key)) map.set(key, { key, label, items: [] });

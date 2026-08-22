@@ -33,17 +33,18 @@ function CalificarForm({
   calificacionMaxima,
 }: {
   entrega: EntregaActividad;
-  calificacionMaxima: number;
+  calificacionMaxima: string;
 }) {
   const [calificar, { isLoading }] = useCalificarEntregaMutation();
   const [calificacion, setCalificacion] = useState(
     entrega.calificacion !== null ? String(entrega.calificacion) : "",
   );
   const [retro, setRetro] = useState(entrega.retroalimentacion ?? "");
+  const maxNum = Number(calificacionMaxima);
 
   const handleSubmit = async () => {
     const value = Number(calificacion);
-    if (Number.isNaN(value) || value < 0 || value > calificacionMaxima) {
+    if (Number.isNaN(value) || value < 0 || value > maxNum) {
       sweetAlert(
         "error",
         `La calificación debe estar entre 0 y ${calificacionMaxima}.`,
@@ -70,7 +71,7 @@ function CalificarForm({
         <input
           type="number"
           min={0}
-          max={calificacionMaxima}
+          max={maxNum}
           step="0.1"
           value={calificacion}
           onChange={(e) => setCalificacion(e.target.value)}
@@ -104,7 +105,7 @@ function EntregaRow({
   calificacionMaxima,
 }: {
   entrega: EntregaActividad;
-  calificacionMaxima: number;
+  calificacionMaxima: string;
 }) {
   const [showCalificar, setShowCalificar] = useState(false);
   const fileUrl = entrega.download_url
@@ -187,7 +188,7 @@ export default function EntregasModal({ actividad, onClose }: Props) {
   const { data, isLoading } = useGetEntregasActividadQuery({
     actividad: actividad.id,
   });
-  const entregas = data?.results ?? [];
+  const entregas = data ?? [];
 
   return (
     <Modal show maxWidth="lg" onClose={onClose}>

@@ -176,7 +176,7 @@ function ActividadCard({ actividad }: { actividad: Actividad }) {
   const { data, isLoading } = useGetEntregasActividadQuery({
     actividad: actividad.id,
   });
-  const entrega = data?.results?.[0];
+  const entrega = data?.[0];
 
   const vencida =
     !!actividad.fecha_limite && new Date(actividad.fecha_limite) < new Date();
@@ -285,7 +285,7 @@ interface Props {
 
 export default function ActividadesAlumnoView({ programaId }: Props) {
   const { data, isLoading } = useGetActividadesQuery({ programa: programaId });
-  const actividades = data?.results ?? [];
+  const actividades = data ?? [];
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 space-y-4">
