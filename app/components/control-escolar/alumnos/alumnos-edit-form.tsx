@@ -11,6 +11,7 @@ import {
   useRetrieveEstudianteQuery,
   useActivarEstudianteMutation,
   useDesactivarEstudianteMutation,
+  useReenviarInvitacionEstudianteMutation,
   useAplicarPagoMutation,
 } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { PagoInscripcion } from "@/redux/features/types/control-escolar/type";
@@ -35,6 +36,7 @@ import {
   DollarSign,
   Landmark,
   Hash,
+  Send,
 } from "lucide-react";
 
 interface Props {
@@ -113,6 +115,8 @@ function ProfileHeader({
   const { data: estudiante, isLoading } = useRetrieveEstudianteQuery(uuid);
   const [activar, { isLoading: activando }] = useActivarEstudianteMutation();
   const [desactivar, { isLoading: desactivando }] = useDesactivarEstudianteMutation();
+  const [reenviarInvitacion, { isLoading: reenviando }] =
+    useReenviarInvitacionEstudianteMutation();
   const toggling = activando || desactivando;
 
   const handleToggleStatus = async () => {
@@ -125,6 +129,20 @@ function ProfileHeader({
     } catch (err) {
       const detail = (err as { data?: { detail?: string } })?.data?.detail;
       sweetAlert("error", detail ?? "No se pudo cambiar el estado", "Error");
+    }
+  };
+
+  const handleReenviarInvitacion = async () => {
+    try {
+      const res = await reenviarInvitacion(uuid).unwrap();
+      sweetAlert("success", res.detail ?? "Invitación reenviada.", "Listo");
+    } catch (err) {
+      const detail = (err as { data?: { detail?: string } })?.data?.detail;
+      sweetAlert(
+        "error",
+        detail ?? "No se pudo reenviar la invitación.",
+        "Error",
+      );
     }
   };
 
@@ -218,6 +236,22 @@ function ProfileHeader({
                   <span className={`w-1.5 h-1.5 rounded-full ${estudiante.status === 1 ? "bg-red-400" : "bg-emerald-500"}`} />
                 )}
                 {estudiante.status === 1 ? "Desactivar" : "Activar"}
+              </button>
+            )}
+            {estudiante && (
+              <button
+                type="button"
+                onClick={handleReenviarInvitacion}
+                disabled={reenviando}
+                title="Reenviar el correo de activación de cuenta"
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {reenviando ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Send className="w-3.5 h-3.5" />
+                )}
+                Reenviar invitación
               </button>
             )}
             <button

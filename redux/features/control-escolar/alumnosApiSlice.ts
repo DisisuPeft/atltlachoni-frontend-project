@@ -173,6 +173,12 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, uuid) => [{ type: "Estudiantes" as const, id: uuid }],
     }),
+    reenviarInvitacionEstudiante: builder.mutation<{ detail: string }, string>({
+      query: (uuid) => ({
+        url: `/control-escolar/estudiantes/${uuid}/reenviar-invitacion/`,
+        method: "POST",
+      }),
+    }),
     aplicarPago: builder.mutation<
       AplicarPagoResponse,
       { inscripcionId: number; estudianteId: string; pagos: { id: number; monto: number }[] }
@@ -207,5 +213,6 @@ export const {
   useGetMisPagosQuery,
   useActivarEstudianteMutation,
   useDesactivarEstudianteMutation,
+  useReenviarInvitacionEstudianteMutation,
   useAplicarPagoMutation,
 } = alumnoApiSlice;
