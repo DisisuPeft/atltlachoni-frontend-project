@@ -9,8 +9,6 @@ import { VideoPlayer } from "@/app/components/plataforma/video-player";
 import {
   AlertCircle,
   PlayCircle,
-  ChevronDown,
-  ChevronUp,
   FileText,
   Music,
   File,
@@ -23,6 +21,7 @@ import {
   GraduationCap,
   ArrowLeft,
   ArrowRight,
+  X,
 } from "lucide-react";
 import ExamenesView from "@/app/components/plataforma/examenes-view";
 import ActividadesAlumnoView from "@/app/components/plataforma/actividades-alumno-view";
@@ -32,6 +31,7 @@ import {
   Material,
   ModuloConMateriales,
 } from "@/redux/features/types/control-escolar/type";
+import { isMaterialVisible } from "@/app/utils/plataforma/materiales";
 
 const UPLOAD_HOST = process.env.NEXT_PUBLIC_UPLOAD_HOST;
 const API_HOST = process.env.NEXT_PUBLIC_HOST;
@@ -86,8 +86,8 @@ function PdfViewer({
 
   return (
     <div className="w-full rounded-xl overflow-hidden border border-gray-200 flex flex-col">
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <div className="flex items-center gap-2 text-sm text-gray-600 truncate">
+      <div className="flex flex-col gap-3 bg-gray-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2 text-base text-gray-600">
           <FileText className="w-4 h-4 text-red-500 shrink-0" />
           <span className="truncate">{material.original_name}</span>
         </div>
@@ -96,7 +96,7 @@ function PdfViewer({
             href={downloadUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+            className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 text-base font-semibold text-gray-700 hover:bg-gray-100 transition-colors sm:w-auto"
           >
             <Download className="w-3.5 h-3.5" />
             Descargar
@@ -105,8 +105,7 @@ function PdfViewer({
       </div>
       <iframe
         src={previewUrl}
-        className="w-full"
-        style={{ height: "70vh" }}
+        className="h-[60vh] min-h-[360px] w-full sm:h-[70vh]"
         title={material.original_name}
       />
     </div>
@@ -127,8 +126,12 @@ function MaterialViewer({
   if (material.file_type === "video") {
     if (material.hls_status === "ready") {
       return (
-        <div className="aspect-video w-full bg-black rounded-xl overflow-hidden">
-          <VideoPlayer materialId={material.id} programaId={programaId} />
+        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
+          <VideoPlayer
+            materialId={material.id}
+            programaId={programaId}
+            className="h-full object-contain"
+          />
         </div>
       );
     }
@@ -154,7 +157,9 @@ function MaterialViewer({
       <div className="aspect-video w-full bg-gray-950 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400">
         <Loader2 className="w-8 h-8 animate-spin" />
         <p className="text-sm">
-          {material.hls_status === "processing" ? "Preparando video…" : "En cola…"}
+          {material.hls_status === "processing"
+            ? "Preparando video…"
+            : "En cola…"}
         </p>
       </div>
     );
@@ -177,25 +182,27 @@ function MaterialViewer({
 
   if (material.file_type === "audio") {
     return (
-      <div className="w-full bg-gray-50 border border-gray-200 rounded-xl p-6 flex flex-col items-center gap-4">
+      <div className="flex w-full flex-col items-center gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 sm:p-6">
         <Music className="w-10 h-10 text-purple-400" />
-        <p className="text-sm font-medium text-gray-700">{material.original_name}</p>
+        <p className="break-words text-center text-base font-medium text-gray-700">
+          {material.original_name}
+        </p>
         <audio controls src={streamUrl} className="w-full" />
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-gray-50 border border-gray-200 rounded-xl p-8 flex flex-col items-center gap-4">
+    <div className="flex w-full flex-col items-center gap-4 rounded-xl border border-gray-200 bg-gray-50 p-5 sm:p-8">
       <File className="w-10 h-10 text-gray-400" />
-      <p className="text-sm font-medium text-gray-700 text-center">
+      <p className="break-words text-center text-base font-medium text-gray-700">
         {material.original_name}
       </p>
       <a
         href={streamUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 px-4 py-2 bg-[#0056D2] text-white text-sm font-medium rounded-lg hover:bg-[#004BB5] transition-colors"
+        className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#0056D2] px-4 text-base font-semibold text-white hover:bg-[#004BB5] transition-colors"
       >
         <Download className="w-4 h-4" />
         Descargar archivo
@@ -272,51 +279,43 @@ function FileTypeBadge({ fileType }: { fileType: string }) {
 function ModuloAccordion({
   group,
   index,
-  isOpen,
-  onToggle,
   selectedId,
   onSelect,
 }: {
   group: ModuloConMateriales;
   index: number;
-  isOpen: boolean;
-  onToggle: () => void;
   selectedId: number | null;
   onSelect: (m: Material) => void;
 }) {
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
-      {/* Header */}
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-center gap-4 px-5 py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-      >
+    <div className="overflow-hidden rounded-2xl border border-[#D8C9B5] bg-white shadow-sm">
+      <div className="flex min-h-16 items-center gap-3 border-b border-[#E7DCCC] bg-[#E5F1EB] px-4 py-4 sm:gap-4 sm:px-6">
         <div className="w-9 h-9 rounded-lg bg-[#0056D2]/10 flex items-center justify-center shrink-0">
           <BookOpen className="w-4 h-4 text-[#0056D2]" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 text-sm">
+          <h3 className="text-lg font-semibold text-[#123B4A]">
             {group.modulo_nombre ??
-              (group.modulo_id === null ? "General" : `Módulo ${index + 1}`)}
-          </p>
-          <p className="text-xs text-gray-400 mt-0.5">
+              (group.modulo_id === null
+                ? "Recursos generales"
+                : `Módulo ${index + 1}`)}
+          </h3>
+          <p className="mt-0.5 text-base text-[#315563]">
             {group.materiales.length}{" "}
-            {group.materiales.length === 1 ? "tema" : "temas"}
+            {group.materiales.length === 1
+              ? "recurso disponible"
+              : "recursos disponibles"}
           </p>
         </div>
-        {isOpen ? (
-          <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
-        )}
-      </button>
+      </div>
 
       {/* Items */}
-      {isOpen && (
-        <div className="divide-y divide-gray-100">
+      {
+        <div className="divide-y divide-[#E7DCCC]">
           {group.materiales.length === 0 && (
-            <p className="px-5 py-4 text-sm text-gray-400">Sin archivos.</p>
+            <p className="px-5 py-5 text-base text-[#315563]">
+              No hay recursos en este módulo.
+            </p>
           )}
           {group.materiales.map((material) => {
             const active = material.id === selectedId;
@@ -328,38 +327,42 @@ function ModuloAccordion({
                 type="button"
                 onClick={() => onSelect(material)}
                 title={`Ver ${meta.label.toLowerCase()}: ${material.original_name}`}
-                className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-colors ${
+                className={`group flex min-h-20 w-full flex-col items-stretch gap-3 px-4 py-4 text-left transition-colors focus-visible:relative focus-visible:z-10 focus-visible:outline-4 focus-visible:outline-offset-[-4px] focus-visible:outline-[#C75B39] sm:flex-row sm:items-center sm:gap-4 sm:px-6 ${
                   active
-                    ? "bg-blue-50 border-l-[3px] border-[#0056D2] pl-[17px]"
-                    : "hover:bg-gray-50 border-l-[3px] border-transparent"
+                    ? "bg-[#FFF8EE] border-l-[4px] border-[#C75B39] pl-4"
+                    : "hover:bg-[#FFF8EE] border-l-[4px] border-transparent"
                 }`}
               >
                 <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                    active ? "bg-[#0056D2] text-white" : meta.chip
+                  className={`flex h-12 w-12 self-start rounded-xl items-center justify-center shrink-0 ${
+                    active
+                      ? "bg-[#C75B39] text-white"
+                      : "bg-[#E5F1EB] text-[#123B4A]"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon aria-hidden="true" className="h-6 w-6" />
                 </div>
                 <span
-                  className={`flex-1 text-sm truncate ${
-                    active ? "text-[#0056D2] font-medium" : "text-gray-700"
+                  className={`w-full flex-1 break-words text-lg font-semibold leading-snug ${
+                    active ? "text-[#123B4A]" : "text-[#172B36]"
                   }`}
                 >
                   {material.original_name}
                 </span>
                 {active ? (
-                  <span className="shrink-0 text-[10px] font-semibold text-[#0056D2] bg-blue-100 px-2 py-0.5 rounded-full">
-                    Viendo
+                  <span className="self-start rounded-full bg-[#E5F1EB] px-3 py-1 text-sm font-semibold text-[#176B52] sm:shrink-0 sm:self-auto">
+                    En pantalla
                   </span>
                 ) : (
-                  <ArrowRight className="w-4 h-4 text-gray-300 shrink-0" />
+                  <span className="flex min-h-11 w-full items-center justify-center gap-1 rounded-lg bg-[#123B4A] px-3 text-base font-semibold text-white sm:w-auto sm:shrink-0">
+                    Abrir <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                  </span>
                 )}
               </button>
             );
           })}
         </div>
-      )}
+      }
     </div>
   );
 }
@@ -405,8 +408,17 @@ export default function BienvenidaView({ programaId }: Props) {
   const [tab, setTab] = useState<Tab>("inicio");
 
   const { data: programa } = useProgramaEstudianteQuery(programaId);
-  const { data: grupos = [], isLoading: materialesLoading } =
+  const { data: gruposRaw = [], isLoading: materialesLoading } =
     useGetMaterialesProgramaQuery(programaId);
+
+  const grupos = useMemo<ModuloConMateriales[]>(
+    () =>
+      gruposRaw.map((g) => ({
+        ...g,
+        materiales: g.materiales.filter(isMaterialVisible),
+      })),
+    [gruposRaw],
+  );
 
   const nullGroup = grupos.find((g) => g.modulo_id === null);
   const videoMaterial = nullGroup?.materiales.find(
@@ -444,22 +456,9 @@ export default function BienvenidaView({ programaId }: Props) {
     0,
   );
 
-  const [openSet, setOpenSet] = useState<Set<string>>(new Set());
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(
     null,
   );
-
-  const allExpanded =
-    moduloGroups.length > 0 && openSet.size === moduloGroups.length;
-
-  const toggleGroup = (key: string) => {
-    setOpenSet((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
 
   const handleSelect = (material: Material) => {
     setSelectedMaterial(material);
@@ -472,56 +471,28 @@ export default function BienvenidaView({ programaId }: Props) {
     const target = lastVideo ?? videoMaterial ?? moduloGroups[0]?.materiales[0];
     if (target) {
       handleSelect(target);
-      const owningGroup = grupos.find((g) =>
-        g.materiales.some((m) => m.id === target.id),
-      );
-      if (owningGroup) {
-        setOpenSet((prev) => new Set(prev).add(groupKey(owningGroup)));
-      }
-    } else if (moduloGroups[0]) {
-      setOpenSet(new Set([groupKey(moduloGroups[0])]));
     }
   };
 
   return (
-    <div>
-      {/* ── Tab strip ─────────────────────────────────────────────────── */}
-      <div className="border-b border-gray-200 px-6">
-        <div className="flex max-w-4xl mx-auto">
-          {TABS.map(({ key, label, icon, active }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setTab(key)}
-              className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 transition-colors ${
-                tab === key
-                  ? active
-                  : "border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300"
-              }`}
-            >
-              {icon}
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
+    <div className="min-h-full bg-[#FFF]">
       {/* ── Inicio ────────────────────────────────────────────────────── */}
       {tab === "inicio" && (
-        <div className="max-w-4xl mx-auto px-6 pb-12">
+        <div className="mx-auto max-w-4xl px-3 pb-12 sm:px-6">
           {/* Back nav */}
-          <div className="pt-5 mb-5">
+          <div className="pt-5">
             <Link
               href="/plataforma/educacion"
-              className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-[#123B4A] bg-white px-4 text-center text-base font-semibold text-[#123B4A] shadow-sm transition-colors hover:bg-[#E5F1EB] focus-visible:outline-4 focus-visible:outline-[#C75B39] sm:w-auto"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Mis {programa?.tipo_nombre ? `${programa.tipo_nombre}s` : "programas"}
+              <ArrowLeft aria-hidden="true" className="h-5 w-5" />
+              Volver a mis{" "}
+              {programa?.tipo_nombre ? `${programa.tipo_nombre}s` : "programas"}
             </Link>
           </div>
 
           {/* ── Program hero ─────────────────────────────────────────── */}
-          <div className="rounded-2xl overflow-hidden mb-8 relative bg-gradient-to-br from-[#0f1f65] to-[#1a4ba0]">
+          <div className="relative mb-8 overflow-hidden rounded-2xl bg-[#123B4A] shadow-lg">
             {programa?.banner_url && (
               <div className="absolute inset-0 pointer-events-none">
                 <Image
@@ -532,22 +503,22 @@ export default function BienvenidaView({ programaId }: Props) {
                 />
               </div>
             )}
-            <div className="relative p-6 md:p-8">
+            {/* <div className="relative p-6 md:p-8">
               <div className="flex flex-col sm:flex-row sm:items-start gap-5">
                 <div className="flex-1 min-w-0">
-                  <span className="inline-flex items-center gap-1.5 bg-green-400/20 text-green-300 text-xs font-semibold px-3 py-1 rounded-full mb-4">
+                  <span className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[#E5F1EB] px-3 py-1 text-sm font-semibold text-[#176B52]">
                     <PlayCircle className="w-3.5 h-3.5" />
-                    En progreso
+                    Comienza aquí
                   </span>
-                  <h1 className="text-xl md:text-2xl font-bold text-white mb-2 leading-snug">
+                  <h1 className="mb-2 font-heading text-3xl font-semibold leading-snug text-white md:text-4xl">
                     {programa?.nombre ?? "Cargando…"}
-                  </h1>
-                  {programa?.descripcion && (
-                    <p className="text-sm text-white/70 leading-relaxed mb-5 line-clamp-3">
+                  </h1> */}
+            {/* {programa?.descripcion && (
+                    <p className="mb-5 text-lg leading-relaxed text-[#E5F1EB] line-clamp-3">
                       {programa.descripcion}
                     </p>
-                  )}
-                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-white/60 text-xs">
+                  )} */}
+            {/* <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-base text-[#E5F1EB]">
                     {!!programa?.duracion_horas && (
                       <span className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5" />
@@ -567,19 +538,19 @@ export default function BienvenidaView({ programaId }: Props) {
                         {totalMateriales === 1 ? "tema" : "temas"}
                       </span>
                     )}
-                  </div>
-                </div>
+                  </div> */}
+            {/* </div>
 
                 <button
                   type="button"
                   onClick={handleContinuar}
-                  className="shrink-0 inline-flex items-center gap-2 bg-white text-[#0056D2] font-semibold text-sm px-5 py-3 rounded-xl hover:bg-blue-50 transition-colors shadow-lg"
+                  className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-xl bg-[#C75B39] px-5 py-3 text-base font-semibold text-white shadow-lg transition-colors hover:bg-[#A9452B] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-[#F4B49E]"
                 >
                   <PlayCircle className="w-4 h-4" />
-                  Continuar {programa?.tipo_nombre ?? "programa"}
+                  Abrir recurso principal
                 </button>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* ── Viewer ───────────────────────────────────────────────── */}
@@ -589,19 +560,20 @@ export default function BienvenidaView({ programaId }: Props) {
                 <button
                   type="button"
                   onClick={() => setSelectedMaterial(null)}
-                  className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors mb-1"
+                  aria-label={`Cerrar recurso: ${selectedMaterial.original_name}`}
+                  className="mb-3 inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#123B4A] bg-white px-3 text-base font-semibold text-[#123B4A] transition-colors hover:bg-[#E5F1EB] focus-visible:outline-4 focus-visible:outline-[#C75B39]"
                 >
-                  <ArrowLeft className="w-3 h-3" />
-                  Volver a la bienvenida
+                  <X aria-hidden="true" className="h-5 w-5" />
+                  Cerrar recurso
                 </button>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="font-semibold text-gray-900">
+                  <h2 className="break-words text-xl font-semibold text-gray-900 sm:text-2xl">
                     {selectedMaterial.original_name}
                   </h2>
                   <FileTypeBadge fileType={selectedMaterial.file_type} />
                 </div>
                 {selectedMaterial.description && (
-                  <p className="text-sm text-gray-500 mt-0.5">
+                  <p className="mt-1 break-words text-base text-gray-500">
                     {selectedMaterial.description}
                   </p>
                 )}
@@ -624,41 +596,32 @@ export default function BienvenidaView({ programaId }: Props) {
           ) : null}
 
           {/* ── Course content accordion ──────────────────────────────── */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-gray-900">
-                Contenido del {programa?.tipo_nombre ?? "programa"}
-              </h2>
-              {moduloGroups.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setOpenSet(
-                      allExpanded
-                        ? new Set()
-                        : new Set(moduloGroups.map(groupKey)),
-                    )
-                  }
-                  className="flex items-center gap-1 text-xs text-[#0056D2] hover:underline font-medium"
+          <section aria-labelledby="contenido-curso">
+            <div className="mb-5">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wider text-[#176B52]">
+                  Siguiente paso
+                </p>
+                <h2
+                  id="contenido-curso"
+                  className="font-heading text-2xl font-semibold text-[#123B4A]"
                 >
-                  {allExpanded ? (
-                    <ChevronUp className="w-3.5 h-3.5" />
-                  ) : (
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  )}
-                  {allExpanded ? "Colapsar todo" : "Expandir todo"}
-                </button>
-              )}
+                  Recursos del {programa?.tipo_nombre ?? "programa"}
+                </h2>
+                <p className="mt-1 text-base text-[#315563]">
+                  Elige un módulo y abre el recurso que necesitas.
+                </p>
+              </div>
             </div>
 
             {materialesLoading ? (
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-400 py-12">
+              <div className="flex items-center justify-center gap-2 py-12 text-base text-[#315563]">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Cargando materiales…
               </div>
             ) : moduloGroups.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-10">
-                No hay materiales disponibles.
+              <p className="py-10 text-center text-base text-[#315563]">
+                Aún no hay recursos disponibles.
               </p>
             ) : (
               <div className="space-y-3">
@@ -667,23 +630,80 @@ export default function BienvenidaView({ programaId }: Props) {
                     key={groupKey(group)}
                     group={group}
                     index={i}
-                    isOpen={openSet.has(groupKey(group))}
-                    onToggle={() => toggleGroup(groupKey(group))}
                     selectedId={selectedMaterial?.id ?? null}
                     onSelect={handleSelect}
                   />
                 ))}
               </div>
             )}
-          </div>
+          </section>
+
+          <section
+            aria-labelledby="herramientas-curso"
+            className="mt-8 border-t border-[#D8C9B5] pt-6"
+          >
+            <h2
+              id="herramientas-curso"
+              className="font-heading text-xl font-semibold text-[#123B4A]"
+            >
+              Otras herramientas del curso
+            </h2>
+            <p className="mt-1 text-base text-[#315563]">
+              Úsalas cuando necesites entregar actividades o consultar tus
+              exámenes.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {TABS.filter(({ key }) => key !== "inicio").map(
+                ({ key, label, icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setTab(key)}
+                    className="flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 border-[#123B4A] bg-white px-4 text-base font-semibold text-[#123B4A] transition-colors hover:bg-[#E5F1EB] focus-visible:outline-4 focus-visible:outline-[#C75B39]"
+                  >
+                    {icon}
+                    Ver {label.toLowerCase()}
+                  </button>
+                ),
+              )}
+            </div>
+          </section>
         </div>
       )}
 
       {/* ── Actividades ───────────────────────────────────────────────── */}
-      {tab === "actividades" && <ActividadesAlumnoView programaId={programaId} />}
+      {tab === "actividades" && (
+        <>
+          <div className="mx-auto max-w-4xl px-4 pt-5 sm:px-6">
+            <button
+              type="button"
+              onClick={() => setTab("inicio")}
+              className="inline-flex min-h-11 items-center gap-2 text-base font-semibold text-[#123B4A] focus-visible:outline-4 focus-visible:outline-[#C75B39]"
+            >
+              <ArrowLeft aria-hidden="true" className="h-5 w-5" />
+              Volver al curso
+            </button>
+          </div>
+          <ActividadesAlumnoView programaId={programaId} />
+        </>
+      )}
 
       {/* ── Exámenes ─────────────────────────────────────────────────── */}
-      {tab === "examenes" && <ExamenesView programaId={programaId} />}
+      {tab === "examenes" && (
+        <>
+          <div className="mx-auto max-w-4xl px-4 pt-5 sm:px-6">
+            <button
+              type="button"
+              onClick={() => setTab("inicio")}
+              className="inline-flex min-h-11 items-center gap-2 text-base font-semibold text-[#123B4A] focus-visible:outline-4 focus-visible:outline-[#C75B39]"
+            >
+              <ArrowLeft aria-hidden="true" className="h-5 w-5" />
+              Volver al curso
+            </button>
+          </div>
+          <ExamenesView programaId={programaId} />
+        </>
+      )}
     </div>
   );
 }

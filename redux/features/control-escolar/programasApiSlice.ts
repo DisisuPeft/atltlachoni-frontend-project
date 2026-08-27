@@ -91,8 +91,15 @@ const programasApiSlice = apiSlice.injectEndpoints({
         const qs = new URLSearchParams();
         if (campania !== undefined) qs.set("campania", String(campania));
         const search = qs.toString();
-        return `/control-escolar/materiales/${ref}/modulosprograma/${search ? `?${search}` : ""}`;
+        return {
+          url: `/control-escolar/materiales/${ref}/modulosprograma/${search ? `?${search}` : ""}`,
+          cache: "no-store",
+        };
       },
+      providesTags: (_result, _error, { ref }) => [
+        { type: "Materiales" as const, id: ref },
+        { type: "Materiales" as const, id: "LIST" },
+      ],
     }),
     programasDestacados: builder.query<
       ProgramaDestacado[],

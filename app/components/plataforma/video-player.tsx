@@ -8,9 +8,14 @@ const UPLOAD_HOST = process.env.NEXT_PUBLIC_UPLOAD_HOST;
 interface VideoPlayerProps {
   materialId: number;
   programaId?: string;
+  className?: string;
 }
 
-export function VideoPlayer({ materialId, programaId }: VideoPlayerProps) {
+export function VideoPlayer({
+  materialId,
+  programaId,
+  className = "",
+}: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
 
@@ -60,8 +65,10 @@ export function VideoPlayer({ materialId, programaId }: VideoPlayerProps) {
     <video
       ref={videoRef}
       controls
-      className="w-full"
-      style={{ maxHeight: "540px", background: "#000" }}
+      playsInline
+      preload="metadata"
+      aria-label="Reproductor de video"
+      className={`block w-full bg-black ${className}`}
     />
   );
 }

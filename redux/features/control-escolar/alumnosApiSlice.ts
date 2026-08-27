@@ -141,16 +141,25 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
         `/control-escolar/programas-educativos/${id}/modulos?modulo=${moduloId}`,
     }),
     getMaterialesModulo: builder.query<PaginatedResponse<Material>, number>({
-      query: (moduloId) => `/control-escolar/materiales/?modulo=${moduloId}`,
+      query: (moduloId) => ({
+        url: `/control-escolar/materiales/?modulo=${moduloId}`,
+        cache: "no-store",
+      }),
+      providesTags: [{ type: "Materiales" as const, id: "LIST" }],
     }),
     getMaterialesPrograma: builder.query<ModuloConMateriales[], string>({
-      query: (programaId) => `/control-escolar/materiales/?programa=${programaId}`,
+      query: (programaId) => ({
+        url: `/control-escolar/materiales/?programa=${programaId}`,
+        cache: "no-store",
+      }),
+      providesTags: [{ type: "Materiales" as const, id: "LIST" }],
     }),
     deleteMaterial: builder.mutation<void, number>({
       query: (id) => ({
         url: `/control-escolar/materiales/${id}/`,
         method: "DELETE",
       }),
+      invalidatesTags: [{ type: "Materiales" as const, id: "LIST" }],
     }),
     getInscripcionesEstudiante: builder.query<InscripcionEstudianteDetail[], string>({
       query: (uuid) => `/control-escolar/estudiantes/${uuid}/inscripciones/`,

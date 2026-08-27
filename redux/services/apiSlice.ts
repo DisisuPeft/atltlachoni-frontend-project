@@ -96,6 +96,7 @@ export const apiSlice = createApi({
     "Notifications",
     "Actividades",
     "EntregasActividad",
+    "Materiales",
   ],
   endpoints: (builder) => ({}),
 });

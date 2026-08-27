@@ -31,6 +31,7 @@ import {
 import { Modal } from "@/app/components/common/modal";
 import { sweetAlert } from "@/sweetalert/sweetalerts";
 import MaterialPreviewModal from "@/app/components/control-escolar/materiales/material-preview-modal";
+import { isMaterialVisible } from "@/app/utils/plataforma/materiales";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -283,8 +284,12 @@ export default function DocenteMaterialesView() {
   const [deleteMaterial] = useDeleteMaterialMutation();
 
   const applyFilter = useCallback(
-    (materials: Material[]) =>
-      filterTipo === "all" ? materials : materials.filter((m) => m.file_type === filterTipo),
+    (materials: Material[]) => {
+      const visibles = materials.filter(isMaterialVisible);
+      return filterTipo === "all"
+        ? visibles
+        : visibles.filter((m) => m.file_type === filterTipo);
+    },
     [filterTipo],
   );
 
