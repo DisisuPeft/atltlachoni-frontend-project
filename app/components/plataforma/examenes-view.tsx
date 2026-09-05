@@ -7,7 +7,7 @@ import {
   useEnviarRespuestasEstudianteMutation,
   useGetMiCalificacionExamenQuery,
 } from "@/redux/features/control-escolar/examenesEstudianteApiSlice";
-import type { EnviarRespuestasResponse } from "@/redux/features/types/control-escolar/type";
+import type { EnviarRespuestasRequest, EnviarRespuestasResponse } from "@/redux/features/types/control-escolar/type";
 import {
   Loader2,
   ClipboardList,
@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   AlertCircle,
   RefreshCw,
+  Clock,
 } from "lucide-react";
 
 type Mode = "list" | "taking" | "result" | "reviewing";
@@ -62,7 +63,7 @@ function ScoreCard({
 export default function ExamenesView({ programaId: _programaId }: Props) {
   const [mode, setMode] = useState<Mode>("list");
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [answers, setAnswers] = useState<Record<number, number | string>>({});
   const [submitResult, setSubmitResult] =
     useState<EnviarRespuestasResponse | null>(null);
 
@@ -109,12 +110,17 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
 
   const handleSubmit = async () => {
     if (!selectedId) return;
-    const body = {
-      respuestas: Object.entries(answers).map(([pregunta, opcion_elegida]) => ({
-        pregunta: Number(pregunta),
-        opcion_elegida: Number(opcion_elegida),
-      })),
-    };
+    const respuestas: EnviarRespuestasRequest["respuestas"] = [];
+    (examenDetalle?.preguntas ?? []).forEach((pregunta) => {
+        const answer = answers[pregunta.id];
+        if (answer === undefined) return;
+        if (pregunta.opciones.length === 0) {
+          respuestas.push({ pregunta: pregunta.id, respuesta_texto: String(answer).trim() });
+        } else {
+          respuestas.push({ pregunta: pregunta.id, opcion_elegida: Number(answer) });
+        }
+      });
+    const body: EnviarRespuestasRequest = { respuestas };
     try {
       const result = await enviarRespuestas({ id: selectedId, body }).unwrap();
       setSubmitResult(result);
@@ -186,7 +192,12 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
 
   if (effectiveMode === "taking") {
     const preguntas = examenDetalle?.preguntas ?? [];
-    const answeredCount = Object.keys(answers).length;
+    const answeredCount = preguntas.filter((pregunta) => {
+      const answer = answers[pregunta.id];
+      return pregunta.opciones.length === 0
+        ? typeof answer === "string" && answer.trim().length > 0
+        : typeof answer === "number";
+    }).length;
     const allAnswered = preguntas.length > 0 && answeredCount === preguntas.length;
 
     return (
@@ -249,7 +260,18 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
                     <span className="mr-2 text-gray-400">{idx + 1}.</span>
                     {pregunta.enunciado}
                   </p>
-                  <div className="space-y-2">
+                  {pregunta.opciones.length === 0 ? (
+                    <textarea
+                      value={typeof answers[pregunta.id] === "string" ? answers[pregunta.id] : ""}
+                      onChange={(e) =>
+                        setAnswers((prev) => ({ ...prev, [pregunta.id]: e.target.value }))
+                      }
+                      rows={5}
+                      placeholder="Escribe tu respuesta aquí…"
+                      className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 outline-none transition-colors placeholder:text-gray-400 focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2]"
+                    />
+                  ) : (
+                    <div className="space-y-2">
                     {pregunta.opciones.map((opcion) => {
                       const selected = answers[pregunta.id] === opcion.id;
                       return (
@@ -285,7 +307,8 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
                         </label>
                       );
                     })}
-                  </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -330,11 +353,19 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
             : ""}
         </p>
 
-        <ScoreCard
-          calificacion={submitResult.calificacion}
-          correctas={submitResult.correctas}
-          total={submitResult.total_preguntas}
-        />
+        {submitResult.pendiente_revision ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+            <Clock className="mx-auto mb-3 h-9 w-9 text-amber-500" />
+            <h1 className="text-lg font-bold text-amber-900">Examen pendiente de revisión</h1>
+            <p className="mt-2 text-sm text-amber-800">Tu examen fue entregado. La calificación final se publicará cuando el docente revise tus respuestas abiertas.</p>
+          </div>
+        ) : submitResult.calificacion !== undefined ? (
+          <ScoreCard
+            calificacion={submitResult.calificacion}
+            correctas={submitResult.correctas ?? 0}
+            total={submitResult.total_preguntas}
+          />
+        ) : null}
 
         {submitResult.message && (
           <p className="text-center text-sm text-gray-500">
@@ -396,7 +427,8 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
 
             <div className="space-y-8">
               {miCalificacion.intentos.map((intento) => {
-                const passed = intento.calificacion >= 60;
+                const pending = intento.pendiente_revision;
+                const passed = (intento.calificacion ?? 0) >= 60;
                 const correctas = intento.respuestas.filter(
                   (r) => r.es_correcta === true
                 ).length;
@@ -407,20 +439,18 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
                       <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                         Intento {intento.intento}
                       </span>
-                      <span
-                        className={`text-sm font-bold ${passed ? "text-green-600" : "text-red-500"}`}
-                      >
-                        {intento.calificacion.toFixed(1)}
-                      </span>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          passed
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-600"
-                        }`}
-                      >
-                        {passed ? "Aprobado" : "Reprobado"}
-                      </span>
+                      {pending ? (
+                        <span className="text-xs rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-700">Pendiente de revisión</span>
+                      ) : (
+                        <>
+                          <span className={`text-sm font-bold ${passed ? "text-green-600" : "text-red-500"}`}>
+                            {intento.calificacion?.toFixed(1)}
+                          </span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${passed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
+                            {passed ? "Aprobado" : "Reprobado"}
+                          </span>
+                        </>
+                      )}
                       <span className="ml-auto text-xs text-gray-400">
                         {correctas}/{intento.respuestas.length} correctas
                       </span>
@@ -428,18 +458,23 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
 
                     <div className="space-y-2">
                       {intento.respuestas.map((r, idx) => {
+                        const pendingResponse = !r.esta_calificada;
                         const correct = r.es_correcta === true;
                         return (
                           <div
                             key={r.id}
                             className={`rounded-xl border p-4 ${
-                              correct
+                              pendingResponse
+                                ? "border-amber-200 bg-amber-50"
+                                : correct
                                 ? "border-green-200 bg-green-50"
                                 : "border-red-200 bg-red-50"
                             }`}
                           >
                             <div className="flex items-center gap-3">
-                              {correct ? (
+                              {pendingResponse ? (
+                                <Clock className="h-5 w-5 shrink-0 text-amber-500" />
+                              ) : correct ? (
                                 <CheckCircle className="h-5 w-5 shrink-0 text-green-500" />
                               ) : (
                                 <XCircle className="h-5 w-5 shrink-0 text-red-400" />
@@ -448,11 +483,9 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
                                 Pregunta {idx + 1}
                               </span>
                               <span
-                                className={`ml-auto text-xs font-medium ${
-                                  correct ? "text-green-700" : "text-red-600"
-                                }`}
+                                className={`ml-auto text-xs font-medium ${pendingResponse ? "text-amber-700" : correct ? "text-green-700" : "text-red-600"}`}
                               >
-                                {correct ? "Correcta" : "Incorrecta"}
+                                {pendingResponse ? "Pendiente de revisión" : correct ? "Correcta" : "Incorrecta"}
                               </span>
                             </div>
                             {r.opcion_elegida_obj && (
@@ -463,6 +496,9 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
                                   : ""}
                                 {r.opcion_elegida_obj.text}
                               </p>
+                            )}
+                            {r.respuesta_texto && (
+                              <p className="mt-2 whitespace-pre-wrap pl-8 text-xs text-gray-600">Tu respuesta: {r.respuesta_texto}</p>
                             )}
                           </div>
                         );

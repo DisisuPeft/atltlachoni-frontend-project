@@ -723,6 +723,7 @@ export interface Pregunta {
   id: number;
   enunciado: string;
   tipo_obj: TipoPregunta | null;
+  puntaje_maximo: string;
   opciones: OpcionAdmin[];
 }
 
@@ -762,6 +763,7 @@ export interface CreatePreguntaBody {
   examen: number;
   enunciado: string;
   tipo: number;
+  puntaje_maximo?: number;
 }
 
 export type UpdatePreguntaBody = Partial<CreatePreguntaBody>;
@@ -806,6 +808,7 @@ export interface PreguntaItem {
   id: number;
   enunciado: string;
   tipo_obj: { id: number; name: string } | null;
+  puntaje_maximo: string;
   opciones: OpcionItem[];
 }
 
@@ -816,27 +819,36 @@ export interface ExamenDetalleEstudiante extends ExamenItem {
 }
 
 export interface EnviarRespuestasRequest {
-  respuestas: { pregunta: number; opcion_elegida: number | null }[];
+  respuestas: (
+    | { pregunta: number; opcion_elegida: number }
+    | { pregunta: number; respuesta_texto: string }
+  )[];
 }
 
 export interface EnviarRespuestasResponse {
   message: string;
   intento: number;
   total_preguntas: number;
-  correctas: number;
-  calificacion: number;
+  correctas?: number;
+  calificacion?: number;
+  pendiente_revision: boolean;
 }
 
 export interface RespuestaEstudiante {
   id: number;
-  calificacion: number;
+  respuesta_texto: string | null;
+  calificacion: number | null;
   opcion_elegida_obj: OpcionItem | null;
+  calificado_por?: { id: number; nombre: string } | null;
+  calificado_en?: string | null;
+  esta_calificada: boolean;
   es_correcta: boolean | null;
 }
 
 export interface IntentoCalificacion {
   intento: number;
-  calificacion: number;
+  calificacion: number | null;
+  pendiente_revision: boolean;
   respuestas: RespuestaEstudiante[];
 }
 
@@ -845,6 +857,18 @@ export interface MiCalificacion {
   max_intentos: number;
   intentos_usados: number;
   intentos: IntentoCalificacion[];
+}
+
+export interface RespuestaPendiente {
+  id: number;
+  estudiante_nombre: string;
+  pregunta_enunciado: string;
+  examen_nombre: string;
+  respuesta_texto: string;
+  calificacion: number | null;
+  calificado_por: string | null;
+  calificado_en: string | null;
+  esta_calificada: boolean;
 }
 
 // ─── Maestros (Plantilla Docente) ─────────────────────────────────────────────
@@ -919,6 +943,10 @@ export interface MisProgramasDocenteResponse {
   countProgramas: number;
   programas: ProgramaDocente[];
 }
+
+export type ProgramasMaestroResponse =
+  | ProgramaDocente[]
+  | MisProgramasDocenteResponse;
 
 export interface SolicitudInformacionInput {
   nombre: string;

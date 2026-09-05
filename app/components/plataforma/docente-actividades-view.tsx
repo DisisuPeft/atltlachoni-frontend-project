@@ -237,13 +237,15 @@ function CrearActividadModal({
   );
 }
 
-export default function DocenteActividadesView() {
+export default function DocenteActividadesView({ programaInicial }: { programaInicial?: string }) {
   const { data: programasData, isLoading: loadingProgramas } =
     useGetMisProgramasDocenteQuery();
   const programas = programasData?.programas ?? [];
 
-  const [selectedRef, setSelectedRef] = useState<string | null>(null);
-  const activeRef = selectedRef ?? programas[0]?.ref ?? null;
+  const [selectedRef, setSelectedRef] = useState<string | null>(programaInicial ?? null);
+  const activeRef = selectedRef && programas.some((programa) => programa.ref === selectedRef)
+    ? selectedRef
+    : programas[0]?.ref ?? null;
   const activePrograma = programas.find((p) => p.ref === activeRef);
 
   const [openStates, setOpenStates] = useState<Record<string, boolean>>({});

@@ -3,7 +3,7 @@
 import { useInscriptionAlumnoDetailQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { useGetMisProgramasDocenteQuery } from "@/redux/features/control-escolar/maestrosApiSlice";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
-import { BookOpen, GraduationCap, ArrowRight, PlayCircle } from "lucide-react";
+import { BookOpen, GraduationCap, ArrowRight, PlayCircle, FolderOpen, ClipboardList, ClipboardCheck } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Programa } from "@/redux/features/types/alumnos/inscription";
@@ -58,7 +58,11 @@ function AlumnoProgramaCard({ programa }: { programa: Programa }) {
 
 function DocenteProgramaCard({ programa }: { programa: ProgramaDocente }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-4 hover:border-purple-200 hover:shadow-md transition-all">
+    <Link
+      href={`/plataforma/educacion?programa=${encodeURIComponent(programa.ref)}&tab=materiales`}
+      className="group bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-4 hover:border-purple-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 transition-all"
+      aria-label={`Gestionar ${programa.nombre}`}
+    >
       <div className="w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-purple-50 to-purple-100 flex-shrink-0">
         {programa.imagen_url ? (
           <Image src={programa.imagen_url} alt={programa.nombre} width={56} height={56} className="w-full h-full object-cover" />
@@ -75,7 +79,11 @@ function DocenteProgramaCard({ programa }: { programa: ProgramaDocente }) {
           {programa.modulos.length} módulos · {programa.duracion} meses
         </p>
       </div>
-    </div>
+      <span className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-2 text-xs font-semibold text-white transition-colors group-hover:bg-purple-700">
+        Gestionar <ArrowRight className="h-3.5 w-3.5" />
+      </span>
+      <ArrowRight className="h-4 w-4 shrink-0 text-gray-300 sm:hidden" />
+    </Link>
   );
 }
 
@@ -170,6 +178,23 @@ export default function Dashboard() {
                 {docenteData.countProgramas} {docenteData.countProgramas === 1 ? "programa" : "programas"}
               </span>
             )}
+          </div>
+          <div className="mb-4 grid gap-3 sm:grid-cols-3">
+            <Link href="/plataforma/educacion?tab=materiales" className="group flex items-center gap-3 rounded-xl border border-purple-100 bg-purple-50/60 p-4 transition-colors hover:border-purple-300 hover:bg-purple-50">
+              <span className="rounded-lg bg-white p-2 text-purple-600 shadow-sm"><FolderOpen className="h-5 w-5" /></span>
+              <span className="flex-1"><span className="block text-sm font-semibold text-gray-900">Materiales</span><span className="text-xs text-gray-500">Sube y organiza recursos</span></span>
+              <ArrowRight className="h-4 w-4 text-purple-400 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link href="/plataforma/educacion?tab=actividades" className="group flex items-center gap-3 rounded-xl border border-purple-100 bg-purple-50/60 p-4 transition-colors hover:border-purple-300 hover:bg-purple-50">
+              <span className="rounded-lg bg-white p-2 text-purple-600 shadow-sm"><ClipboardList className="h-5 w-5" /></span>
+              <span className="flex-1"><span className="block text-sm font-semibold text-gray-900">Actividades</span><span className="text-xs text-gray-500">Crea y califica tareas</span></span>
+              <ArrowRight className="h-4 w-4 text-purple-400 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link href="/plataforma/educacion?tab=evaluaciones" className="group flex items-center gap-3 rounded-xl border border-purple-100 bg-purple-50/60 p-4 transition-colors hover:border-purple-300 hover:bg-purple-50">
+              <span className="rounded-lg bg-white p-2 text-purple-600 shadow-sm"><ClipboardCheck className="h-5 w-5" /></span>
+              <span className="flex-1"><span className="block text-sm font-semibold text-gray-900">Evaluaciones</span><span className="text-xs text-gray-500">Crea y revisa exámenes</span></span>
+              <ArrowRight className="h-4 w-4 text-purple-400 transition-transform group-hover:translate-x-0.5" />
+            </Link>
           </div>
           <div className="space-y-3">
             {loadingDocente && <><CardSkeleton /><CardSkeleton /></>}

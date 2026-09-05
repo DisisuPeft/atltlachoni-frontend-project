@@ -11,13 +11,20 @@ import {
   Loader2,
   PencilIcon,
   Award,
+  BookOpen,
+  Plus,
+  X,
 } from "lucide-react";
 import {
   useRetrieveMaestroQuery,
   useUpdateMaestroMutation,
   useActivarMaestroMutation,
   useDesactivarMaestroMutation,
+  useGetProgramasMaestroQuery,
+  useAsignarProgramaMaestroMutation,
+  useDesasignarProgramaMaestroMutation,
 } from "@/redux/features/control-escolar/maestrosApiSlice";
+import { useRetrieveProgramasQuery } from "@/redux/features/control-escolar/programasApiSlice";
 import { useVerifyUserQuery } from "@/redux/features/auth/authApiSlice";
 import { useGetGenerosQuery } from "@/redux/features/catalogos/generoApiSlice";
 import {
@@ -226,6 +233,96 @@ function ProfileHeader({
   );
 }
 
+function ProgramasAsignados({
+  docenteRef,
+  canManage,
+}: {
+  docenteRef: string;
+  canManage: boolean;
+}) {
+  const [programaRef, setProgramaRef] = useState("");
+  const { data: asignadosData, isLoading } = useGetProgramasMaestroQuery(docenteRef);
+  const { data: programasData, isLoading: loadingProgramas } = useRetrieveProgramasQuery({ page: 1, status: "1" });
+  const [asignar, { isLoading: asignando }] = useAsignarProgramaMaestroMutation();
+  const [desasignar, { isLoading: desasignando }] = useDesasignarProgramaMaestroMutation();
+
+  const asignados = Array.isArray(asignadosData)
+    ? asignadosData
+    : asignadosData?.programas ?? [];
+  const asignadosRefs = new Set(asignados.map((programa) => programa.ref));
+  const programasDisponibles = (programasData?.results ?? []).filter(
+    (programa) => programa.ref && !asignadosRefs.has(programa.ref),
+  );
+
+  const getError = (error: unknown, fallback: string) =>
+    (error as { data?: { detail?: string; message?: string } })?.data?.detail ??
+    (error as { data?: { detail?: string; message?: string } })?.data?.message ??
+    fallback;
+
+  const handleAsignar = async () => {
+    if (!programaRef) return;
+    try {
+      await asignar({ ref: docenteRef, programa: programaRef }).unwrap();
+      setProgramaRef("");
+      sweetAlert("success", "Programa asignado al docente.", "Listo");
+    } catch (error) {
+      sweetAlert("error", getError(error, "No se pudo asignar el programa."), "Error");
+    }
+  };
+
+  const handleDesasignar = async (programa: string) => {
+    try {
+      await desasignar({ ref: docenteRef, programa }).unwrap();
+      sweetAlert("success", "Programa desasignado del docente.", "Listo");
+    } catch (error) {
+      sweetAlert("error", getError(error, "No se pudo desasignar el programa."), "Error");
+    }
+  };
+
+  return (
+    <section className="rounded-xl border border-gray-200 bg-white p-6">
+      <SectionHeader
+        icon={BookOpen}
+        title="Programas asignados"
+        description="Programas en los que este docente participa como instructor"
+      />
+
+      {isLoading ? (
+        <div className="flex items-center gap-2 py-3 text-sm text-gray-400"><Loader2 className="h-4 w-4 animate-spin" />Cargando programas…</div>
+      ) : asignados.length ? (
+        <div className="mb-4 space-y-2">
+          {asignados.map((programa) => (
+            <div key={programa.ref} className="flex items-center gap-3 rounded-lg border border-gray-100 px-3 py-2.5">
+              <BookOpen className="h-4 w-4 shrink-0 text-purple-500" />
+              <span className="flex-1 text-sm font-medium text-gray-800">{programa.nombre}</span>
+              {canManage && (
+                <button type="button" onClick={() => handleDesasignar(programa.ref)} disabled={desasignando} className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-40" aria-label={`Quitar ${programa.nombre}`}>
+                  {desasignando ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mb-4 text-sm text-gray-400">Este docente no tiene programas asignados.</p>
+      )}
+
+      {canManage && (
+        <div className="flex flex-col gap-2 border-t border-gray-100 pt-4 sm:flex-row">
+          <select value={programaRef} onChange={(event) => setProgramaRef(event.target.value)} disabled={loadingProgramas || asignando} className={selectClass}>
+            <option value="">{loadingProgramas ? "Cargando programas…" : "Seleccionar programa para asignar"}</option>
+            {programasDisponibles.map((programa) => <option key={programa.ref} value={programa.ref!}>{programa.nombre}</option>)}
+          </select>
+          <button type="button" onClick={handleAsignar} disabled={!programaRef || asignando} className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50">
+            {asignando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            Asignar programa
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
 // ── Main ─────────────────────────────────────────────────────────────
 
 export default function DocenteEditView({ docenteRef }: { docenteRef: string }) {
@@ -285,6 +382,8 @@ export default function DocenteEditView({ docenteRef }: { docenteRef: string }) 
         disabled={disabled}
         onToggleEdit={() => setDisabled((v) => !v)}
       />
+
+      <ProgramasAsignados docenteRef={docenteRef} canManage={Boolean(isAdmin)} />
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <form onSubmit={handleSubmit(onSubmit)}>

@@ -24,7 +24,7 @@ export default function PlataformaEducativa() {
     {
       id: 2,
       nav: "/plataforma/educacion",
-      label: esDocente ? "Mis programas" : "Mi Aprendizaje",
+      label: esDocente ? "Gestión docente" : "Mi Aprendizaje",
       icon: IconBook,
     },
     {

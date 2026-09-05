@@ -3,6 +3,7 @@ import {
   MaestroPerfil,
   MaestroPerfilForm,
   MisProgramasDocenteResponse,
+  ProgramasMaestroResponse,
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
 import { MessageResponse } from "../types/reponse";
@@ -78,6 +79,38 @@ const maestrosApiSlice = apiSlice.injectEndpoints({
     getMisProgramasDocente: builder.query<MisProgramasDocenteResponse, void>({
       query: () => "/control-escolar/maestros/mis-programas/",
     }),
+    getProgramasMaestro: builder.query<ProgramasMaestroResponse, string>({
+      query: (ref) => `/control-escolar/maestros/${ref}/programas/`,
+      providesTags: (_result, _error, ref) => [{ type: "Maestros" as const, id: ref }],
+    }),
+    asignarProgramaMaestro: builder.mutation<
+      { message?: string; detail?: string },
+      { ref: string; programa: string }
+    >({
+      query: ({ ref, programa }) => ({
+        url: `/control-escolar/maestros/${ref}/asignar-programa/`,
+        method: "POST",
+        body: { programa },
+      }),
+      invalidatesTags: (_result, _error, { ref }) => [
+        { type: "Maestros" as const, id: ref },
+        "Programas",
+      ],
+    }),
+    desasignarProgramaMaestro: builder.mutation<
+      { message?: string; detail?: string },
+      { ref: string; programa: string }
+    >({
+      query: ({ ref, programa }) => ({
+        url: `/control-escolar/maestros/${ref}/desasignar-programa/`,
+        method: "POST",
+        body: { programa },
+      }),
+      invalidatesTags: (_result, _error, { ref }) => [
+        { type: "Maestros" as const, id: ref },
+        "Programas",
+      ],
+    }),
   }),
 });
 
@@ -89,4 +122,7 @@ export const {
   useActivarMaestroMutation,
   useDesactivarMaestroMutation,
   useGetMisProgramasDocenteQuery,
+  useGetProgramasMaestroQuery,
+  useAsignarProgramaMaestroMutation,
+  useDesasignarProgramaMaestroMutation,
 } = maestrosApiSlice;

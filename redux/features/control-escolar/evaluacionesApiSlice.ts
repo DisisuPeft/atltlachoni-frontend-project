@@ -15,6 +15,7 @@ import type {
   UpdateOpcionBody,
   CreateTipoExamenBody,
   CreateTipoPreguntaBody,
+  RespuestaPendiente,
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
 
@@ -205,6 +206,32 @@ export const evaluacionesApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: ["CalificacionExamen"],
     }),
+
+    getRespuestasPendientes: builder.query<
+      PaginatedResponse<RespuestaPendiente>,
+      { examen: number; pendientes?: 1; page?: number }
+    >({
+      query: (params) => ({
+        url: "/control-escolar/examenes/respuestas/",
+        params: { pendientes: 1, ...params },
+      }),
+      providesTags: ["CalificacionExamen"],
+    }),
+    calificarRespuestaAbierta: builder.mutation<
+      RespuestaPendiente,
+      { id: number; examen: number; calificacion: number }
+    >({
+      query: ({ id, calificacion }) => ({
+        url: `/control-escolar/examenes/respuestas/${id}/calificar/`,
+        method: "POST",
+        body: { calificacion },
+      }),
+      invalidatesTags: (_r, _e, { examen }) => [
+        "CalificacionExamen",
+        "Calificaciones",
+        { type: "Examen" as const, id: examen },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -232,4 +259,6 @@ export const {
   useUpdateOpcionMutation,
   useDeleteOpcionMutation,
   useGetCalificacionesQuery,
+  useGetRespuestasPendientesQuery,
+  useCalificarRespuestaAbiertaMutation,
 } = evaluacionesApiSlice;
