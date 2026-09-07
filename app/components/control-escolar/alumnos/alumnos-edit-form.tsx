@@ -13,7 +13,12 @@ import {
   useDesactivarEstudianteMutation,
   useReenviarInvitacionEstudianteMutation,
   useAplicarPagoMutation,
+  useDescargarReciboPagoMutation,
+  useRegenerarReciboPagoMutation,
+  useDescargarReciboConsolidadoMutation,
 } from "@/redux/features/control-escolar/alumnosApiSlice";
+import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
+import { openOrDownloadBlob } from "@/lib/download-blob";
 import { PagoInscripcion } from "@/redux/features/types/control-escolar/type";
 import { Modal } from "../../common/modal";
 import StepEstudiante from "./steps";
@@ -37,6 +42,8 @@ import {
   Landmark,
   Hash,
   Send,
+  FileText,
+  RotateCw,
 } from "lucide-react";
 
 interface Props {
@@ -114,7 +121,8 @@ function ProfileHeader({
 }) {
   const { data: estudiante, isLoading } = useRetrieveEstudianteQuery(uuid);
   const [activar, { isLoading: activando }] = useActivarEstudianteMutation();
-  const [desactivar, { isLoading: desactivando }] = useDesactivarEstudianteMutation();
+  const [desactivar, { isLoading: desactivando }] =
+    useDesactivarEstudianteMutation();
   const [reenviarInvitacion, { isLoading: reenviando }] =
     useReenviarInvitacionEstudianteMutation();
   const toggling = activando || desactivando;
@@ -233,7 +241,9 @@ function ProfileHeader({
                 {toggling ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  <span className={`w-1.5 h-1.5 rounded-full ${estudiante.status === 1 ? "bg-red-400" : "bg-emerald-500"}`} />
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${estudiante.status === 1 ? "bg-red-400" : "bg-emerald-500"}`}
+                  />
                 )}
                 {estudiante.status === 1 ? "Desactivar" : "Activar"}
               </button>
@@ -513,11 +523,13 @@ function AplicarPagoModal({
   inscripcionId,
   estudianteId,
   onClose,
+  onPaymentSuccess,
 }: {
   pago: PagoInscripcion;
   inscripcionId: number;
   estudianteId: string;
   onClose: () => void;
+  onPaymentSuccess?: (pagoId: number) => void;
 }) {
   const [aplicar, { isLoading }] = useAplicarPagoMutation();
   const [monto, setMonto] = useState(pago.monto);
@@ -540,24 +552,27 @@ function AplicarPagoModal({
 
       const resultado = res.resultados[0];
       onClose();
-      if (resultado?.resultado === "aplicado_con_residuo") {
-        const tipo = resultado.tipo_diferencia === "excedente" ? "excedente" : "parcial";
-        const absDiff = Math.abs(resultado.diferencia ?? 0).toFixed(2);
-        await Swal.fire({
-          icon: "info",
-          title: "Pago aplicado",
-          html: `Registrado con <b>${tipo}</b> de <b>$${absDiff}</b>.<br/><span style="color:#6b7280">${res.message}</span>`,
-          confirmButtonText: "Entendido",
-          confirmButtonColor: "#0056D2",
-        });
-      } else {
-        await Swal.fire({
-          icon: "success",
-          title: "Pago aplicado",
-          text: res.message,
-          timer: 2500,
-          showConfirmButton: false,
-        });
+
+      const isResiduo = resultado?.resultado === "aplicado_con_residuo";
+      const tipo =
+        resultado?.tipo_diferencia === "excedente" ? "excedente" : "parcial";
+      const absDiff = Math.abs(resultado?.diferencia ?? 0).toFixed(2);
+
+      const alertRes = await Swal.fire({
+        icon: isResiduo ? "info" : "success",
+        title: "Pago aplicado",
+        html: isResiduo
+          ? `Registrado con <b>${tipo}</b> de <b>$${absDiff}</b>.<br/><span style="color:#6b7280">${res.message}</span>`
+          : `<span>${res.message}</span>`,
+        showCancelButton: true,
+        confirmButtonText: "Ver recibo",
+        confirmButtonColor: "#0056D2",
+        cancelButtonText: "Cerrar",
+        cancelButtonColor: "#6b7280",
+      });
+
+      if (alertRes.isConfirmed && onPaymentSuccess) {
+        onPaymentSuccess(pago.id);
       }
     } catch (err: unknown) {
       const data = (err as { data?: Record<string, unknown> })?.data;
@@ -684,25 +699,61 @@ function AplicarPagoModal({
 function PagoRow({
   pago,
   onApply,
+  onDescargarRecibo,
+  onRegenerarRecibo,
+  isDownloadingRecibo,
+  isRegeneratingRecibo,
+  canManagePagos,
 }: {
   pago: PagoInscripcion;
   onApply?: () => void;
+  onDescargarRecibo?: () => void;
+  onRegenerarRecibo?: () => void;
+  isDownloadingRecibo?: boolean;
+  isRegeneratingRecibo?: boolean;
+  canManagePagos?: boolean;
 }) {
-  const done = pago.estado === "completado";
+  const estadoLower = pago.estado?.toLowerCase() ?? "";
+  const isResuelto = ["completado", "parcial", "excedente"].includes(
+    estadoLower,
+  );
+  const isCompletado = estadoLower === "completado";
+  const isParcial = estadoLower === "parcial";
+  const isExcedente = estadoLower === "excedente";
+  const isVencido = estadoLower === "vencido";
+
   return (
     <div
       className={`flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0 ${
-        !done && onApply ? "cursor-pointer hover:bg-gray-50/80 -mx-2 px-2 rounded-lg transition-colors" : ""
+        !isCompletado && onApply && canManagePagos
+          ? "cursor-pointer hover:bg-gray-50/80 -mx-2 px-2 rounded-lg transition-colors"
+          : ""
       }`}
-      onClick={!done ? onApply : undefined}
+      onClick={!isCompletado && onApply && canManagePagos ? onApply : undefined}
     >
       <div
-        className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${done ? "bg-emerald-50" : "bg-amber-50"}`}
+        className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
+          isCompletado
+            ? "bg-emerald-50"
+            : isParcial
+              ? "bg-blue-50"
+              : isExcedente
+                ? "bg-purple-50"
+                : isVencido
+                  ? "bg-red-50"
+                  : "bg-amber-50"
+        }`}
       >
-        {done ? (
+        {isCompletado ? (
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+        ) : isParcial ? (
+          <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+        ) : isExcedente ? (
+          <CheckCircle2 className="w-3.5 h-3.5 text-purple-600" />
         ) : (
-          <Clock className="w-3.5 h-3.5 text-amber-500" />
+          <Clock
+            className={`w-3.5 h-3.5 ${isVencido ? "text-red-500" : "text-amber-500"}`}
+          />
         )}
       </div>
       <div className="flex-1 min-w-0">
@@ -710,7 +761,7 @@ function PagoRow({
           {pago.concepto ?? pago.tipo_pago_r}
         </p>
         <p className="text-xs text-gray-400">
-          {done
+          {isResuelto && pago.fecha_pago
             ? `Pagado el ${fmtDate(pago.fecha_pago)}`
             : `Vence el ${fmtDate(pago.fecha_vencimiento)}`}
           {pago.metodo_pago_r && ` · ${pago.metodo_pago_r}`}
@@ -722,21 +773,81 @@ function PagoRow({
             {fmtMXN(pago.monto)}
           </p>
           <span
-            className={`text-xs font-medium ${done ? "text-emerald-600" : "text-amber-500"}`}
+            className={`text-xs font-medium ${
+              isCompletado
+                ? "text-emerald-600"
+                : isParcial
+                  ? "text-blue-600"
+                  : isExcedente
+                    ? "text-purple-600"
+                    : isVencido
+                      ? "text-red-500"
+                      : "text-amber-500"
+            }`}
           >
-            {done ? "Pagado" : "Pendiente"}
+            {isCompletado
+              ? "Pagado"
+              : isParcial
+                ? "Parcial"
+                : isExcedente
+                  ? "Excedente"
+                  : isVencido
+                    ? "Vencido"
+                    : "Pendiente"}
           </span>
         </div>
-        {!done && onApply && (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onApply(); }}
-            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
-          >
-            <DollarSign className="w-3 h-3" />
-            Aplicar
-          </button>
-        )}
+
+        <div className="flex items-center gap-1.5">
+          {!isCompletado && onApply && canManagePagos && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onApply();
+              }}
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
+            >
+              <DollarSign className="w-3 h-3" />
+              Aplicar
+            </button>
+          )}
+
+          {isResuelto && canManagePagos && (
+            <div
+              className="flex items-center gap-1"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={onDescargarRecibo}
+                disabled={isDownloadingRecibo}
+                title="Descargar recibo de pago en PDF"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-[#0056D2] bg-[#F0F6FF] hover:bg-[#E0EDFE] rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isDownloadingRecibo ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <FileText className="w-3 h-3" />
+                )}
+                Recibo
+              </button>
+
+              <button
+                type="button"
+                onClick={onRegenerarRecibo}
+                disabled={isRegeneratingRecibo}
+                title="Regenerar recibo (forzar actualización)"
+                className="p-1.5 text-gray-400 hover:text-[#0056D2] hover:bg-[#F0F6FF] rounded-lg transition-colors disabled:opacity-50"
+              >
+                <RotateCw
+                  className={`w-3.5 h-3.5 ${
+                    isRegeneratingRecibo ? "animate-spin text-[#0056D2]" : ""
+                  }`}
+                />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -745,6 +856,12 @@ function PagoRow({
 // ── Inscripciones tab ────────────────────────────────────────────────
 
 function InscripcionesTab({ uuid }: { uuid: string }) {
+  const { data: user } = useRetrieveUserQuery();
+  const canManagePagos =
+    user?.roles_list?.some((r) =>
+      ["Administrador", "Tutor"].includes(r.nombre),
+    ) ?? false;
+
   const { data: inscripciones, isLoading } =
     useGetInscripcionesEstudianteQuery(uuid);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -753,6 +870,84 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
     pago: PagoInscripcion;
     inscripcionId: number;
   } | null>(null);
+
+  const [descargarRecibo] = useDescargarReciboPagoMutation();
+  const [regenerarRecibo] = useRegenerarReciboPagoMutation();
+  const [descargarConsolidado] = useDescargarReciboConsolidadoMutation();
+
+  const [downloadingPagoId, setDownloadingPagoId] = useState<number | null>(
+    null,
+  );
+  const [regeneratingPagoId, setRegeneratingPagoId] = useState<number | null>(
+    null,
+  );
+  const [loadingConsolidadoId, setLoadingConsolidadoId] = useState<
+    number | null
+  >(null);
+
+  const handleDescargarRecibo = async (
+    inscripcionId: number,
+    pagoId: number,
+  ) => {
+    setDownloadingPagoId(pagoId);
+    try {
+      const blob = await descargarRecibo({ inscripcionId, pagoId }).unwrap();
+      openOrDownloadBlob(blob, `recibo-pago-${pagoId}.pdf`);
+    } catch (err: unknown) {
+      const data = (err as { data?: { detail?: string; error?: string } })
+        ?.data;
+      const msg =
+        data?.detail || data?.error || "No se pudo descargar el recibo.";
+      Swal.fire({ icon: "error", title: "Error", text: msg });
+    } finally {
+      setDownloadingPagoId(null);
+    }
+  };
+
+  const handleRegenerarRecibo = async (
+    inscripcionId: number,
+    pagoId: number,
+  ) => {
+    setRegeneratingPagoId(pagoId);
+    try {
+      const blob = await regenerarRecibo({ inscripcionId, pagoId }).unwrap();
+      openOrDownloadBlob(blob, `recibo-pago-${pagoId}.pdf`);
+      Swal.fire({
+        icon: "success",
+        title: "Recibo regenerado",
+        text: "El comprobante fue actualizado correctamente.",
+      });
+    } catch (err: unknown) {
+      const data = (err as { data?: { detail?: string; error?: string } })
+        ?.data;
+      const msg =
+        data?.detail || data?.error || "No se pudo regenerar el recibo.";
+      Swal.fire({ icon: "error", title: "Error", text: msg });
+    } finally {
+      setRegeneratingPagoId(null);
+    }
+  };
+
+  const handleDescargarConsolidado = async (inscripcionId: number) => {
+    setLoadingConsolidadoId(inscripcionId);
+    try {
+      const blob = await descargarConsolidado({ inscripcionId }).unwrap();
+      openOrDownloadBlob(
+        blob,
+        `estado-de-cuenta-inscripcion-${inscripcionId}.pdf`,
+      );
+    } catch (err: unknown) {
+      const data = (err as { data?: { detail?: string; error?: string } })
+        ?.data;
+      const msg =
+        data?.detail ||
+        data?.error ||
+        "No se pudo descargar el estado de cuenta.";
+      Swal.fire({ icon: "error", title: "Error", text: msg });
+    } finally {
+      setLoadingConsolidadoId(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -799,17 +994,24 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
             inscripcionId={pagoModal.inscripcionId}
             estudianteId={uuid}
             onClose={() => setPagoModal(null)}
+            onPaymentSuccess={(pagoId) =>
+              handleDescargarRecibo(pagoModal.inscripcionId, pagoId)
+            }
           />
         )}
       </Modal>
 
       {inscripciones.map((ins) => {
-        const total = ins.pagos.reduce((sum, p) => sum + parseFloat(p.monto), 0);
+        const total = ins.pagos.reduce(
+          (sum, p) => sum + parseFloat(p.monto),
+          0,
+        );
         const pagado = ins.pagos
           .filter((p) => p.estado === "completado")
           .reduce((sum, p) => sum + parseFloat(p.monto), 0);
         const pendiente = total - pagado;
-        const pct = total > 0 ? Math.min(100, Math.round((pagado / total) * 100)) : 0;
+        const pct =
+          total > 0 ? Math.min(100, Math.round((pagado / total) * 100)) : 0;
         const pagosOpen = expandedId === ins.id;
         const comprobantesOpen = comprobantesId === ins.id;
 
@@ -875,7 +1077,7 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
             </div>
 
             {/* Acciones */}
-            <div className="px-5 py-3 flex items-center gap-4 border-b border-gray-100">
+            <div className="px-5 py-3 flex items-center gap-4 border-b border-gray-100 flex-wrap">
               <button
                 type="button"
                 onClick={() => setExpandedId(pagosOpen ? null : ins.id)}
@@ -886,12 +1088,16 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
                 ) : (
                   <ChevronDown className="w-3.5 h-3.5" />
                 )}
-                {pagosOpen ? "Ocultar pagos" : `Ver pagos (${ins.pagos.length})`}
+                {pagosOpen
+                  ? "Ocultar pagos"
+                  : `Ver pagos (${ins.pagos.length})`}
               </button>
               <span className="text-gray-200">|</span>
               <button
                 type="button"
-                onClick={() => setComprobantesId(comprobantesOpen ? null : ins.id)}
+                onClick={() =>
+                  setComprobantesId(comprobantesOpen ? null : ins.id)
+                }
                 className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
               >
                 {comprobantesOpen ? (
@@ -901,6 +1107,25 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
                 )}
                 {comprobantesOpen ? "Ocultar comprobantes" : "Ver comprobantes"}
               </button>
+              {canManagePagos && (
+                <>
+                  <span className="text-gray-200">|</span>
+                  <button
+                    type="button"
+                    onClick={() => handleDescargarConsolidado(ins.id)}
+                    disabled={loadingConsolidadoId === ins.id}
+                    title="Descargar estado de cuenta consolidado en PDF"
+                    className="flex items-center gap-1.5 text-xs font-medium text-[#0056D2] hover:text-[#00419e] transition-colors disabled:opacity-50"
+                  >
+                    {loadingConsolidadoId === ins.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <FileText className="w-3.5 h-3.5" />
+                    )}
+                    Estado de cuenta
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Lista de pagos */}
@@ -910,11 +1135,20 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
                   <PagoRow
                     key={p.id}
                     pago={p}
+                    canManagePagos={canManagePagos}
                     onApply={
                       p.estado !== "completado"
                         ? () => setPagoModal({ pago: p, inscripcionId: ins.id })
                         : undefined
                     }
+                    onDescargarRecibo={() =>
+                      handleDescargarRecibo(ins.id, p.id)
+                    }
+                    onRegenerarRecibo={() =>
+                      handleRegenerarRecibo(ins.id, p.id)
+                    }
+                    isDownloadingRecibo={downloadingPagoId === p.id}
+                    isRegeneratingRecibo={regeneratingPagoId === p.id}
                   />
                 ))}
               </div>
@@ -939,7 +1173,9 @@ type Tab = "info" | "inscripciones";
 
 export default function EstudianteEditPage({ uuid, initialRef }: Props) {
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>(initialRef ? "inscripciones" : "info");
+  const [activeTab, setActiveTab] = useState<Tab>(
+    initialRef ? "inscripciones" : "info",
+  );
 
   const {
     register,

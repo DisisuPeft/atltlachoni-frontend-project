@@ -243,6 +243,7 @@ export const initialCampaniaFormValues: CampaniaFormFields = {
 export interface Campania {
   id: number;
   nombre: string;
+  descripcion?: string | null;
   fecha_inicio: string;
   fecha_fin: string;
   costo_asignado: string;
@@ -252,6 +253,17 @@ export interface Campania {
   /** Solo lectura: configuraciones de Meta Ads vinculadas a esta campaña.
    * Para crear/editar/quitar usar el endpoint /campanias-anuncios-meta/. */
   anuncios_meta?: CampaniaAnuncioMeta[];
+}
+
+export interface CampaniaUpdateBody {
+  nombre?: string;
+  descripcion?: string | null;
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
+  costo_asignado?: number | string | null;
+  programa?: number;
+  instituto?: number;
+  status?: number;
 }
 
 export interface CampaniaPrograma {

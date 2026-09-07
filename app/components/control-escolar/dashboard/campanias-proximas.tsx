@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useGetCampaniasProximasQuery } from "@/redux/features/control-escolar/dashboardApiSlice";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import Link from "next/link";
@@ -21,13 +22,22 @@ function Skeleton() {
 }
 
 function DaysLeft({ fechaFin }: { fechaFin: string }) {
+  const [now] = useState(() => Date.now());
   const diff = Math.ceil(
-    (new Date(fechaFin).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+    (new Date(fechaFin).getTime() - now) / (1000 * 60 * 60 * 24),
   );
-  if (diff < 0) return <span className="text-xs text-red-500 font-medium">Vencida</span>;
-  if (diff === 0) return <span className="text-xs text-orange-500 font-medium">Vence hoy</span>;
+  if (diff < 0)
+    return <span className="text-xs text-red-500 font-medium">Vencida</span>;
+  if (diff === 0)
+    return (
+      <span className="text-xs text-orange-500 font-medium">Vence hoy</span>
+    );
   if (diff <= 7)
-    return <span className="text-xs text-orange-500 font-medium">{diff}d restantes</span>;
+    return (
+      <span className="text-xs text-orange-500 font-medium">
+        {diff}d restantes
+      </span>
+    );
   return <span className="text-xs text-gray-400">{diff}d restantes</span>;
 }
 
@@ -42,7 +52,9 @@ function formatDate(iso: string) {
 export default function CampaniasProximas() {
   const { data: user } = useRetrieveUserQuery();
   const instituto = user?.departamento_info?.instituto.id;
-  const { data: campanias, isLoading } = useGetCampaniasProximasQuery({ instituto });
+  const { data: campanias, isLoading } = useGetCampaniasProximasQuery({
+    instituto,
+  });
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -72,8 +84,8 @@ export default function CampaniasProximas() {
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {campanias.map((campania) => (
-              <div key={campania.id} className="py-4 space-y-2">
+            {campanias.map((campania, index) => (
+              <div key={`${campania.id}-${index}`} className="py-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
@@ -89,7 +101,8 @@ export default function CampaniasProximas() {
                 <div className="flex items-center gap-4 text-xs text-gray-500">
                   <span className="flex items-center gap-1">
                     <CalendarRange className="w-3 h-3 shrink-0" />
-                    {formatDate(campania.fecha_inicio)} — {formatDate(campania.fecha_fin)}
+                    {formatDate(campania.fecha_inicio)} —{" "}
+                    {formatDate(campania.fecha_fin)}
                   </span>
                 </div>
 

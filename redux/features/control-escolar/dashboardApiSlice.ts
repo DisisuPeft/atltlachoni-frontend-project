@@ -79,7 +79,10 @@ const dashboardApiSlice = apiSlice.injectEndpoints({
         return `/control-escolar/dashboard/resumen/${search ? `?${search}` : ""}`;
       },
     }),
-    getAlumnosRecientes: builder.query<AlumnoReciente[], { instituto?: number } | void>({
+    getAlumnosRecientes: builder.query<
+      AlumnoReciente[],
+      { instituto?: number } | void
+    >({
       query: (params = {}) => {
         const { instituto } = params as { instituto?: number };
         const qs = new URLSearchParams();
@@ -88,7 +91,10 @@ const dashboardApiSlice = apiSlice.injectEndpoints({
         return `/control-escolar/dashboard/alumnos_recientes/${search ? `?${search}` : ""}`;
       },
     }),
-    getCampaniasProximas: builder.query<CampaniaProxima[], { instituto?: number } | void>({
+    getCampaniasProximas: builder.query<
+      CampaniaProxima[],
+      { instituto?: number } | void
+    >({
       query: (params = {}) => {
         const { instituto } = params as { instituto?: number };
         const qs = new URLSearchParams();
@@ -96,6 +102,7 @@ const dashboardApiSlice = apiSlice.injectEndpoints({
         const search = qs.toString();
         return `/control-escolar/dashboard/campanias_proximas/${search ? `?${search}` : ""}`;
       },
+      providesTags: [{ type: "Campanias" as const, id: "LIST" }],
     }),
     getDashboardMaster: builder.query<DashboardMasterResponse, void>({
       query: () => "/control-escolar/dashboard/master/",

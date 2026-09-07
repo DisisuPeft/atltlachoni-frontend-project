@@ -40,7 +40,9 @@ function Initials({ nombre }: { nombre: string }) {
 export default function AlumnosRecientes() {
   const { data: user } = useRetrieveUserQuery();
   const instituto = user?.departamento_info?.instituto.id;
-  const { data: alumnos, isLoading } = useGetAlumnosRecientesQuery({ instituto });
+  const { data: alumnos, isLoading } = useGetAlumnosRecientesQuery({
+    instituto,
+  });
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -70,9 +72,9 @@ export default function AlumnosRecientes() {
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {alumnos.map((alumno) => (
+            {alumnos.map((alumno, index) => (
               <Link
-                key={alumno.ref}
+                key={`${alumno.ref}-${alumno.campania_id ?? ""}-${index}`}
                 href={`/dashboard/control-escolar/alumnos/${alumno.ref}`}
                 className="flex items-center gap-3 py-3 group"
               >

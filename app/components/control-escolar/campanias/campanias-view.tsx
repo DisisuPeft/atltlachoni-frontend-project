@@ -12,7 +12,7 @@ import {
 } from "@/redux/features/control-escolar/campaniasApiSlice";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import { formatCurrency } from "@/lib/format-currency";
-import { Loader2, Megaphone, Settings2 } from "lucide-react";
+import { Loader2, Megaphone, Settings2, Pencil } from "lucide-react";
 import Swal from "sweetalert2";
 
 // ── Status toggle ─────────────────────────────────────────────────────
@@ -109,6 +109,10 @@ export default function CampaniasView() {
 
   const { data: user } = useRetrieveUserQuery();
   const instituto = user?.departamento_info?.instituto.id;
+  const canEdit =
+    user?.roles_list?.some((r) =>
+      ["Administrador", "Tutor"].includes(r.nombre),
+    ) ?? false;
 
   // El status se filtra del lado del backend (paginado) — filtrar aquí en
   // cliente rompía la paginación, porque solo se filtraba lo que ya había
@@ -174,7 +178,7 @@ export default function CampaniasView() {
       header: "Inicio",
       cell: ({ row }) => (
         <span className="text-sm text-gray-600">
-          {row.original.fecha_inicio.split("-").reverse().join("/")}
+          {row.original?.fecha_inicio?.split("-").reverse().join("/") ?? ""}
         </span>
       ),
     },
@@ -183,7 +187,7 @@ export default function CampaniasView() {
       header: "Fin",
       cell: ({ row }) => (
         <span className="text-sm text-gray-600">
-          {row.original.fecha_fin.split("-").reverse().join("/")}
+          {row?.original?.fecha_fin?.split("-").reverse().join("/") ?? ""}
         </span>
       ),
     },
@@ -192,7 +196,7 @@ export default function CampaniasView() {
       header: "Costo asignado",
       cell: ({ row }) => (
         <span className="text-sm font-medium text-gray-900">
-          {formatCurrency(parseInt(row.original.costo_asignado))}
+          {formatCurrency(parseFloat(row.original.costo_asignado || "0") || 0)}
         </span>
       ),
     },
@@ -207,13 +211,24 @@ export default function CampaniasView() {
       id: "acciones",
       header: "",
       cell: ({ row }) => (
-        <Link
-          href={`/dashboard/control-escolar/campanias/${row.original.id}${ref ? `?ref=${ref}` : ""}`}
-          title="Anuncios de Meta Ads"
-          className="inline-flex items-center gap-1.5 p-2 rounded-lg text-gray-400 hover:text-[#0056D2] hover:bg-[#F0F6FF] transition-colors"
-        >
-          <Settings2 className="w-4 h-4" />
-        </Link>
+        <div className="flex items-center gap-1 justify-end">
+          {canEdit && (
+            <Link
+              href={`/dashboard/control-escolar/campanias/${row.original.id}/edit${ref ? `?ref=${ref}` : ""}`}
+              title="Editar campaña"
+              className="inline-flex items-center gap-1.5 p-2 rounded-lg text-gray-400 hover:text-[#0056D2] hover:bg-[#F0F6FF] transition-colors"
+            >
+              <Pencil className="w-4 h-4" />
+            </Link>
+          )}
+          <Link
+            href={`/dashboard/control-escolar/campanias/${row.original.id}${ref ? `?ref=${ref}` : ""}`}
+            title="Anuncios de Meta Ads"
+            className="inline-flex items-center gap-1.5 p-2 rounded-lg text-gray-400 hover:text-[#0056D2] hover:bg-[#F0F6FF] transition-colors"
+          >
+            <Settings2 className="w-4 h-4" />
+          </Link>
+        </div>
       ),
     },
   ];

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useGetCampaniaByIdQuery } from "@/redux/features/control-escolar/campaniasApiSlice";
+import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import { formatCurrency } from "@/lib/format-currency";
 import CampaniaAnunciosMetaTab from "./campania-anuncios-meta-tab";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil } from "lucide-react";
 
 interface Props {
   id: number;
@@ -14,6 +15,12 @@ interface Props {
 export default function CampaniaDetailView({ id }: Props) {
   const ref = useSearchParams().get("ref");
   const { data: campania, isLoading } = useGetCampaniaByIdQuery(id);
+  const { data: user } = useRetrieveUserQuery();
+
+  const canEdit =
+    user?.roles_list?.some((r) =>
+      ["Administrador", "Tutor"].includes(r.nombre),
+    ) ?? false;
 
   if (isLoading) {
     return (
@@ -50,18 +57,30 @@ export default function CampaniaDetailView({ id }: Props) {
               {campania.nombre}
             </h1>
             <p className="text-sm text-gray-500 mt-0.5">
-              {campania.programa_nombre} · {campania.institucion_nombre}
+              {campania.programa_nombre || "Sin programa"} ·{" "}
+              {campania.institucion_nombre || "Sin instituto asignado"}
             </p>
           </div>
-          <span
-            className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-              campania.status === 1
-                ? "bg-emerald-50 text-emerald-700"
-                : "bg-gray-100 text-gray-500"
-            }`}
-          >
-            {campania.status === 1 ? "Activa" : "Inactiva"}
-          </span>
+          <div className="flex items-center gap-2.5">
+            <span
+              className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                campania.status === 1
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-gray-100 text-gray-500"
+              }`}
+            >
+              {campania.status === 1 ? "Activa" : "Inactiva"}
+            </span>
+            {canEdit && (
+              <Link
+                href={`/dashboard/control-escolar/campanias/${campania.id}/edit${ref ? `?ref=${ref}` : ""}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-[#0056D2] hover:border-[#0056D2] transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Editar campaña
+              </Link>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
@@ -70,7 +89,9 @@ export default function CampaniaDetailView({ id }: Props) {
               Inicio
             </p>
             <p className="text-sm text-gray-700">
-              {campania.fecha_inicio.split("-").reverse().join("/")}
+              {campania.fecha_inicio
+                ? campania.fecha_inicio.split("-").reverse().join("/")
+                : "Sin definir"}
             </p>
           </div>
           <div>
@@ -78,7 +99,9 @@ export default function CampaniaDetailView({ id }: Props) {
               Fin
             </p>
             <p className="text-sm text-gray-700">
-              {campania.fecha_fin.split("-").reverse().join("/")}
+              {campania.fecha_fin
+                ? campania.fecha_fin.split("-").reverse().join("/")
+                : "Sin definir"}
             </p>
           </div>
           <div>
@@ -86,10 +109,21 @@ export default function CampaniaDetailView({ id }: Props) {
               Costo asignado
             </p>
             <p className="text-sm text-gray-700">
-              {formatCurrency(parseInt(campania.costo_asignado))}
+              {formatCurrency(parseFloat(campania.costo_asignado || "0") || 0)}
             </p>
           </div>
         </div>
+
+        {campania.descripcion && (
+          <div className="pt-4 border-t border-gray-100">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
+              Descripción
+            </p>
+            <p className="text-sm text-gray-600 whitespace-pre-line">
+              {campania.descripcion}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Anuncios de Meta Ads */}

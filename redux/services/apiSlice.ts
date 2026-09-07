@@ -43,7 +43,7 @@ const baseQueryWithReauth: BaseQueryFn<
         const refreshResult = await baseQuery(
           { url: "/auth/refresh/", method: "POST" },
           api,
-          extraOptions
+          extraOptions,
         );
         if (refreshResult.data) {
           api.dispatch(setAuth());
@@ -97,6 +97,7 @@ export const apiSlice = createApi({
     "Actividades",
     "EntregasActividad",
     "Materiales",
+    "Campanias",
   ],
   endpoints: (builder) => ({}),
 });

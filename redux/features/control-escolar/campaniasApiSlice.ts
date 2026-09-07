@@ -1,6 +1,7 @@
 import { apiSlice } from "@/redux/services/apiSlice";
 import {
   Campania,
+  CampaniaUpdateBody,
   CampaniaAnuncioMeta,
   CampaniaAnuncioMetaBody,
 } from "../types/control-escolar/type";
@@ -13,16 +14,58 @@ const campaniasApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: formData,
       }),
+      invalidatesTags: [{ type: "Campanias" as const, id: "LIST" }],
     }),
     getCampaniaById: builder.query<Campania, number>({
       query: (id) => `/control-escolar/campanias/${id}/`,
+      providesTags: (_result, _error, id) => [
+        { type: "Campanias" as const, id },
+      ],
+    }),
+    updateCampania: builder.mutation<
+      Campania,
+      { id: number } & Partial<CampaniaUpdateBody>
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/control-escolar/campanias/${id}/`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Campanias" as const, id },
+        { type: "Campanias" as const, id: "LIST" },
+      ],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        try {
+          const { data: updatedCampania } = await queryFulfilled;
+          dispatch(
+            campaniasApiSlice.util.updateQueryData(
+              "getCampaniaById",
+              id,
+              (draft) => {
+                Object.assign(draft, updatedCampania);
+              },
+            ),
+          );
+        } catch {}
+      },
     }),
     retrieveCampanias: builder.query<
       PaginatedResponse<Campania>,
-      { page?: number; search?: string; instituto?: number; status?: string } | void
+      {
+        page?: number;
+        search?: string;
+        instituto?: number;
+        status?: string;
+      } | void
     >({
       query: (params = {}) => {
-        const { page = 1, search, instituto, status } = params as {
+        const {
+          page = 1,
+          search,
+          instituto,
+          status,
+        } = params as {
           page?: number;
           search?: string;
           instituto?: number;
@@ -35,6 +78,16 @@ const campaniasApiSlice = apiSlice.injectEndpoints({
         if (status && status !== "all") qs.set("status", status);
         return `/control-escolar/campanias/?${qs.toString()}`;
       },
+      providesTags: (result) =>
+        result?.results
+          ? [
+              ...result.results.map(({ id }) => ({
+                type: "Campanias" as const,
+                id,
+              })),
+              { type: "Campanias" as const, id: "LIST" },
+            ]
+          : [{ type: "Campanias" as const, id: "LIST" }],
     }),
     retrieveCampania: builder.query<Campania, string>({
       query: (ref) => {
@@ -43,21 +96,33 @@ const campaniasApiSlice = apiSlice.injectEndpoints({
         // if (search) qs.set("search", search);
         return `/control-escolar/campanias/por_programa/?${qs.toString()}`;
       },
+      providesTags: (_result, _error, ref) => [
+        { type: "Campanias" as const, id: ref },
+      ],
     }),
     howManyCampanias: builder.query<number, void>({
       query: () => "/control-escolar/campanias/howmanycampanias/",
+      providesTags: [{ type: "Campanias" as const, id: "COUNT" }],
     }),
     activarCampania: builder.mutation<Campania, number>({
       query: (id) => ({
         url: `/control-escolar/campanias/${id}/activar/`,
         method: "POST",
       }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: "Campanias" as const, id },
+        { type: "Campanias" as const, id: "LIST" },
+      ],
     }),
     desactivarCampania: builder.mutation<Campania, number>({
       query: (id) => ({
         url: `/control-escolar/campanias/${id}/desactivar/`,
         method: "POST",
       }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: "Campanias" as const, id },
+        { type: "Campanias" as const, id: "LIST" },
+      ],
     }),
 
     // ─── Anuncios de Meta Ads vinculados a una campaña ─────────────────
@@ -102,6 +167,7 @@ const campaniasApiSlice = apiSlice.injectEndpoints({
 
 export const {
   useCreateCampaniasMutation,
+  useUpdateCampaniaMutation,
   useRetrieveCampaniasQuery,
   useHowManyCampaniasQuery,
   useActivarCampaniaMutation,

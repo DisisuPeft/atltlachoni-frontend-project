@@ -59,10 +59,20 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
     }),
     getEstudiantes: builder.query<
       PaginatedResponse<EstudiantePerfil>,
-      { page?: number; search?: string; status?: string; instituto?: number } | void
+      {
+        page?: number;
+        search?: string;
+        status?: string;
+        instituto?: number;
+      } | void
     >({
       query: (params = {}) => {
-        const { page = 1, search, status, instituto } = params as {
+        const {
+          page = 1,
+          search,
+          status,
+          instituto,
+        } = params as {
           page?: number;
           search?: string;
           status?: string;
@@ -78,7 +88,9 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
     }),
     retrieveEstudiante: builder.query<EstudiantePerfilForm, string>({
       query: (uuid) => `/control-escolar/estudiantes/${uuid}/`,
-      providesTags: (_result, _error, uuid) => [{ type: "Estudiantes" as const, id: uuid }],
+      providesTags: (_result, _error, uuid) => [
+        { type: "Estudiantes" as const, id: uuid },
+      ],
     }),
     updateEstudiante: builder.mutation<
       MessageResponse,
@@ -104,7 +116,9 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
         body: formData,
       }),
       invalidatesTags: (_result, _error, { estudianteId }) =>
-        estudianteId ? [{ type: "Inscripciones" as const, id: estudianteId }] : [],
+        estudianteId
+          ? [{ type: "Inscripciones" as const, id: estudianteId }]
+          : [],
     }),
     subirComprobanteInscripcion: builder.mutation<
       ComprobantePago,
@@ -161,9 +175,14 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [{ type: "Materiales" as const, id: "LIST" }],
     }),
-    getInscripcionesEstudiante: builder.query<InscripcionEstudianteDetail[], string>({
+    getInscripcionesEstudiante: builder.query<
+      InscripcionEstudianteDetail[],
+      string
+    >({
       query: (uuid) => `/control-escolar/estudiantes/${uuid}/inscripciones/`,
-      providesTags: (_result, _error, uuid) => [{ type: "Inscripciones" as const, id: uuid }],
+      providesTags: (_result, _error, uuid) => [
+        { type: "Inscripciones" as const, id: uuid },
+      ],
     }),
     getMisPagos: builder.query<MiInscripcionPagos[], void>({
       query: () => `/control-escolar/inscripciones/mis_pagos/`,
@@ -173,14 +192,18 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
         url: `/control-escolar/estudiantes/${uuid}/activar/`,
         method: "POST",
       }),
-      invalidatesTags: (_result, _error, uuid) => [{ type: "Estudiantes" as const, id: uuid }],
+      invalidatesTags: (_result, _error, uuid) => [
+        { type: "Estudiantes" as const, id: uuid },
+      ],
     }),
     desactivarEstudiante: builder.mutation<{ detail: string }, string>({
       query: (uuid) => ({
         url: `/control-escolar/estudiantes/${uuid}/desactivar/`,
         method: "POST",
       }),
-      invalidatesTags: (_result, _error, uuid) => [{ type: "Estudiantes" as const, id: uuid }],
+      invalidatesTags: (_result, _error, uuid) => [
+        { type: "Estudiantes" as const, id: uuid },
+      ],
     }),
     reenviarInvitacionEstudiante: builder.mutation<{ detail: string }, string>({
       query: (uuid) => ({
@@ -190,7 +213,11 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
     }),
     aplicarPago: builder.mutation<
       AplicarPagoResponse,
-      { inscripcionId: number; estudianteId: string; pagos: { id: number; monto: number }[] }
+      {
+        inscripcionId: number;
+        estudianteId: string;
+        pagos: { id: number; monto: number }[];
+      }
     >({
       query: ({ inscripcionId, pagos }) => ({
         url: `/control-escolar/inscripciones/${inscripcionId}/aplicar-pago/`,
@@ -200,6 +227,60 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: (_result, _error, { estudianteId }) => [
         { type: "Inscripciones" as const, id: estudianteId },
       ],
+    }),
+    descargarReciboPago: builder.mutation<
+      Blob,
+      { inscripcionId: number; pagoId: number }
+    >({
+      query: ({ inscripcionId, pagoId }) => ({
+        url: `/control-escolar/inscripciones/${inscripcionId}/pagos/${pagoId}/recibo/`,
+        responseHandler: async (response) => {
+          if (!response.ok) {
+            const error = await response
+              .json()
+              .catch(() => ({ detail: "Error al descargar el recibo" }));
+            return Promise.reject({ status: response.status, data: error });
+          }
+          return response.blob();
+        },
+      }),
+    }),
+    regenerarReciboPago: builder.mutation<
+      Blob,
+      { inscripcionId: number; pagoId: number }
+    >({
+      query: ({ inscripcionId, pagoId }) => ({
+        url: `/control-escolar/inscripciones/${inscripcionId}/pagos/${pagoId}/recibo/regenerar/`,
+        method: "POST",
+        responseHandler: async (response) => {
+          if (!response.ok) {
+            const error = await response
+              .json()
+              .catch(() => ({ detail: "Error al regenerar el recibo" }));
+            return Promise.reject({ status: response.status, data: error });
+          }
+          return response.blob();
+        },
+      }),
+    }),
+    descargarReciboConsolidado: builder.mutation<
+      Blob,
+      { inscripcionId: number }
+    >({
+      query: ({ inscripcionId }) => ({
+        url: `/control-escolar/inscripciones/${inscripcionId}/recibo-consolidado/`,
+        responseHandler: async (response) => {
+          if (!response.ok) {
+            const error = await response
+              .json()
+              .catch(() => ({
+                detail: "Error al descargar el estado de cuenta",
+              }));
+            return Promise.reject({ status: response.status, data: error });
+          }
+          return response.blob();
+        },
+      }),
     }),
   }),
 });
@@ -224,4 +305,7 @@ export const {
   useDesactivarEstudianteMutation,
   useReenviarInvitacionEstudianteMutation,
   useAplicarPagoMutation,
+  useDescargarReciboPagoMutation,
+  useRegenerarReciboPagoMutation,
+  useDescargarReciboConsolidadoMutation,
 } = alumnoApiSlice;
