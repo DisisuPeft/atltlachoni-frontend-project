@@ -6,7 +6,9 @@ import {
   useGetExamenParaRendirQuery,
   useEnviarRespuestasEstudianteMutation,
   useGetMiCalificacionExamenQuery,
+  useDescargarExamenPdfMutation,
 } from "@/redux/features/control-escolar/examenesEstudianteApiSlice";
+import { openOrDownloadBlob } from "@/lib/download-blob";
 import type { EnviarRespuestasRequest, EnviarRespuestasResponse } from "@/redux/features/types/control-escolar/type";
 import {
   Loader2,
@@ -17,6 +19,8 @@ import {
   AlertCircle,
   RefreshCw,
   Clock,
+  FileDown,
+  PenLine,
 } from "lucide-react";
 
 type Mode = "list" | "taking" | "result" | "reviewing";
@@ -57,6 +61,54 @@ function ScoreCard({
         {correctas} de {total} correctas
       </p>
     </div>
+  );
+}
+
+function DescargarPdfButton({
+  examenId,
+  intento,
+  pendiente,
+}: {
+  examenId: number;
+  intento: number;
+  pendiente: boolean;
+}) {
+  const [descargar, { isLoading }] = useDescargarExamenPdfMutation();
+  const [error, setError] = useState<string | null>(null);
+
+  const handleClick = async () => {
+    setError(null);
+    try {
+      const blob = await descargar({ id: examenId, intento }).unwrap();
+      openOrDownloadBlob(blob, `examen_${examenId}_intento_${intento}.pdf`);
+    } catch (err) {
+      const detail = (err as { data?: { detail?: string } })?.data?.detail;
+      setError(detail ?? "No se pudo descargar el PDF.");
+    }
+  };
+
+  return (
+    <span className="inline-flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={isLoading}
+        title={
+          pendiente
+            ? "El PDF mostrará las preguntas aún pendientes de revisión."
+            : "Descargar examen calificado en PDF"
+        }
+        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+      >
+        {isLoading ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <FileDown className="h-3.5 w-3.5" />
+        )}
+        PDF{pendiente ? " (preliminar)" : ""}
+      </button>
+      {error && <span className="text-xs text-red-500">{error}</span>}
+    </span>
   );
 }
 
@@ -357,7 +409,7 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
             <Clock className="mx-auto mb-3 h-9 w-9 text-amber-500" />
             <h1 className="text-lg font-bold text-amber-900">Examen pendiente de revisión</h1>
-            <p className="mt-2 text-sm text-amber-800">Tu examen fue entregado. La calificación final se publicará cuando el docente revise tus respuestas abiertas.</p>
+            <p className="mt-2 text-sm text-amber-800">Tu examen fue entregado. Algunas preguntas requieren revisión del docente; la calificación final se publicará cuando termine de revisarlas.</p>
           </div>
         ) : submitResult.calificacion !== undefined ? (
           <ScoreCard
@@ -371,6 +423,14 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
           <p className="text-center text-sm text-gray-500">
             {submitResult.message}
           </p>
+        )}
+
+        {selectedId !== null && (
+          <DescargarPdfButton
+            examenId={selectedId}
+            intento={submitResult.intento}
+            pendiente={submitResult.pendiente_revision}
+          />
         )}
 
         <div className="flex flex-col items-center gap-3 w-full">
@@ -454,11 +514,20 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
                       <span className="ml-auto text-xs text-gray-400">
                         {correctas}/{intento.respuestas.length} correctas
                       </span>
+                      {selectedId !== null && (
+                        <DescargarPdfButton
+                          examenId={selectedId}
+                          intento={intento.intento}
+                          pendiente={pending}
+                        />
+                      )}
                     </div>
 
                     <div className="space-y-2">
                       {intento.respuestas.map((r, idx) => {
                         const pendingResponse = !r.esta_calificada;
+                        // Calificada por un docente (abierta u opción múltiple con calificación manual).
+                        const manualResponse = !pendingResponse && r.autocalificada === false;
                         const correct = r.es_correcta === true;
                         return (
                           <div
@@ -466,6 +535,8 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
                             className={`rounded-xl border p-4 ${
                               pendingResponse
                                 ? "border-amber-200 bg-amber-50"
+                                : manualResponse
+                                ? "border-blue-200 bg-blue-50"
                                 : correct
                                 ? "border-green-200 bg-green-50"
                                 : "border-red-200 bg-red-50"
@@ -474,6 +545,8 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
                             <div className="flex items-center gap-3">
                               {pendingResponse ? (
                                 <Clock className="h-5 w-5 shrink-0 text-amber-500" />
+                              ) : manualResponse ? (
+                                <PenLine className="h-5 w-5 shrink-0 text-blue-500" />
                               ) : correct ? (
                                 <CheckCircle className="h-5 w-5 shrink-0 text-green-500" />
                               ) : (
@@ -483,9 +556,15 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
                                 Pregunta {idx + 1}
                               </span>
                               <span
-                                className={`ml-auto text-xs font-medium ${pendingResponse ? "text-amber-700" : correct ? "text-green-700" : "text-red-600"}`}
+                                className={`ml-auto text-xs font-medium ${pendingResponse ? "text-amber-700" : manualResponse ? "text-blue-700" : correct ? "text-green-700" : "text-red-600"}`}
                               >
-                                {pendingResponse ? "Pendiente de revisión" : correct ? "Correcta" : "Incorrecta"}
+                                {pendingResponse
+                                  ? "Pendiente de revisión"
+                                  : manualResponse
+                                  ? `Calificada por docente: ${r.calificacion ?? 0} pts.`
+                                  : correct
+                                  ? "Correcta"
+                                  : "Incorrecta"}
                               </span>
                             </div>
                             {r.opcion_elegida_obj && (

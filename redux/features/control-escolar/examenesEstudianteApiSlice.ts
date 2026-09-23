@@ -38,6 +38,22 @@ export const examenesEstudianteApiSlice = apiSlice.injectEndpoints({
       query: (id) => `/control-escolar/examenes/${id}/mi_calificacion/`,
       providesTags: (_r, _e, id) => [{ type: "Calificaciones" as const, id }],
     }),
+
+    descargarExamenPdf: builder.mutation<Blob, { id: number; intento?: number }>({
+      query: ({ id, intento }) => ({
+        url: `/control-escolar/examenes/${id}/pdf/`,
+        params: intento != null ? { intento } : undefined,
+        responseHandler: async (response) => {
+          if (!response.ok) {
+            const error = await response
+              .json()
+              .catch(() => ({ detail: "Error al descargar el PDF" }));
+            return Promise.reject({ status: response.status, data: error });
+          }
+          return response.blob();
+        },
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -47,4 +63,5 @@ export const {
   useGetExamenParaRendirQuery,
   useEnviarRespuestasEstudianteMutation,
   useGetMiCalificacionExamenQuery,
+  useDescargarExamenPdfMutation,
 } = examenesEstudianteApiSlice;

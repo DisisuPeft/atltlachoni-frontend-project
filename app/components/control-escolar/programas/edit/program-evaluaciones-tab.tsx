@@ -54,6 +54,32 @@ interface Props {
 
 const LETRAS = ["A", "B", "C", "D", "E"];
 
+// Tipo de pregunta "respuesta abierta": no lleva opciones y siempre se califica a mano.
+const TIPO_ABIERTA_ID = 2;
+
+function CalificacionManualCheckbox({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <label
+      className="flex items-center gap-1 text-xs text-gray-600 shrink-0 cursor-pointer"
+      title="Aunque tenga opciones, no se autocalifica: queda pendiente hasta que un docente la califique."
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="accent-amber-600"
+      />
+      Calificación manual
+    </label>
+  );
+}
+
 function LetraBadge({ letra }: { letra: string | null }) {
   return (
     <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-xs font-bold text-gray-600 shrink-0">
@@ -321,6 +347,9 @@ function PreguntaCard({
   const [enunciado, setEnunciado] = useState(pregunta.enunciado);
   const [tipo, setTipo] = useState<number | "">(pregunta.tipo_obj?.id ?? "");
   const [puntajeMaximo, setPuntajeMaximo] = useState(pregunta.puntaje_maximo ?? "1");
+  const [calificacionManual, setCalificacionManual] = useState(
+    pregunta.calificacion_manual ?? false,
+  );
   const [addingOpcion, setAddingOpcion] = useState(false);
 
   const [updatePregunta, { isLoading: saving }] = useUpdatePreguntaMutation();
@@ -333,6 +362,7 @@ function PreguntaCard({
         enunciado,
         ...(tipo !== "" ? { tipo: Number(tipo) } : {}),
         puntaje_maximo: Number(puntajeMaximo),
+        calificacion_manual: tipo !== TIPO_ABIERTA_ID && calificacionManual,
       }).unwrap();
       setEditingEnunciado(false);
     } catch {
@@ -393,6 +423,12 @@ function PreguntaCard({
                 aria-label="Puntaje máximo"
                 className="w-24 text-xs px-2 py-1 border border-gray-300 rounded"
               />
+              {tipo !== TIPO_ABIERTA_ID && (
+                <CalificacionManualCheckbox
+                  checked={calificacionManual}
+                  onChange={setCalificacionManual}
+                />
+              )}
               <button
                 type="button"
                 onClick={handleSave}
@@ -427,6 +463,14 @@ function PreguntaCard({
               {pregunta.tipo_obj.name}
             </span>
           )}
+          {pregunta.calificacion_manual && (
+            <span
+              className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium"
+              title="No se autocalifica: requiere revisión de un docente."
+            >
+              Manual
+            </span>
+          )}
           <span className="text-xs text-gray-400">
             {pregunta.puntaje_maximo} pts.
           </span>
@@ -459,7 +503,7 @@ function PreguntaCard({
       {/* Las preguntas abiertas no deben tener opciones. */}
       {open && (
         <div className="border-t border-gray-100">
-          {pregunta.tipo_obj?.id === 2 ? (
+          {pregunta.tipo_obj?.id === TIPO_ABIERTA_ID ? (
             <p className="px-4 py-3 text-xs text-gray-400">Respuesta abierta: el alumno responderá con texto libre.</p>
           ) : (
             <>
@@ -508,6 +552,7 @@ function AddPreguntaForm({
   const [enunciado, setEnunciado] = useState("");
   const [tipo, setTipo] = useState<number | "">("");
   const [puntajeMaximo, setPuntajeMaximo] = useState("1");
+  const [calificacionManual, setCalificacionManual] = useState(false);
   const [createPregunta, { isLoading }] = useCreatePreguntaMutation();
 
   const handleSubmit = async () => {
@@ -518,9 +563,11 @@ function AddPreguntaForm({
         enunciado: enunciado.trim(),
         tipo: Number(tipo),
         puntaje_maximo: Number(puntajeMaximo),
+        calificacion_manual: tipo !== TIPO_ABIERTA_ID && calificacionManual,
       }).unwrap();
       setEnunciado("");
       setTipo("");
+      setCalificacionManual(false);
       onDone();
     } catch {
       dispatch(
@@ -565,6 +612,12 @@ function AddPreguntaForm({
           placeholder="Puntos"
           className="w-24 text-sm px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
         />
+        {tipo !== "" && tipo !== TIPO_ABIERTA_ID && (
+          <CalificacionManualCheckbox
+            checked={calificacionManual}
+            onChange={setCalificacionManual}
+          />
+        )}
         <button
           type="button"
           onClick={handleSubmit}
@@ -589,11 +642,18 @@ function RespuestaPendienteRow({
   respuesta,
   examenId,
   maximo,
+  opcionesPorId,
 }: {
   respuesta: RespuestaPendiente;
   examenId: number;
   maximo: number | null;
+  opcionesPorId: Map<number, OpcionAdmin>;
 }) {
+  const opcionElegida =
+    respuesta.opcion_elegida != null
+      ? opcionesPorId.get(respuesta.opcion_elegida)
+      : undefined;
+
   const dispatch = useAppDispatch();
   const [calificacion, setCalificacion] = useState("");
   const [calificar, { isLoading }] = useCalificarRespuestaAbiertaMutation();
@@ -607,8 +667,9 @@ function RespuestaPendienteRow({
     try {
       await calificar({ id: respuesta.id, examen: examenId, calificacion: value }).unwrap();
       dispatch(setAlert({ type: "success", message: "Respuesta calificada." }));
-    } catch {
-      dispatch(setAlert({ type: "error", message: "No se pudo guardar la calificación." }));
+    } catch (err) {
+      const detail = (err as { data?: { detail?: string } })?.data?.detail;
+      dispatch(setAlert({ type: "error", message: detail ?? "No se pudo guardar la calificación." }));
     }
   };
 
@@ -620,7 +681,26 @@ function RespuestaPendienteRow({
         </div>
       )}
       <p className="text-sm font-medium text-gray-800">{respuesta.pregunta_enunciado}</p>
-      <p className="mt-2 whitespace-pre-wrap rounded-md bg-gray-50 p-3 text-sm text-gray-700">{respuesta.respuesta_texto}</p>
+      {respuesta.opcion_elegida != null ? (
+        <div className="mt-2 flex items-center gap-2 rounded-md bg-gray-50 p-3 text-sm text-gray-700">
+          <span className="text-xs text-gray-500 shrink-0">Opción elegida:</span>
+          {opcionElegida ? (
+            <>
+              <LetraBadge letra={opcionElegida.letra} />
+              <span className="flex-1">{opcionElegida.text}</span>
+              <span
+                className={`text-xs font-medium ${opcionElegida.is_correct ? "text-green-700" : "text-red-600"}`}
+              >
+                {opcionElegida.is_correct ? "Marcada como correcta" : "No marcada como correcta"}
+              </span>
+            </>
+          ) : (
+            <span className="text-gray-500">#{respuesta.opcion_elegida}</span>
+          )}
+        </div>
+      ) : (
+        <p className="mt-2 whitespace-pre-wrap rounded-md bg-gray-50 p-3 text-sm text-gray-700">{respuesta.respuesta_texto}</p>
+      )}
       <div className="mt-3 flex items-center gap-2">
         <input
           type="number"
@@ -651,11 +731,13 @@ function AlumnoPendienteCard({
   respuestas,
   examenId,
   maximoPorEnunciado,
+  opcionesPorId,
 }: {
   estudianteNombre: string;
   respuestas: RespuestaPendiente[];
   examenId: number;
   maximoPorEnunciado: Map<string, number>;
+  opcionesPorId: Map<number, OpcionAdmin>;
 }) {
   const [open, setOpen] = useState(false);
   const pendientes = respuestas.filter((r) => !r.esta_calificada).length;
@@ -685,6 +767,7 @@ function AlumnoPendienteCard({
               respuesta={respuesta}
               examenId={examenId}
               maximo={maximoPorEnunciado.get(respuesta.pregunta_enunciado) ?? null}
+              opcionesPorId={opcionesPorId}
             />
           ))}
         </div>
@@ -697,6 +780,7 @@ function RespuestasPendientesPanel({ examenId, preguntas }: { examenId: number; 
   const [page, setPage] = useState(1);
   const { data, isLoading } = useGetRespuestasPendientesQuery({ examen: examenId, pendientes: 1, page });
   const maximoPorEnunciado = new Map(preguntas.map((p) => [p.enunciado, Number(p.puntaje_maximo)]));
+  const opcionesPorId = new Map(preguntas.flatMap((p) => p.opciones.map((o) => [o.id, o] as const)));
 
   const grupos: { estudiante: string; respuestas: RespuestaPendiente[] }[] = [];
   for (const respuesta of data?.results ?? []) {
@@ -712,7 +796,7 @@ function RespuestasPendientesPanel({ examenId, preguntas }: { examenId: number; 
     <div className="border-t border-gray-100 bg-amber-50/40 p-4">
       <div className="mb-3 flex items-center gap-2">
         <Clock className="h-4 w-4 text-amber-600" />
-        <span className="text-sm font-semibold text-gray-800">Respuestas abiertas pendientes</span>
+        <span className="text-sm font-semibold text-gray-800">Respuestas pendientes de revisión</span>
         {!isLoading && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">{data?.count ?? 0}</span>}
       </div>
       {isLoading ? (
@@ -726,11 +810,12 @@ function RespuestasPendientesPanel({ examenId, preguntas }: { examenId: number; 
               respuestas={grupo.respuestas}
               examenId={examenId}
               maximoPorEnunciado={maximoPorEnunciado}
+              opcionesPorId={opcionesPorId}
             />
           ))}
         </div>
       ) : (
-        <p className="text-xs text-gray-500">No hay respuestas abiertas pendientes de revisión.</p>
+        <p className="text-xs text-gray-500">No hay respuestas pendientes de revisión.</p>
       )}
       {!isLoading && (data?.previous || data?.next) && (
         <div className="mt-3 flex justify-end gap-2">

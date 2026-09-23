@@ -736,6 +736,8 @@ export interface Pregunta {
   enunciado: string;
   tipo_obj: TipoPregunta | null;
   puntaje_maximo: string;
+  /** Si es true, aunque tenga opciones no se autocalifica: queda pendiente de revisión. */
+  calificacion_manual: boolean;
   opciones: OpcionAdmin[];
 }
 
@@ -776,6 +778,7 @@ export interface CreatePreguntaBody {
   enunciado: string;
   tipo: number;
   puntaje_maximo?: number;
+  calificacion_manual?: boolean;
 }
 
 export type UpdatePreguntaBody = Partial<CreatePreguntaBody>;
@@ -850,10 +853,13 @@ export interface RespuestaEstudiante {
   id: number;
   respuesta_texto: string | null;
   calificacion: number | null;
+  opcion_elegida?: number | null;
   opcion_elegida_obj: OpcionItem | null;
   calificado_por?: { id: number; nombre: string } | null;
   calificado_en?: string | null;
   esta_calificada: boolean;
+  /** true = el sistema la calificó solo; false = requiere (o recibió) revisión de docente/admin. */
+  autocalificada: boolean;
   es_correcta: boolean | null;
 }
 
@@ -876,11 +882,14 @@ export interface RespuestaPendiente {
   estudiante_nombre: string;
   pregunta_enunciado: string;
   examen_nombre: string;
-  respuesta_texto: string;
+  respuesta_texto: string | null;
+  /** Presente cuando es opción múltiple con calificacion_manual=true. */
+  opcion_elegida?: number | null;
   calificacion: number | null;
   calificado_por: string | null;
   calificado_en: string | null;
   esta_calificada: boolean;
+  autocalificada?: boolean;
 }
 
 // ─── Maestros (Plantilla Docente) ─────────────────────────────────────────────
