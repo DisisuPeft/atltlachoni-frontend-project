@@ -68,6 +68,7 @@ export const apiSlice = createApi({
   tagTypes: [
     "Estudiantes",
     "Inscripciones",
+    "CarteraVencida",
     "Comprobantes",
     "Programas",
     "Leads",

@@ -226,6 +226,7 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { estudianteId }) => [
         { type: "Inscripciones" as const, id: estudianteId },
+        "CarteraVencida",
       ],
     }),
     descargarReciboPago: builder.mutation<

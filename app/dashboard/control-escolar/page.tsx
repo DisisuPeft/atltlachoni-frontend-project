@@ -3,7 +3,7 @@ import AlumnosRecientes from "@/app/components/control-escolar/dashboard/alumnos
 import CampaniasProximas from "@/app/components/control-escolar/dashboard/campanias-proximas";
 import PlataformaLink from "@/app/components/control-escolar/dashboard/plataforma-link";
 import Link from "next/link";
-import { BookOpen, Users, Megaphone, GraduationCap } from "lucide-react";
+import { BookOpen, Users, Megaphone, GraduationCap, AlertTriangle } from "lucide-react";
 
 const fecha = new Date().toLocaleDateString("es-MX", {
   weekday: "long",
@@ -36,6 +36,12 @@ const accesosRapidos = [
     href: "/dashboard/control-escolar/docentes/new",
     icon: GraduationCap,
     color: "bg-purple-50 text-purple-600",
+  },
+  {
+    label: "Cartera vencida",
+    href: "/dashboard/control-escolar/cartera-vencida",
+    icon: AlertTriangle,
+    color: "bg-red-50 text-red-600",
   },
 ];
 

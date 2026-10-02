@@ -675,6 +675,67 @@ export interface PagoInscripcion {
   concepto: string | null;
 }
 
+// ── Estado de cuenta / Cartera vencida ────────────────────────────────────
+
+/** Calculado por el backend; usar tal cual para el badge, no derivarlo de los pagos. */
+export type EstadoCobro =
+  | "Liquidado"
+  | "Al corriente"
+  | "Próximo a vencer"
+  | "Vencido"
+  | "Fecha pendiente"
+  | "Sin cobro"
+  | "Estatus por actualizar";
+
+export interface EstadoCuentaInscripcion {
+  inscripcion_id: number;
+  campania: string;
+  programa: string;
+  estatus: string;
+  estado_cobro: EstadoCobro | string;
+  /** Agregado de toda la inscripción. */
+  total_pagado: string;
+  /** Agregado de toda la inscripción. */
+  saldo_pendiente: string;
+  pagos: PagoInscripcion[];
+}
+
+export interface CarteraVencidaParams {
+  instituto?: number;
+  campania?: number;
+  search?: string;
+  dias_min?: number;
+  /** Default 100, tope 500 en backend. */
+  limit?: number;
+}
+
+export interface CarteraVencidaPago {
+  pago_id: number;
+  estudiante_ref: string;
+  estudiante_nombre: string;
+  /** Informativo: un alumno desactivado sigue apareciendo y contando en `resumen`. */
+  estudiante_activo: boolean;
+  matricula: string | null;
+  campania: string;
+  programa: string;
+  concepto: string | null;
+  periodo: string | null;
+  monto: string;
+  fecha_vencimiento: string;
+  dias_vencido: number;
+  saldo_pendiente_inscripcion: string;
+}
+
+export interface CarteraVencidaResponse {
+  /** Refleja el total filtrado completo, sin aplicar `limit`. */
+  resumen: {
+    total_pagos_vencidos: number;
+    monto_total_vencido: string;
+    total_estudiantes_afectados: number;
+  };
+  pagos: CarteraVencidaPago[];
+}
+
 export interface CampaniaObj {
   id: number;
   nombre: string;

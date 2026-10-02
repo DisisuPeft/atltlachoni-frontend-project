@@ -18,6 +18,8 @@ import {
   useDescargarReciboConsolidadoMutation,
 } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
+import { useGetEstadoCuentaEstudianteQuery } from "@/redux/features/control-escolar/pagosApiSlice";
+import EstadoCobroBadge from "../pagos/estado-cobro-badge";
 import { openOrDownloadBlob } from "@/lib/download-blob";
 import { PagoInscripcion } from "@/redux/features/types/control-escolar/type";
 import { Modal } from "../../common/modal";
@@ -864,6 +866,13 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
 
   const { data: inscripciones, isLoading } =
     useGetInscripcionesEstudianteQuery(uuid);
+  // Estado de cuenta (Administrador/Tutor): estado_cobro y montos agregados por inscripción.
+  const { data: estadoCuenta } = useGetEstadoCuentaEstudianteQuery(uuid, {
+    skip: !canManagePagos,
+  });
+  const cuentaPorInscripcion = new Map(
+    (estadoCuenta ?? []).map((c) => [c.inscripcion_id, c]),
+  );
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [comprobantesId, setComprobantesId] = useState<number | null>(null);
   const [pagoModal, setPagoModal] = useState<{
@@ -1002,14 +1011,18 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
       </Modal>
 
       {inscripciones.map((ins) => {
-        const total = ins.pagos.reduce(
-          (sum, p) => sum + parseFloat(p.monto),
-          0,
-        );
-        const pagado = ins.pagos
-          .filter((p) => p.estado === "completado")
-          .reduce((sum, p) => sum + parseFloat(p.monto), 0);
-        const pendiente = total - pagado;
+        const cuenta = cuentaPorInscripcion.get(ins.id);
+        // Preferir los montos agregados del backend; si no hay (sin permiso o aún cargando), calcular localmente.
+        const pagado = cuenta
+          ? parseFloat(cuenta.total_pagado)
+          : ins.pagos
+              .filter((p) => p.estado === "completado")
+              .reduce((sum, p) => sum + parseFloat(p.monto), 0);
+        const pendiente = cuenta
+          ? parseFloat(cuenta.saldo_pendiente)
+          : ins.pagos.reduce((sum, p) => sum + parseFloat(p.monto), 0) -
+            pagado;
+        const total = pagado + pendiente;
         const pct =
           total > 0 ? Math.min(100, Math.round((pagado / total) * 100)) : 0;
         const pagosOpen = expandedId === ins.id;
@@ -1037,6 +1050,7 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
                     Inscrito el {fmtDate(ins.fecha_inscripcion)}
                   </p>
                 </div>
+                {cuenta && <EstadoCobroBadge estado={cuenta.estado_cobro} />}
               </div>
             </div>
 
