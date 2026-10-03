@@ -1,65 +1,71 @@
 "use client";
 
-import { useModuloProgramaQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
-import { ArrowRight, BookOpen, Clock3, ListChecks } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import ModuloMateriales from "./modulo-materiales";
+import { ModuloMeta } from "./diplomado/modulo-card";
+import { useContenidoDiplomado } from "./diplomado/use-contenido-diplomado";
 
 interface Props {
   moduloId: number;
   uuid: string;
+  slug: string;
 }
 
-export default function ModuloView({ moduloId, uuid }: Props) {
-  const { data: modulo } = useModuloProgramaQuery({ id: uuid, moduloId });
-  const pathname = usePathname();
-  const totalLecciones = modulo?.submodulos.length ?? 0;
+export default function ModuloView({ moduloId, uuid, slug }: Props) {
+  // Misma fuente que la portada: módulos del programa + materiales del programa.
+  const c = useContenidoDiplomado(uuid);
+  const basePath = `/plataforma/${slug}/${uuid}`;
+  const index = c.entradas.findIndex((e) => e.modulo?.id === Number(moduloId));
+  const entrada = index >= 0 ? c.entradas[index] : null;
 
   return (
-    <main className="min-h-full bg-[#FFF8EE] px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl">
-        <header className="mb-6 rounded-2xl border border-[#D8C9B5] bg-white px-5 py-6 shadow-sm sm:px-7">
-          <p className="mb-3 flex items-center gap-2 text-base font-semibold text-[#315563]">
-            <BookOpen aria-hidden="true" className="h-5 w-5" /> Curso · Módulo actual
-          </p>
-          <h1 className="font-heading text-3xl font-semibold tracking-tight text-[#123B4A] sm:text-4xl">
-            {modulo?.nombre ?? "Cargando módulo"}
-          </h1>
-          {modulo && (
-            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-base text-[#315563]">
-              <span className="flex items-center gap-2"><ListChecks aria-hidden="true" className="h-5 w-5" />{totalLecciones} {totalLecciones === 1 ? "lección" : "lecciones"}</span>
-              {modulo.horas_totales > 0 && <span className="flex items-center gap-2"><Clock3 aria-hidden="true" className="h-5 w-5" />{modulo.horas_totales} h de estudio</span>}
-            </div>
-          )}
-        </header>
+    <div className="min-h-full bg-slate-50">
+      <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+        <Link
+          href={`${basePath}/bienvenida`}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-indigo-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Volver al {c.programa?.tipo_nombre?.toLowerCase() ?? "programa"}
+        </Link>
 
-        <ModuloMateriales moduloId={moduloId} />
-
-        <section aria-labelledby="lecciones-title" className="mt-6 overflow-hidden rounded-2xl border border-[#D8C9B5] bg-white shadow-sm">
-          <div className="border-b border-[#E7DCCC] px-5 py-5 sm:px-6">
-            <p className="text-sm font-bold uppercase tracking-wider text-[#176B52]">Siguiente paso</p>
-            <h2 id="lecciones-title" className="mt-1 font-heading text-2xl font-semibold text-[#123B4A]">Lecciones del módulo</h2>
-            <p className="mt-1 text-base text-[#315563]">Elige una lección para continuar.</p>
+        {c.programaLoading ? (
+          <div className="flex items-center justify-center gap-2 py-24 text-slate-400">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span className="text-sm">Cargando módulo…</span>
           </div>
-          {modulo?.submodulos.length ? (
-            <ol className="divide-y divide-[#E7DCCC]">
-              {modulo.submodulos.map((item, index) => (
-                <li key={item.id}>
-                  <Link href={`${pathname}/submodulo/${item.id}`} className="group flex min-h-16 items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-[#FFF8EE] focus-visible:z-10 focus-visible:outline-4 focus-visible:outline-offset-[-4px] focus-visible:outline-[#C75B39] sm:px-6">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#E5F1EB] text-base font-bold text-[#176B52]">{index + 1}</span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-lg font-semibold leading-snug text-[#172B36]">{item.titulo}</span>
-                      <span className="mt-1 block text-base text-[#315563]">Lección disponible · Abrir lección</span>
-                    </span>
-                    <span className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg bg-[#123B4A] px-3 text-base font-semibold text-white transition-colors group-hover:bg-[#0B2D39]">Abrir <ArrowRight aria-hidden="true" className="h-5 w-5" /></span>
-                  </Link>
-                </li>
-              ))}
-            </ol>
-          ) : modulo ? <p className="px-5 py-6 text-base text-[#315563] sm:px-6">Aún no hay lecciones disponibles en este módulo.</p> : null}
-        </section>
+        ) : !entrada ? (
+          <p className="py-24 text-center text-sm text-slate-500">
+            No encontramos este módulo en el programa.
+          </p>
+        ) : (
+          <>
+            <header className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <p className="text-xs font-medium uppercase tracking-wide text-indigo-600">
+                Módulo {index + 1}
+                {c.programa?.nombre && (
+                  <span className="normal-case tracking-normal text-slate-400">
+                    {" "}· {c.programa.nombre}
+                  </span>
+                )}
+              </p>
+              <h1 className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl">
+                {entrada.nombre}
+              </h1>
+              <div className="mt-2">
+                <ModuloMeta modulo={entrada.modulo} />
+              </div>
+            </header>
+
+            <ModuloMateriales
+              materiales={entrada.materiales}
+              programaId={uuid}
+              loading={c.materialesLoading}
+            />
+          </>
+        )}
       </div>
-    </main>
+    </div>
   );
 }
