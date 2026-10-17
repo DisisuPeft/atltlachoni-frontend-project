@@ -34,6 +34,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  ChevronUp,
   Clock,
   FileQuestion,
   Loader2,
@@ -43,6 +44,8 @@ import {
   X,
   CalendarDays,
   ClipboardList,
+  CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 
 interface Props {
@@ -56,6 +59,58 @@ const LETRAS = ["A", "B", "C", "D", "E"];
 
 // Tipo de pregunta "respuesta abierta": no lleva opciones y siempre se califica a mano.
 const TIPO_ABIERTA_ID = 2;
+
+// ── Validación de captura (opción múltiple) ──────────────────────────────────
+// El alumno elige una sola opción (radio), así que una pregunta de opción
+// múltiple bien capturada tiene al menos 2 opciones y exactamente 1 correcta.
+
+type EstadoCaptura = { nivel: "ok" | "warn" | "error"; texto: string };
+
+function estadoCaptura(pregunta: Pregunta): EstadoCaptura | null {
+  if (pregunta.tipo_obj?.id === TIPO_ABIERTA_ID) return null;
+  const correctas = pregunta.opciones.filter((o) => o.is_correct);
+  if (pregunta.opciones.length < 2)
+    return {
+      nivel: "error",
+      texto:
+        pregunta.opciones.length === 0
+          ? "Sin opciones capturadas"
+          : "Agrega al menos 2 opciones",
+    };
+  if (correctas.length === 0)
+    return pregunta.calificacion_manual
+      ? { nivel: "warn", texto: "Sin respuesta correcta marcada" }
+      : { nivel: "error", texto: "Marca la respuesta correcta" };
+  if (correctas.length > 1)
+    return {
+      nivel: "warn",
+      texto: `${correctas.length} opciones marcadas como correctas`,
+    };
+  const c = correctas[0];
+  return {
+    nivel: "ok",
+    texto: `Correcta: ${c.letra ? `${c.letra}. ` : ""}${c.text}`,
+  };
+}
+
+const ESTADO_STYLES: Record<EstadoCaptura["nivel"], string> = {
+  ok: "bg-green-50 text-green-700 ring-green-200",
+  warn: "bg-amber-50 text-amber-700 ring-amber-200",
+  error: "bg-red-50 text-red-700 ring-red-200",
+};
+
+function EstadoCapturaBadge({ estado }: { estado: EstadoCaptura }) {
+  const Icon = estado.nivel === "ok" ? CheckCircle2 : AlertTriangle;
+  return (
+    <span
+      className={`inline-flex max-w-[220px] items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${ESTADO_STYLES[estado.nivel]}`}
+      title={estado.texto}
+    >
+      <Icon className="h-3 w-3 shrink-0" />
+      <span className="truncate">{estado.texto}</span>
+    </span>
+  );
+}
 
 function CalificacionManualCheckbox({
   checked,
@@ -135,9 +190,17 @@ function DeleteButton({
 function OpcionRow({
   opcion,
   onDeleted,
+  onMoveUp,
+  onMoveDown,
+  moving = false,
 }: {
   opcion: OpcionAdmin;
   onDeleted: () => void;
+  /** `undefined` cuando ya es la primera opción. */
+  onMoveUp?: () => void;
+  /** `undefined` cuando ya es la última opción. */
+  onMoveDown?: () => void;
+  moving?: boolean;
 }) {
   const dispatch = useAppDispatch();
   const [editing, setEditing] = useState(false);
@@ -147,14 +210,39 @@ function OpcionRow({
   const [updateOpcion, { isLoading: saving }] = useUpdateOpcionMutation();
   const [deleteOpcion] = useDeleteOpcionMutation();
 
+  const startEditing = () => {
+    // Partir siempre de lo que hay guardado, no de una edición anterior.
+    setText(opcion.text);
+    setIsCorrect(opcion.is_correct);
+    setEditing(true);
+  };
+
   const handleSave = async () => {
     try {
-      await updateOpcion({
+      const guardada = await updateOpcion({
         id: opcion.id,
         text,
         is_correct: isCorrect,
       }).unwrap();
       setEditing(false);
+      // Confirmar contra lo que devolvió el backend, no contra lo enviado.
+      if (guardada?.is_correct !== undefined && guardada.is_correct !== isCorrect) {
+        dispatch(
+          setAlert({
+            type: "error",
+            message: "La opción se guardó, pero el servidor no registró el cambio de \"Correcta\".",
+          }),
+        );
+      } else {
+        dispatch(
+          setAlert({
+            type: "success",
+            message: isCorrect
+              ? "Opción guardada como respuesta correcta."
+              : "Opción guardada.",
+          }),
+        );
+      }
     } catch {
       dispatch(
         setAlert({ type: "error", message: "Error al guardar la opción" }),
@@ -218,6 +306,28 @@ function OpcionRow({
     <div
       className={`flex items-center gap-2 px-4 py-2 border-b last:border-b-0 border-gray-100 group ${opcion.is_correct ? "bg-green-50" : ""}`}
     >
+      <span className="flex flex-col shrink-0 -my-1">
+        <button
+          type="button"
+          onClick={onMoveUp}
+          disabled={!onMoveUp || moving}
+          aria-label="Subir opción"
+          title="Subir"
+          className="text-gray-400 hover:text-blue-600 disabled:opacity-25 disabled:hover:text-gray-400"
+        >
+          <ChevronUp className="w-3.5 h-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={onMoveDown}
+          disabled={!onMoveDown || moving}
+          aria-label="Bajar opción"
+          title="Bajar"
+          className="text-gray-400 hover:text-blue-600 disabled:opacity-25 disabled:hover:text-gray-400"
+        >
+          <ChevronDown className="w-3.5 h-3.5" />
+        </button>
+      </span>
       <LetraBadge letra={opcion.letra} />
       <span
         className={`flex-1 text-sm ${opcion.is_correct ? "text-green-700 font-medium" : "text-gray-700"}`}
@@ -225,12 +335,15 @@ function OpcionRow({
         {opcion.text}
       </span>
       {opcion.is_correct && (
-        <Check className="w-3.5 h-3.5 text-green-600 shrink-0" />
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 shrink-0">
+          <Check className="w-3.5 h-3.5" />
+          Correcta
+        </span>
       )}
       <span className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
         <button
           type="button"
-          onClick={() => setEditing(true)}
+          onClick={startEditing}
           className="text-gray-400 hover:text-blue-500 transition-colors"
         >
           <Pencil className="w-3.5 h-3.5" />
@@ -246,16 +359,20 @@ function OpcionRow({
 function AddOpcionForm({
   preguntaId,
   orden,
+  posicion,
   onDone,
 }: {
   preguntaId: number;
+  /** Valor de `orden` a guardar: siempre después de la última opción. */
   orden: number;
+  /** Lugar visual (0-based) de la nueva opción, para sugerir la letra. */
+  posicion: number;
   onDone: () => void;
 }) {
   const dispatch = useAppDispatch();
   const [text, setText] = useState("");
   const [isCorrect, setIsCorrect] = useState(false);
-  const [letra, setLetra] = useState(LETRAS[orden] ?? "");
+  const [letra, setLetra] = useState(LETRAS[posicion] ?? "");
   const [createOpcion, { isLoading }] = useCreateOpcionMutation();
 
   const handleSubmit = async () => {
@@ -268,6 +385,14 @@ function AddOpcionForm({
         letra: letra || null,
         orden,
       }).unwrap();
+      dispatch(
+        setAlert({
+          type: "success",
+          message: isCorrect
+            ? "Opción agregada como respuesta correcta."
+            : "Opción agregada.",
+        }),
+      );
       onDone();
     } catch {
       dispatch(
@@ -354,6 +479,54 @@ function PreguntaCard({
 
   const [updatePregunta, { isLoading: saving }] = useUpdatePreguntaMutation();
   const [deletePregunta] = useDeletePreguntaMutation();
+  const [updateOpcion] = useUpdateOpcionMutation();
+  const [moviendo, setMoviendo] = useState(false);
+  const estado = estadoCaptura(pregunta);
+
+  // Mostrar según `orden` (desempate por id para que sea estable).
+  const opciones = [...pregunta.opciones].sort(
+    (a, b) => a.orden - b.orden || a.id - b.id,
+  );
+  const siguienteOrden =
+    opciones.length > 0 ? Math.max(...opciones.map((o) => o.orden)) + 1 : 0;
+
+  const moverOpcion = async (index: number, delta: -1 | 1) => {
+    const destino = index + delta;
+    if (destino < 0 || destino >= opciones.length) return;
+    const nuevas = [...opciones];
+    [nuevas[index], nuevas[destino]] = [nuevas[destino], nuevas[index]];
+
+    // Renumerar 0..n-1 (corrige `orden` repetidos) y, si las opciones usan
+    // letras, que la letra siga a la posición (A = primera).
+    const usaLetras = opciones.every((o) => !!o.letra);
+    const cambios = nuevas
+      .map((o, i) => ({
+        id: o.id,
+        orden: i,
+        letra: usaLetras ? (LETRAS[i] ?? o.letra) : o.letra,
+        antes: o,
+      }))
+      .filter(({ orden, letra, antes }) => antes.orden !== orden || antes.letra !== letra);
+
+    if (cambios.length === 0) return;
+    setMoviendo(true);
+    try {
+      await Promise.all(
+        cambios.map(({ id, orden, letra }) =>
+          updateOpcion({ id, orden, ...(usaLetras ? { letra } : {}) }).unwrap(),
+        ),
+      );
+    } catch {
+      dispatch(
+        setAlert({
+          type: "error",
+          message: "No se pudo guardar el nuevo orden de las opciones.",
+        }),
+      );
+    } finally {
+      setMoviendo(false);
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -471,6 +644,7 @@ function PreguntaCard({
               Manual
             </span>
           )}
+          {estado && <EstadoCapturaBadge estado={estado} />}
           <span className="text-xs text-gray-400">
             {pregunta.puntaje_maximo} pts.
           </span>
@@ -510,13 +684,38 @@ function PreguntaCard({
           {pregunta.opciones.length === 0 && !addingOpcion && (
             <p className="text-xs text-gray-400 px-4 py-3">Sin opciones aún.</p>
           )}
-          {pregunta.opciones.map((op) => (
-            <OpcionRow key={op.id} opcion={op} onDeleted={() => {}} />
+          {estado && estado.nivel !== "ok" && pregunta.opciones.length > 0 && (
+            <p
+              className={`flex items-start gap-1.5 px-4 py-2 text-xs ${estado.nivel === "error" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}
+            >
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              {estado.texto}.{" "}
+              {pregunta.opciones.length < 2
+                ? "Una pregunta de opción múltiple necesita varias opciones para elegir."
+                : estado.nivel === "error"
+                  ? "Edita la opción correcta (ícono de lápiz) y activa la casilla \"Correcta\"; sin ella, la pregunta se calificará como incorrecta."
+                  : pregunta.opciones.filter((o) => o.is_correct).length > 1
+                    ? "El alumno solo puede elegir una opción; deja marcada solo la correcta."
+                    : "Como se califica manualmente no es obligatorio, pero ayuda al revisar."}
+            </p>
+          )}
+          {opciones.map((op, i) => (
+            <OpcionRow
+              key={op.id}
+              opcion={op}
+              onDeleted={() => {}}
+              onMoveUp={i > 0 ? () => moverOpcion(i, -1) : undefined}
+              onMoveDown={
+                i < opciones.length - 1 ? () => moverOpcion(i, 1) : undefined
+              }
+              moving={moviendo}
+            />
           ))}
           {addingOpcion ? (
             <AddOpcionForm
               preguntaId={pregunta.id}
-              orden={pregunta.opciones.length}
+              orden={siguienteOrden}
+              posicion={opciones.length}
               onDone={() => setAddingOpcion(false)}
             />
           ) : (
@@ -848,9 +1047,36 @@ function ExamenDetailPanel({
     );
 
   const preguntas = detalle?.preguntas ?? [];
+  const conProblemas = preguntas.filter(
+    (p) => estadoCaptura(p)?.nivel === "error",
+  ).length;
+  const conAvisos = preguntas.filter(
+    (p) => estadoCaptura(p)?.nivel === "warn",
+  ).length;
 
   return (
     <div className="p-4 space-y-3">
+      {(conProblemas > 0 || conAvisos > 0) && (
+        <div
+          className={`flex items-start gap-2 rounded-lg px-3 py-2 text-xs ${conProblemas > 0 ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}
+        >
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>
+            {conProblemas > 0 &&
+              `${conProblemas} pregunta${conProblemas !== 1 ? "s" : ""} de opción múltiple sin capturar correctamente (falta respuesta correcta u opciones). `}
+            {conAvisos > 0 &&
+              `${conAvisos} pregunta${conAvisos !== 1 ? "s" : ""} con avisos. `}
+            Revisa las marcadas en rojo o ámbar antes de que los alumnos presenten el examen.
+          </span>
+        </div>
+      )}
+      {preguntas.length > 0 && conProblemas === 0 && conAvisos === 0 &&
+        preguntas.some((p) => estadoCaptura(p) !== null) && (
+          <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            Todas las preguntas de opción múltiple tienen su respuesta correcta capturada.
+          </div>
+        )}
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-500 font-medium">
           {preguntas.length} pregunta{preguntas.length !== 1 ? "s" : ""}

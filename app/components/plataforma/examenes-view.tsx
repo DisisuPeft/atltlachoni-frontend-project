@@ -324,7 +324,10 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
                     />
                   ) : (
                     <div className="space-y-2">
-                    {pregunta.opciones.map((opcion) => {
+                    {/* Mismo orden que definió el docente (`orden`). */}
+                    {[...pregunta.opciones]
+                      .sort((a, b) => a.orden - b.orden || a.id - b.id)
+                      .map((opcion) => {
                       const selected = answers[pregunta.id] === opcion.id;
                       return (
                         <label
