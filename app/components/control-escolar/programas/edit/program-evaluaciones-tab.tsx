@@ -60,6 +60,23 @@ const LETRAS = ["A", "B", "C", "D", "E"];
 // Tipo de pregunta "respuesta abierta": no lleva opciones y siempre se califica a mano.
 const TIPO_ABIERTA_ID = 2;
 
+/**
+ * Normaliza la respuesta del API. Algunas respuestas antiguas pueden usar
+ * 0/1 o exponer el campo con un nombre alternativo.
+ */
+function opcionEsCorrecta(opcion: OpcionAdmin): boolean {
+  const raw: unknown = (opcion as OpcionAdmin & {
+    correcta?: unknown;
+    es_correcta?: unknown;
+    correct?: unknown;
+  }).is_correct ?? (opcion as OpcionAdmin & { correcta?: unknown }).correcta
+    ?? (opcion as OpcionAdmin & { es_correcta?: unknown }).es_correcta
+    ?? (opcion as OpcionAdmin & { correct?: unknown }).correct;
+
+  if (typeof raw === "string") return ["true", "1", "si", "sí", "yes"].includes(raw.trim().toLowerCase());
+  return raw === true || raw === 1;
+}
+
 // ── Validación de captura (opción múltiple) ──────────────────────────────────
 // El alumno elige una sola opción (radio), así que una pregunta de opción
 // múltiple bien capturada tiene al menos 2 opciones y exactamente 1 correcta.
@@ -68,7 +85,7 @@ type EstadoCaptura = { nivel: "ok" | "warn" | "error"; texto: string };
 
 function estadoCaptura(pregunta: Pregunta): EstadoCaptura | null {
   if (pregunta.tipo_obj?.id === TIPO_ABIERTA_ID) return null;
-  const correctas = pregunta.opciones.filter((o) => o.is_correct);
+  const correctas = pregunta.opciones.filter(opcionEsCorrecta);
   if (pregunta.opciones.length < 2)
     return {
       nivel: "error",
@@ -205,7 +222,9 @@ function OpcionRow({
   const dispatch = useAppDispatch();
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(opcion.text);
-  const [isCorrect, setIsCorrect] = useState(opcion.is_correct);
+  // Normalizar el valor evita que el checkbox pase de no controlado a controlado
+  // si el backend omite temporalmente `is_correct`.
+  const [isCorrect, setIsCorrect] = useState(opcionEsCorrecta(opcion));
 
   const [updateOpcion, { isLoading: saving }] = useUpdateOpcionMutation();
   const [deleteOpcion] = useDeleteOpcionMutation();
@@ -213,7 +232,7 @@ function OpcionRow({
   const startEditing = () => {
     // Partir siempre de lo que hay guardado, no de una edición anterior.
     setText(opcion.text);
-    setIsCorrect(opcion.is_correct);
+    setIsCorrect(opcionEsCorrecta(opcion));
     setEditing(true);
   };
 
@@ -226,7 +245,7 @@ function OpcionRow({
       }).unwrap();
       setEditing(false);
       // Confirmar contra lo que devolvió el backend, no contra lo enviado.
-      if (guardada?.is_correct !== undefined && guardada.is_correct !== isCorrect) {
+      if (opcionEsCorrecta(guardada) !== isCorrect) {
         dispatch(
           setAlert({
             type: "error",
@@ -274,12 +293,18 @@ function OpcionRow({
         <label className="flex items-center gap-1 text-xs text-gray-600 shrink-0 cursor-pointer">
           <input
             type="checkbox"
-            checked={isCorrect}
+            checked={Boolean(isCorrect)}
             onChange={(e) => setIsCorrect(e.target.checked)}
+            aria-label={isCorrect ? "Esta opción ya está marcada como correcta" : "Marcar opción como correcta"}
             className="accent-green-600"
           />
-          Correcta
+          {isCorrect ? "Correcta ✓" : "Marcar como correcta"}
         </label>
+        {isCorrect && (
+          <span className="text-[11px] font-medium text-green-700 whitespace-nowrap">
+            Ya está marcada
+          </span>
+        )}
         <button
           type="button"
           onClick={handleSave}
@@ -304,7 +329,7 @@ function OpcionRow({
 
   return (
     <div
-      className={`flex items-center gap-2 px-4 py-2 border-b last:border-b-0 border-gray-100 group ${opcion.is_correct ? "bg-green-50" : ""}`}
+      className={`flex items-center gap-2 px-4 py-2 border-b last:border-b-0 border-gray-100 group ${opcionEsCorrecta(opcion) ? "bg-green-50" : ""}`}
     >
       <span className="flex flex-col shrink-0 -my-1">
         <button
@@ -330,11 +355,11 @@ function OpcionRow({
       </span>
       <LetraBadge letra={opcion.letra} />
       <span
-        className={`flex-1 text-sm ${opcion.is_correct ? "text-green-700 font-medium" : "text-gray-700"}`}
+        className={`flex-1 text-sm ${opcionEsCorrecta(opcion) ? "text-green-700 font-medium" : "text-gray-700"}`}
       >
         {opcion.text}
       </span>
-      {opcion.is_correct && (
+      {opcionEsCorrecta(opcion) && (
         <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 shrink-0">
           <Check className="w-3.5 h-3.5" />
           Correcta
@@ -694,7 +719,7 @@ function PreguntaCard({
                 ? "Una pregunta de opción múltiple necesita varias opciones para elegir."
                 : estado.nivel === "error"
                   ? "Edita la opción correcta (ícono de lápiz) y activa la casilla \"Correcta\"; sin ella, la pregunta se calificará como incorrecta."
-                  : pregunta.opciones.filter((o) => o.is_correct).length > 1
+                : pregunta.opciones.filter(opcionEsCorrecta).length > 1
                     ? "El alumno solo puede elegir una opción; deja marcada solo la correcta."
                     : "Como se califica manualmente no es obligatorio, pero ayuda al revisar."}
             </p>
@@ -1157,17 +1182,40 @@ function ExamenCard({
   const [updateExamen, { isLoading: saving }] = useUpdateExamenMutation();
   const [deleteExamen] = useDeleteExamenMutation();
 
+  const startEditing = () => {
+    setName(examen.name);
+    setFecha(examen.fecha);
+    setDuracion(examen.duracion_minutos ?? "");
+    setMaxIntentos(Math.max(1, examen.max_intentos ?? 1));
+    setTipoExamen(examen.tipo_examen_obj?.id ?? "");
+    setEditing(true);
+  };
+
   const handleSave = async () => {
+    const duracionNumerica = duracion === "" ? null : Number(duracion);
+    if (!name.trim() || !fecha || tipoExamen === "") {
+      dispatch(setAlert({ type: "error", message: "Completa los campos obligatorios." }));
+      return;
+    }
+    if (duracionNumerica !== null && (!Number.isFinite(duracionNumerica) || duracionNumerica <= 0)) {
+      dispatch(setAlert({ type: "error", message: "La duración debe ser mayor a 0 minutos." }));
+      return;
+    }
+    if (!Number.isInteger(maxIntentos) || maxIntentos < 1) {
+      dispatch(setAlert({ type: "error", message: "Los intentos permitidos deben ser al menos 1." }));
+      return;
+    }
     try {
       await updateExamen({
         id: examen.id,
-        name,
+        name: name.trim(),
         fecha,
-        ...(tipoExamen !== "" ? { tipo_examen: Number(tipoExamen) } : {}),
-        duracion_minutos: duracion === "" ? null : Number(duracion),
+        tipo_examen: Number(tipoExamen),
+        duracion_minutos: duracionNumerica,
         max_intentos: maxIntentos,
       }).unwrap();
       setEditing(false);
+      dispatch(setAlert({ type: "success", message: "Evaluación actualizada correctamente." }));
     } catch {
       dispatch(
         setAlert({ type: "error", message: "Error al guardar el examen" }),
@@ -1302,7 +1350,9 @@ function ExamenCard({
             <>
               <button
                 type="button"
-                onClick={() => setEditing(true)}
+                onClick={startEditing}
+                aria-label={`Editar ${examen.name}`}
+                title="Editar evaluación"
                 className="text-gray-400 hover:text-blue-500 transition-colors p-1"
               >
                 <Pencil className="w-3.5 h-3.5" />
@@ -1311,6 +1361,8 @@ function ExamenCard({
               <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
+                aria-label={open ? `Ocultar detalles de ${examen.name}` : `Mostrar detalles de ${examen.name}`}
+                title={open ? "Ocultar detalles" : "Mostrar detalles"}
                 className="text-gray-400 hover:text-gray-600 p-1 ml-1"
               >
                 {open ? (
@@ -1357,6 +1409,15 @@ function CreateExamenForm({
 
   const handleSubmit = async () => {
     if (!name.trim() || !fecha || tipoExamen === "") return;
+    const duracionNumerica = duracion === "" ? null : Number(duracion);
+    if (duracionNumerica !== null && (!Number.isFinite(duracionNumerica) || duracionNumerica <= 0)) {
+      dispatch(setAlert({ type: "error", message: "La duración debe ser mayor a 0 minutos." }));
+      return;
+    }
+    if (!Number.isInteger(maxIntentos) || maxIntentos < 1) {
+      dispatch(setAlert({ type: "error", message: "Los intentos permitidos deben ser al menos 1." }));
+      return;
+    }
     try {
       await createExamen({
         name: name.trim(),
@@ -1364,7 +1425,7 @@ function CreateExamenForm({
         campania: campaniaId,
         tipo_examen: Number(tipoExamen),
         fecha,
-        duracion_minutos: duracion === "" ? null : Number(duracion),
+        duracion_minutos: duracionNumerica,
         max_intentos: maxIntentos,
       }).unwrap();
       onDone();
