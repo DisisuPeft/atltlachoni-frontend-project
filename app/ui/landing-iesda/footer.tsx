@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 
+const PRIVACY_NOTICE_URL = `${process.env.NEXT_PUBLIC_HOST}/api/sistema/aviso-privacidad/`;
+
 export function Footer() {
   // comment to comments
   return (
@@ -97,20 +99,15 @@ export function Footer() {
               © {new Date().getFullYear()} IESDA. Todos los derechos reservados.
             </p>
             <div className="flex gap-6">
-              {/* <a
-                href="#"
+              <a
+                href={PRIVACY_NOTICE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-xs hover:underline"
                 style={{ color: "#7D8EA3" }}
               >
                 Aviso de privacidad
               </a>
-              <a
-                href="#"
-                className="text-xs hover:underline"
-                style={{ color: "#7D8EA3" }}
-              >
-                Términos y condiciones
-              </a> */}
             </div>
           </div>
         </div>

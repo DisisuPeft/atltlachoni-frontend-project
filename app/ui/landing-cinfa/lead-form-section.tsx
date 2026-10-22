@@ -62,7 +62,18 @@ export default function LeadFormSection() {
   }, []);
 
   const { data: programas = [] } = useProgramasDestacadosQuery({ limit: 20 });
-  const programasConRef = programas.filter((p): p is typeof p & { ref: string } => Boolean(p.ref));
+  const programasConRef = programas
+    .filter((p): p is typeof p & { ref: string } => Boolean(p.ref))
+    .filter((p) => !/vfx|diseño|design|animación|animation|3d|motion|videojuego/i.test(p.nombre));
+  const gruposProgramas = ["Thales", "IESDA", "Programas de salud"].map((instituto) => ({
+    instituto,
+    programas: programasConRef.filter((p) => {
+      const metadata = `${p.instituto_nombre ?? ""} ${p.instituto ?? ""}`.toLowerCase();
+      if (instituto === "Thales") return metadata.includes("thales") || /\b1\b/.test(metadata);
+      if (instituto === "IESDA") return metadata.includes("iesda") || metadata.includes("educación superior") || /\b2\b/.test(metadata);
+      return !metadata.includes("thales") && !metadata.includes("iesda") && !metadata.includes("educación superior") && !/\b[12]\b/.test(metadata);
+    }),
+  })).filter((grupo) => grupo.programas.length);
 
   const [solicitar, { isLoading, error: apiError }] = useSolicitudInformacionMutation();
 
@@ -229,24 +240,31 @@ export default function LeadFormSection() {
 
                   {/* Programa */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="programa_ref" className="block text-sm font-medium text-gray-700 mb-1">
                       Programa de interés *
                     </label>
                     <select
+                      id="programa_ref"
                       name="programa_ref"
                       value={form.programa_ref}
                       onChange={handleChange}
+                      required
+                      aria-required="true"
+                      aria-invalid={Boolean(errors.programa_ref)}
+                      aria-describedby={errors.programa_ref ? "programa_ref-error" : undefined}
                       className={`${inputBase} ${errors.programa_ref ? errorClass : ""}`}
                     >
                       <option value="">Selecciona un diplomado…</option>
-                      {programasConRef.map((p) => (
-                        <option key={p.ref} value={p.ref}>
-                          {p.nombre}
-                        </option>
+                      {gruposProgramas.map((grupo) => (
+                        <optgroup key={grupo.instituto} label={`Instituto ${grupo.instituto}`}>
+                          {grupo.programas.map((p) => (
+                            <option key={p.ref} value={p.ref}>{p.nombre}</option>
+                          ))}
+                        </optgroup>
                       ))}
                     </select>
                     {errors.programa_ref && (
-                      <p className="mt-1 text-xs text-red-500">{errors.programa_ref}</p>
+                      <p id="programa_ref-error" role="alert" className="mt-1 text-xs text-red-500">{errors.programa_ref}</p>
                     )}
                   </div>
 

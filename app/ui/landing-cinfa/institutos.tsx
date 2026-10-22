@@ -59,6 +59,17 @@ export default function InstitutesPreview() {
         </motion.div>
 
         <div className="mt-14 grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="md:col-span-2 flex flex-col items-center text-center">
+            <div className="inline-flex items-center gap-3 rounded-2xl border border-[#0F4C75]/15 bg-[#0F4C75] px-7 py-4 text-white shadow-lg">
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#D7A22A]">Matriz institucional</span>
+              <span className="h-5 w-px bg-white/30" aria-hidden="true" />
+              <span className="text-lg font-semibold tracking-wide">CINFA</span>
+            </div>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-gray-500">
+              Respaldo académico que articula y garantiza la calidad de sus institutos especializados en salud.
+            </p>
+            <div className="mt-5 h-8 w-px bg-[#D7A22A]" aria-hidden="true" />
+          </div>
           {institutes.map((institute, index) => (
             <motion.article
               key={institute.id}

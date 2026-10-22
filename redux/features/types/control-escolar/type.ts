@@ -502,6 +502,8 @@ export interface ProgramaDestacado {
   banner_url?: string | null;
   total_inscritos?: number;
   probabilidad?: number;
+  instituto?: number | string | null;
+  instituto_nombre?: string | null;
 }
 
 export interface ModuloMaterial {
