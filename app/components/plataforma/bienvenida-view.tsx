@@ -10,10 +10,12 @@ import {
   GraduationCap,
   ListChecks,
   Loader2,
+  MessageCircle,
   X,
 } from "lucide-react";
 import ExamenesView from "@/app/components/plataforma/examenes-view";
 import ActividadesAlumnoView from "@/app/components/plataforma/actividades-alumno-view";
+import ComentariosView from "@/app/components/plataforma/comentarios-view";
 import type { Material } from "@/redux/features/types/control-escolar/type";
 import { ProgramaHeader } from "./diplomado/programa-header";
 import { FiltrosMateriales } from "./diplomado/filtros";
@@ -29,11 +31,12 @@ interface Props {
   slug: string;
 }
 
-type Tab = "inicio" | "actividades" | "examenes";
+type Tab = "inicio" | "actividades" | "examenes" | "comunidad";
 
 const HERRAMIENTAS: { key: Exclude<Tab, "inicio">; label: string; icon: typeof ListChecks }[] = [
   { key: "actividades", label: "Actividades", icon: ListChecks },
   { key: "examenes", label: "Exámenes", icon: GraduationCap },
+  { key: "comunidad", label: "Comunidad", icon: MessageCircle },
 ];
 
 function VolverAlCurso({ onClick }: { onClick: () => void }) {
@@ -85,6 +88,14 @@ export default function BienvenidaView({ programaId, slug }: Props) {
       <div className="min-h-full bg-slate-50">
         <VolverAlCurso onClick={() => setTab("inicio")} />
         <ExamenesView programaId={programaId} />
+      </div>
+    );
+
+  if (tab === "comunidad")
+    return (
+      <div className="min-h-full bg-slate-50">
+        <VolverAlCurso onClick={() => setTab("inicio")} />
+        <ComentariosView diplomadoId={programaId} />
       </div>
     );
 

@@ -6,16 +6,20 @@ import MainEducationDash from "@/app/components/plataforma/education";
 import DocenteMaterialesView from "@/app/components/plataforma/docente-materiales-view";
 import DocenteActividadesView from "@/app/components/plataforma/docente-actividades-view";
 import DocenteEvaluacionesView from "@/app/components/plataforma/docente-evaluaciones-view";
-import { FolderOpen, ClipboardList, ClipboardCheck } from "lucide-react";
+import DocenteComunidadView from "@/app/components/plataforma/docente-comunidad-view";
+import { FolderOpen, ClipboardList, ClipboardCheck, MessageCircle } from "lucide-react";
 
-type DocenteTab = "materiales" | "actividades" | "evaluaciones";
+type DocenteTab = "materiales" | "actividades" | "evaluaciones" | "comunidad";
 
 function DocenteEducacionView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const programaRef = searchParams.get("programa") ?? undefined;
-  const tab: DocenteTab = requestedTab === "actividades" || requestedTab === "evaluaciones" ? requestedTab : "materiales";
+  const tab: DocenteTab =
+    requestedTab === "actividades" || requestedTab === "evaluaciones" || requestedTab === "comunidad"
+      ? requestedTab
+      : "materiales";
 
   const selectTab = (nextTab: DocenteTab) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -63,6 +67,18 @@ function DocenteEducacionView() {
             <ClipboardCheck className="w-4 h-4" />
             Evaluaciones
           </button>
+          <button
+            type="button"
+            onClick={() => selectTab("comunidad")}
+            className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 transition-colors ${
+              tab === "comunidad"
+                ? "border-purple-600 text-purple-600"
+                : "border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300"
+            }`}
+          >
+            <MessageCircle className="w-4 h-4" />
+            Comunidad
+          </button>
         </div>
       </div>
 
@@ -70,8 +86,10 @@ function DocenteEducacionView() {
         <DocenteMaterialesView key={`materiales-${programaRef ?? ""}`} programaInicial={programaRef} />
       ) : tab === "actividades" ? (
         <DocenteActividadesView key={`actividades-${programaRef ?? ""}`} programaInicial={programaRef} />
-      ) : (
+      ) : tab === "evaluaciones" ? (
         <DocenteEvaluacionesView key={`evaluaciones-${programaRef ?? ""}`} programaInicial={programaRef} />
+      ) : (
+        <DocenteComunidadView key={`comunidad-${programaRef ?? ""}`} programaInicial={programaRef} />
       )}
     </div>
   );

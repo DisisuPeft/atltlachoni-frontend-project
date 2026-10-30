@@ -17,8 +17,9 @@ import ProgramMaterialesTab from "./program-materiales-tab";
 import ProgramActividadesTab from "./program-actividades-tab";
 import ProgramEnlacesTab from "./program-enlaces-tab";
 import ProgramEvaluacionesTab from "./program-evaluaciones-tab";
+import ComentariosView from "@/app/components/plataforma/comentarios-view";
 
-type Tab = "programa" | "materiales" | "actividades" | "clases" | "evaluaciones";
+type Tab = "programa" | "materiales" | "actividades" | "clases" | "evaluaciones" | "comunidad";
 
 const TAB_LABELS: Record<Tab, string> = {
   programa: "Información",
@@ -26,6 +27,7 @@ const TAB_LABELS: Record<Tab, string> = {
   actividades: "Actividades",
   clases: "Clases en Vivo",
   evaluaciones: "Evaluaciones",
+  comunidad: "Comunidad",
 };
 
 interface Props {
@@ -62,7 +64,7 @@ export default function EditProgramaPage({ uuid }: Props) {
         <div className="bg-white border border-gray-200 rounded-t-lg border-b-0">
           <div className="flex items-center justify-between px-6 border-b border-gray-200">
             <nav className="-mb-px flex gap-1">
-              {(["programa", "materiales", "actividades", "clases", "evaluaciones"] as Tab[]).map((tab) => (
+              {(["programa", "materiales", "actividades", "clases", "evaluaciones", "comunidad"] as Tab[]).map((tab) => (
                 <button
                   key={tab}
                   type="button"
@@ -114,6 +116,13 @@ export default function EditProgramaPage({ uuid }: Props) {
               programaNumericId={programa.id}
               campaniaId={campania?.id}
             />
+          </div>
+        )}
+
+        {/* Tab: Comunidad */}
+        {activeTab === "comunidad" && (
+          <div className="bg-white border border-gray-200 border-t-0 rounded-b-lg p-6">
+            <ComentariosView diplomadoId={uuid} />
           </div>
         )}
 

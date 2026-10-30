@@ -57,6 +57,9 @@ const comunidadApiSlice = apiSlice.injectEndpoints({
         return `/control-escolar/comunidad/comentarios/?${params.toString()}`;
       },
     }),
+    retrieveComentario: builder.query<Comentario, number>({
+      query: (id) => `/control-escolar/comunidad/comentarios/${id}/`,
+    }),
     createComentario: builder.mutation<
       Comentario,
       { comentario: string; diplomado?: string; modulo?: number }
@@ -66,6 +69,25 @@ const comunidadApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body,
       }),
+    }),
+    updateComentario: builder.mutation<
+      Comentario,
+      { id: number; comentario: string }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/control-escolar/comunidad/comentarios/${id}/`,
+        method: "PATCH",
+        body,
+      }),
+    }),
+    deleteComentario: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/control-escolar/comunidad/comentarios/${id}/`,
+        method: "DELETE",
+      }),
+    }),
+    getRespuestasComentario: builder.query<ComentarioSimple[], number>({
+      query: (id) => `/control-escolar/comunidad/comentarios/${id}/respuestas/`,
     }),
     responderComentario: builder.mutation<
       ComentarioSimple,
@@ -94,7 +116,11 @@ export const {
   useUpdateEnlaceClaseMutation,
   useDeleteEnlaceClaseMutation,
   useGetComentariosQuery,
+  useRetrieveComentarioQuery,
   useCreateComentarioMutation,
+  useUpdateComentarioMutation,
+  useDeleteComentarioMutation,
+  useGetRespuestasComentarioQuery,
   useResponderComentarioMutation,
   useMarcarComentarioVistoMutation,
 } = comunidadApiSlice;
