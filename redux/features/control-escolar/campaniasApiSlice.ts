@@ -6,6 +6,15 @@ import {
   CampaniaAnuncioMetaBody,
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
+
+export type CampaniasQueryArgs = {
+  page?: number;
+  search?: string;
+  instituto?: number;
+  status?: string;
+  pagination?: boolean;
+};
+
 const campaniasApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     createCampanias: builder.mutation({
@@ -51,13 +60,8 @@ const campaniasApiSlice = apiSlice.injectEndpoints({
       },
     }),
     retrieveCampanias: builder.query<
-      PaginatedResponse<Campania>,
-      {
-        page?: number;
-        search?: string;
-        instituto?: number;
-        status?: string;
-      } | void
+      Campania[] | PaginatedResponse<Campania>,
+      CampaniasQueryArgs | void
     >({
       query: (params = {}) => {
         const {
@@ -65,29 +69,28 @@ const campaniasApiSlice = apiSlice.injectEndpoints({
           search,
           instituto,
           status,
-        } = params as {
-          page?: number;
-          search?: string;
-          instituto?: number;
-          status?: string;
-        };
+          pagination = true,
+        } = (params ?? {}) as CampaniasQueryArgs;
         const qs = new URLSearchParams();
         qs.set("page", String(page));
         if (search) qs.set("search", search);
         if (instituto) qs.set("instituto", String(instituto));
         if (status && status !== "all") qs.set("status", status);
+        qs.set("pagination", pagination ? "true" : "false");
         return `/control-escolar/campanias/?${qs.toString()}`;
       },
-      providesTags: (result) =>
-        result?.results
+      providesTags: (result) => {
+        const list = Array.isArray(result) ? result : result?.results;
+        return list
           ? [
-              ...result.results.map(({ id }) => ({
+              ...list.map(({ id }) => ({
                 type: "Campanias" as const,
                 id,
               })),
               { type: "Campanias" as const, id: "LIST" },
             ]
-          : [{ type: "Campanias" as const, id: "LIST" }],
+          : [{ type: "Campanias" as const, id: "LIST" }];
+      },
     }),
     retrieveCampania: builder.query<Campania, string>({
       query: (ref) => {
@@ -168,7 +171,7 @@ const campaniasApiSlice = apiSlice.injectEndpoints({
 export const {
   useCreateCampaniasMutation,
   useUpdateCampaniaMutation,
-  useRetrieveCampaniasQuery,
+  useRetrieveCampaniasQuery: useRetrieveCampaniasQueryBase,
   useHowManyCampaniasQuery,
   useActivarCampaniaMutation,
   useDesactivarCampaniaMutation,
@@ -179,3 +182,30 @@ export const {
   useUpdateCampaniaAnuncioMetaMutation,
   useDeleteCampaniaAnuncioMetaMutation,
 } = campaniasApiSlice;
+
+type UseRetrieveCampaniasQueryOptions = Parameters<
+  typeof useRetrieveCampaniasQueryBase
+>[1];
+type UseRetrieveCampaniasQueryResult = ReturnType<
+  typeof useRetrieveCampaniasQueryBase
+>;
+
+// `pagination: false` → unpaginated array; omitted or `true` (default) → PaginatedResponse.
+export function useRetrieveCampaniasQuery(
+  params: CampaniasQueryArgs & { pagination: false },
+  options?: UseRetrieveCampaniasQueryOptions,
+): Omit<UseRetrieveCampaniasQueryResult, "data"> & { data?: Campania[] };
+export function useRetrieveCampaniasQuery(
+  params?: (Omit<CampaniasQueryArgs, "pagination"> & {
+    pagination?: true;
+  }) | void,
+  options?: UseRetrieveCampaniasQueryOptions,
+): Omit<UseRetrieveCampaniasQueryResult, "data"> & {
+  data?: PaginatedResponse<Campania>;
+};
+export function useRetrieveCampaniasQuery(
+  params?: CampaniasQueryArgs | void,
+  options?: UseRetrieveCampaniasQueryOptions,
+) {
+  return useRetrieveCampaniasQueryBase(params, options);
+}

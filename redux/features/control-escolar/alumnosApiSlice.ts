@@ -64,6 +64,7 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
         search?: string;
         status?: string;
         instituto?: number;
+        campania?: number;
       } | void
     >({
       query: (params = {}) => {
@@ -72,17 +73,20 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
           search,
           status,
           instituto,
+          campania,
         } = params as {
           page?: number;
           search?: string;
           status?: string;
           instituto?: number;
+          campania?: number;
         };
         const qs = new URLSearchParams();
         qs.set("page", String(page));
         if (search) qs.set("search", search);
         if (status && status !== "all") qs.set("status", status);
         if (instituto) qs.set("instituto", String(instituto));
+        if (campania) qs.set("campania", String(campania));
         return `/control-escolar/estudiantes/?${qs.toString()}`;
       },
     }),

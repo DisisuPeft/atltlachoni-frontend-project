@@ -6,6 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useGetEstudiantesQuery } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { useRetrieveUserQuery, useVerifyUserQuery } from "@/redux/features/auth/authApiSlice";
 import { useGetInstitucionesQuery } from "@/redux/features/catalogos/institucionesApiSlice";
+import { useRetrieveCampaniasQuery } from "@/redux/features/control-escolar/campaniasApiSlice";
 import { EstudiantePerfil } from "@/redux/features/types/control-escolar/type";
 import { DataTable, StatusBadge } from "@/app/utils/data-table";
 import ButtonLink from "../link-button";
@@ -68,6 +69,7 @@ export default function EstudiantesPage() {
   const search = searchParams.get("search") ?? "";
   const status = searchParams.get("status") ?? "all";
   const institutoParam = searchParams.get("instituto") ?? "all";
+  const campaniaParam = searchParams.get("campania") ?? "all";
 
   const { data: verify } = useVerifyUserQuery();
   const { data: user } = useRetrieveUserQuery();
@@ -78,15 +80,18 @@ export default function EstudiantesPage() {
   const instituto = isAdmin
     ? institutoParam !== "all" ? parseInt(institutoParam) : undefined
     : fixedInstituto;
+  const campania = campaniaParam !== "all" ? parseInt(campaniaParam) : undefined;
 
   const { data: instituciones } = useGetInstitucionesQuery(undefined, {
     skip: !isAdmin,
   });
+  const { data: campanias } = useRetrieveCampaniasQuery({ instituto, pagination: false });
 
   const [page, setPage] = useState(1);
   const [prevSearch, setPrevSearch] = useState(search);
   const [prevStatus, setPrevStatus] = useState(status);
   const [prevInstituto, setPrevInstituto] = useState(institutoParam);
+  const [prevCampania, setPrevCampania] = useState(campaniaParam);
   const [lastKnownPage, setLastKnownPage] = useState<number | null>(null);
   const [pageSize, setPageSize] = useState<number | null>(null);
 
@@ -105,12 +110,17 @@ export default function EstudiantesPage() {
     setPage(1);
     setLastKnownPage(null);
   }
-
+  if (prevCampania !== campaniaParam) {
+    setPrevCampania(campaniaParam);
+    setPage(1);
+    setLastKnownPage(null);
+  }
   const { data: estudiantes, isLoading } = useGetEstudiantesQuery({
     page,
     search,
     status,
     instituto,
+    campania,
   });
 
   const hasNext = !!estudiantes?.next;
@@ -238,6 +248,17 @@ export default function EstudiantesPage() {
                 },
               ]
             : []),
+          {
+            type: "select",
+            key: "campania",
+            options: [
+              { value: "all", label: "Todas las campañas" },
+              ...(campanias ?? []).map((c) => ({
+                value: String(c.id),
+                label: c.nombre,
+              })),
+            ],
+          },
         ]}
         emptyIcon={Users}
         emptyMessage="No se encontraron estudiantes"
