@@ -80,7 +80,7 @@ interface CrearActividadModalProps {
   modulos: { id: number; nombre: string }[];
 }
 
-function CrearActividadModal({
+export function CrearActividadModal({
   show,
   onClose,
   programaRef,
@@ -127,15 +127,22 @@ function CrearActividadModal({
     }
   };
 
+  const handleClose = () => {
+    if (isLoading) return;
+    reset();
+    onClose();
+  };
+
   return (
-    <Modal show={show} onClose={onClose} maxWidth="md">
+    <Modal show={show} onClose={handleClose} closeable={!isLoading} maxWidth="md">
       <div className="p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold text-gray-900">Nueva actividad</h3>
           <button
             type="button"
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            onClick={handleClose}
+            disabled={isLoading}
+            className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
           >
             <X className="w-5 h-5" />
           </button>

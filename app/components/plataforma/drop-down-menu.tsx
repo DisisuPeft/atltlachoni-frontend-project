@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import Logout from "@/app/utils/auth/logout";
 
@@ -9,6 +10,10 @@ export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { data: user } = useRetrieveUserQuery();
+  const pathname = usePathname();
+  const perfilHref = pathname?.startsWith("/dashboard")
+    ? "/dashboard/perfil"
+    : "/plataforma/profile";
 
   // Cerrar al hacer click fuera
   useEffect(() => {
@@ -56,7 +61,7 @@ export function UserMenu() {
           {/* Menu items */}
           <div className="py-1">
             <Link
-              href="#"
+              href={perfilHref}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             >

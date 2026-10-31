@@ -862,7 +862,7 @@ function AddPreguntaForm({
   );
 }
 
-function RespuestaPendienteRow({
+export function RespuestaPendienteRow({
   respuesta,
   examenId,
   maximo,
@@ -960,7 +960,7 @@ function AlumnoPendienteCard({
   estudianteNombre: string;
   respuestas: RespuestaPendiente[];
   examenId: number;
-  maximoPorEnunciado: Map<string, number>;
+  maximoPorEnunciado: Map<string, number | null>;
   opcionesPorId: Map<number, OpcionAdmin>;
 }) {
   const [open, setOpen] = useState(false);
@@ -1000,10 +1000,26 @@ function AlumnoPendienteCard({
   );
 }
 
-function RespuestasPendientesPanel({ examenId, preguntas }: { examenId: number; preguntas: Pregunta[] }) {
+export function RespuestasPendientesPanel({ examenId, preguntas }: { examenId: number; preguntas: Pregunta[] }) {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useGetRespuestasPendientesQuery({ examen: examenId, pendientes: 1, page });
-  const maximoPorEnunciado = new Map(preguntas.map((p) => [p.enunciado, Number(p.puntaje_maximo)]));
+  // RespuestaPendiente solo trae el enunciado de la pregunta, no su id, así que
+  // si dos preguntas comparten el mismo texto no podemos saber a cuál corresponde
+  // una respuesta. En ese caso dejamos el máximo como null (sin validación de
+  // límite superior en el cliente) en vez de usar el de la última pregunta que
+  // coincida, que podría ser el incorrecto.
+  const maximosPorEnunciado = new Map<string, number[]>();
+  for (const p of preguntas) {
+    const lista = maximosPorEnunciado.get(p.enunciado) ?? [];
+    lista.push(Number(p.puntaje_maximo));
+    maximosPorEnunciado.set(p.enunciado, lista);
+  }
+  const maximoPorEnunciado = new Map<string, number | null>(
+    Array.from(maximosPorEnunciado.entries()).map(([enunciado, valores]) => {
+      const unicos = new Set(valores);
+      return [enunciado, unicos.size === 1 ? valores[0] : null];
+    }),
+  );
   const opcionesPorId = new Map(preguntas.flatMap((p) => p.opciones.map((o) => [o.id, o] as const)));
 
   const grupos: { estudiante: string; respuestas: RespuestaPendiente[] }[] = [];
