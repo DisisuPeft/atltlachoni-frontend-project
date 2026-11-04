@@ -17,7 +17,9 @@ import {
   useDeleteOpcionMutation,
   useGetRespuestasPendientesQuery,
   useCalificarRespuestaAbiertaMutation,
+  useGetResultadosExamenQuery,
 } from "@/redux/features/control-escolar/evaluacionesApiSlice";
+import { useDescargarExamenPdfMutation } from "@/redux/features/control-escolar/examenesEstudianteApiSlice";
 import type {
   Examen,
   // ExamenDetalle,
@@ -29,6 +31,7 @@ import type {
 } from "@/redux/features/types/control-escolar/type";
 import { useAppDispatch } from "@/redux/hooks";
 import { setAlert } from "@/redux/features/alert/alertSlice";
+import { openOrDownloadBlob } from "@/lib/download-blob";
 import {
   AlertCircle,
   Check,
@@ -36,6 +39,7 @@ import {
   ChevronRight,
   ChevronUp,
   Clock,
+  FileDown,
   FileQuestion,
   Loader2,
   Pencil,
@@ -580,10 +584,30 @@ function PreguntaCard({
     }
   };
 
+  const toggleOpen = () => setOpen((v) => !v);
+  const handleHeaderKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleOpen();
+    }
+  };
+  // Los controles internos (editar, eliminar, el propio chevron) ya tienen su
+  // propia acción; evitan que el click también alterne la tarjeta completa.
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
-      {/* Header */}
-      <div className="flex items-start gap-2 px-4 py-3 bg-white group">
+      {/* Header: toda la fila es clicable para abrir/cerrar, no solo la flecha. */}
+      <div
+        className={`flex items-start gap-2 px-4 py-3 bg-white group transition-colors ${
+          editingEnunciado ? "" : "cursor-pointer hover:bg-gray-50"
+        }`}
+        onClick={editingEnunciado ? undefined : toggleOpen}
+        onKeyDown={editingEnunciado ? undefined : handleHeaderKeyDown}
+        role={editingEnunciado ? undefined : "button"}
+        tabIndex={editingEnunciado ? undefined : 0}
+        aria-expanded={editingEnunciado ? undefined : open}
+      >
         <span className="text-xs font-bold text-gray-400 mt-0.5 shrink-0 w-5">
           {index + 1}.
         </span>
@@ -650,7 +674,11 @@ function PreguntaCard({
             </div>
           </div>
         ) : (
-          <span className="flex-1 text-sm text-gray-800 leading-snug">
+          <span
+            className={`flex-1 text-sm text-gray-800 leading-snug ${
+              open ? "" : "line-clamp-2"
+            }`}
+          >
             {pregunta.enunciado}
           </span>
         )}
@@ -674,7 +702,7 @@ function PreguntaCard({
             {pregunta.puntaje_maximo} pts.
           </span>
           {!editingEnunciado && (
-            <>
+            <span className="flex items-center gap-1.5" onClick={stop}>
               <button
                 type="button"
                 onClick={() => setEditingEnunciado(true)}
@@ -683,11 +711,14 @@ function PreguntaCard({
                 <Pencil className="w-3.5 h-3.5" />
               </button>
               <DeleteButton onConfirm={handleDelete} size="xs" />
-            </>
+            </span>
           )}
           <button
             type="button"
-            onClick={() => setOpen((v) => !v)}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleOpen();
+            }}
             className="text-gray-400 hover:text-gray-600 ml-0.5"
           >
             {open ? (
@@ -1067,6 +1098,153 @@ export function RespuestasPendientesPanel({ examenId, preguntas }: { examenId: n
   );
 }
 
+// ── Resultados del examen (por alumno) ──────────────────────────────────────
+
+function DescargarResultadoPdfButton({
+  examenId,
+  estudianteId,
+  intento,
+  pendiente,
+}: {
+  examenId: number;
+  estudianteId: number;
+  intento: number;
+  pendiente: boolean;
+}) {
+  const [descargar, { isLoading }] = useDescargarExamenPdfMutation();
+  const [error, setError] = useState<string | null>(null);
+
+  const handleClick = async () => {
+    setError(null);
+    try {
+      const blob = await descargar({
+        id: examenId,
+        estudiante: estudianteId,
+        intento,
+      }).unwrap();
+      openOrDownloadBlob(
+        blob,
+        `examen_${examenId}_alumno_${estudianteId}_intento_${intento}.pdf`,
+      );
+    } catch (err) {
+      const detail = (err as { data?: { detail?: string } })?.data?.detail;
+      setError(detail ?? "No se pudo descargar el PDF.");
+    }
+  };
+
+  return (
+    <span className="inline-flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={isLoading}
+        title={
+          pendiente
+            ? "El PDF mostrará las preguntas aún pendientes de revisión."
+            : "Descargar examen calificado en PDF"
+        }
+        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+      >
+        {isLoading ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <FileDown className="h-3.5 w-3.5" />
+        )}
+        PDF
+      </button>
+      {error && <span className="text-xs text-red-500">{error}</span>}
+    </span>
+  );
+}
+
+export function ResultadosExamenPanel({ examenId }: { examenId: number }) {
+  const { data: resultados, isLoading } = useGetResultadosExamenQuery(examenId);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 py-4 text-xs text-gray-400">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Cargando resultados…
+      </div>
+    );
+  }
+
+  if (!resultados?.length) {
+    return (
+      <div className="border-t border-gray-100 py-4 text-xs text-gray-400">
+        Nadie ha entregado este examen todavía.
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-gray-100 pt-3">
+      <p className="mb-2 text-xs font-semibold text-gray-600">Resultados</p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs text-gray-400">
+              <th className="py-1.5 pr-3 font-medium">Alumno</th>
+              <th className="py-1.5 pr-3 font-medium">Calificación</th>
+              <th className="py-1.5 pr-3 font-medium">Estado</th>
+              <th className="py-1.5 font-medium" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {resultados.map((resultado) => {
+              const aprobado = Number(resultado.calificacion) >= 60;
+              return (
+                <tr key={resultado.id}>
+                  <td className="py-2 pr-3 text-gray-800">
+                    {resultado.estudiante_nombre}
+                    {resultado.intento > 1 && (
+                      <span className="ml-1.5 text-xs text-gray-400">
+                        (intento {resultado.intento})
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-3">
+                    {resultado.pendiente_revision ? (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        En revisión
+                      </span>
+                    ) : (
+                      <span
+                        className={`font-semibold ${aprobado ? "text-green-600" : "text-red-500"}`}
+                      >
+                        {Number(resultado.calificacion).toFixed(1)}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-3">
+                    {resultado.pendiente_revision ? (
+                      <span className="text-xs text-amber-700">Pendiente</span>
+                    ) : (
+                      <span
+                        className={`text-xs font-medium ${aprobado ? "text-green-700" : "text-red-600"}`}
+                      >
+                        {aprobado ? "Aprobado" : "Reprobado"}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2">
+                    <DescargarResultadoPdfButton
+                      examenId={examenId}
+                      estudianteId={resultado.estudiante}
+                      intento={resultado.intento}
+                      pendiente={resultado.pendiente_revision}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ── Examen detail panel (fetches detail on demand) ─────────────────────────────
 
 function ExamenDetailPanel({
@@ -1077,6 +1255,9 @@ function ExamenDetailPanel({
   tiposPreguntas: TipoPregunta[];
 }) {
   const [addingPregunta, setAddingPregunta] = useState(false);
+  // La tarjeta de preguntas siempre inicia cerrada: solo un resumen hasta
+  // que el docente decida abrirla.
+  const [preguntasOpen, setPreguntasOpen] = useState(false);
   const { data: detalle, isLoading } = useGetExamenDetalleQuery(examen.id);
 
   if (isLoading)
@@ -1094,72 +1275,134 @@ function ExamenDetailPanel({
   const conAvisos = preguntas.filter(
     (p) => estadoCaptura(p)?.nivel === "warn",
   ).length;
+  const todoCapturado =
+    preguntas.length > 0 &&
+    conProblemas === 0 &&
+    conAvisos === 0 &&
+    preguntas.some((p) => estadoCaptura(p) !== null);
+
+  const togglePreguntas = () => setPreguntasOpen((v) => !v);
+  const handlePreguntasKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      togglePreguntas();
+    }
+  };
 
   return (
     <div className="p-4 space-y-3">
-      {(conProblemas > 0 || conAvisos > 0) && (
+      <div className="rounded-lg border border-gray-200 overflow-hidden">
+        {/* Toda la fila abre/cierra la tarjeta; "Agregar pregunta" abre y
+            muestra el formulario en un solo click. */}
         <div
-          className={`flex items-start gap-2 rounded-lg px-3 py-2 text-xs ${conProblemas > 0 ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}
+          className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-white cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={togglePreguntas}
+          onKeyDown={handlePreguntasKeyDown}
+          role="button"
+          tabIndex={0}
+          aria-expanded={preguntasOpen}
         >
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>
-            {conProblemas > 0 &&
-              `${conProblemas} pregunta${conProblemas !== 1 ? "s" : ""} de opción múltiple sin capturar correctamente (falta respuesta correcta u opciones). `}
-            {conAvisos > 0 &&
-              `${conAvisos} pregunta${conAvisos !== 1 ? "s" : ""} con avisos. `}
-            Revisa las marcadas en rojo o ámbar antes de que los alumnos presenten el examen.
-          </span>
-        </div>
-      )}
-      {preguntas.length > 0 && conProblemas === 0 && conAvisos === 0 &&
-        preguntas.some((p) => estadoCaptura(p) !== null) && (
-          <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">
-            <CheckCircle2 className="h-4 w-4 shrink-0" />
-            Todas las preguntas de opción múltiple tienen su respuesta correcta capturada.
+          <div className="flex flex-wrap items-center gap-2">
+            <FileQuestion className="h-4 w-4 text-gray-400 shrink-0" />
+            <span className="text-sm font-semibold text-gray-800">
+              {preguntas.length} pregunta{preguntas.length !== 1 ? "s" : ""}
+            </span>
+            {conProblemas > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+                <AlertTriangle className="h-3 w-3" />
+                {conProblemas} con problemas
+              </span>
+            )}
+            {conAvisos > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                <AlertTriangle className="h-3 w-3" />
+                {conAvisos} con avisos
+              </span>
+            )}
+            {todoCapturado && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                <CheckCircle2 className="h-3 w-3" />
+                Todo capturado
+              </span>
+            )}
           </div>
-        )}
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-500 font-medium">
-          {preguntas.length} pregunta{preguntas.length !== 1 ? "s" : ""}
-        </span>
-        {!addingPregunta && (
-          <button
-            type="button"
-            onClick={() => setAddingPregunta(true)}
-            className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium"
+          <div
+            className="flex items-center gap-2 shrink-0"
+            onClick={(e) => e.stopPropagation()}
           >
-            <Plus className="w-3.5 h-3.5" />
-            Agregar pregunta
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPreguntasOpen(true);
+                setAddingPregunta(true);
+              }}
+              className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Agregar pregunta
+            </button>
+            {preguntasOpen ? (
+              <ChevronDown className="h-4 w-4 text-gray-400" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            )}
+          </div>
+        </div>
+
+        {preguntasOpen && (
+          <div className="border-t border-gray-100 p-4 space-y-3">
+            {(conProblemas > 0 || conAvisos > 0) && (
+              <div
+                className={`flex items-start gap-2 rounded-lg px-3 py-2 text-xs ${conProblemas > 0 ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}
+              >
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>
+                  {conProblemas > 0 &&
+                    `${conProblemas} pregunta${conProblemas !== 1 ? "s" : ""} de opción múltiple sin capturar correctamente (falta respuesta correcta u opciones). `}
+                  {conAvisos > 0 &&
+                    `${conAvisos} pregunta${conAvisos !== 1 ? "s" : ""} con avisos. `}
+                  Revisa las marcadas en rojo o ámbar antes de que los alumnos presenten el examen.
+                </span>
+              </div>
+            )}
+            {todoCapturado && (
+              <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                Todas las preguntas de opción múltiple tienen su respuesta correcta capturada.
+              </div>
+            )}
+
+            {addingPregunta && (
+              <AddPreguntaForm
+                examenId={examen.id}
+                tiposPreguntas={tiposPreguntas}
+                onDone={() => setAddingPregunta(false)}
+              />
+            )}
+
+            {preguntas.length === 0 && !addingPregunta ? (
+              <div className="flex flex-col items-center gap-2 py-8 text-gray-400">
+                <FileQuestion className="w-8 h-8" />
+                <p className="text-sm">Este examen no tiene preguntas aún.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {preguntas.map((p, i) => (
+                  <PreguntaCard
+                    key={p.id}
+                    pregunta={p}
+                    index={i}
+                    tiposPreguntas={tiposPreguntas}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
-      {addingPregunta && (
-        <AddPreguntaForm
-          examenId={examen.id}
-          tiposPreguntas={tiposPreguntas}
-          onDone={() => setAddingPregunta(false)}
-        />
-      )}
-
-      {preguntas.length === 0 && !addingPregunta ? (
-        <div className="flex flex-col items-center gap-2 py-8 text-gray-400">
-          <FileQuestion className="w-8 h-8" />
-          <p className="text-sm">Este examen no tiene preguntas aún.</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {preguntas.map((p, i) => (
-            <PreguntaCard
-              key={p.id}
-              pregunta={p}
-              index={i}
-              tiposPreguntas={tiposPreguntas}
-            />
-          ))}
-        </div>
-      )}
       <RespuestasPendientesPanel examenId={examen.id} preguntas={preguntas} />
+      <ResultadosExamenPanel examenId={examen.id} />
     </div>
   );
 }

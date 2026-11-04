@@ -39,10 +39,16 @@ export const examenesEstudianteApiSlice = apiSlice.injectEndpoints({
       providesTags: (_r, _e, id) => [{ type: "Calificaciones" as const, id }],
     }),
 
-    descargarExamenPdf: builder.mutation<Blob, { id: number; intento?: number }>({
-      query: ({ id, intento }) => ({
+    descargarExamenPdf: builder.mutation<
+      Blob,
+      { id: number; intento?: number; estudiante?: number }
+    >({
+      query: ({ id, intento, estudiante }) => ({
         url: `/control-escolar/examenes/${id}/pdf/`,
-        params: intento != null ? { intento } : undefined,
+        params: {
+          ...(intento != null ? { intento } : {}),
+          ...(estudiante != null ? { estudiante } : {}),
+        },
         responseHandler: async (response) => {
           if (!response.ok) {
             const error = await response

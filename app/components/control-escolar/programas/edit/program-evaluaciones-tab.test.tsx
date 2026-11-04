@@ -1,7 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { RespuestaPendienteRow, RespuestasPendientesPanel } from "./program-evaluaciones-tab";
-import type { OpcionAdmin, Pregunta, RespuestaPendiente } from "@/redux/features/types/control-escolar/type";
+import {
+  RespuestaPendienteRow,
+  RespuestasPendientesPanel,
+  ResultadosExamenPanel,
+} from "./program-evaluaciones-tab";
+import type {
+  OpcionAdmin,
+  Pregunta,
+  ResultadoExamen,
+  RespuestaPendiente,
+} from "@/redux/features/types/control-escolar/type";
 
 const unwrapMock = vi.fn();
 const calificarMock = vi.fn(() => ({ unwrap: unwrapMock }));
@@ -13,12 +22,25 @@ let respuestasPendientesData: {
   previous: string | null;
 } = { results: [], count: 0, next: null, previous: null };
 
+let resultadosExamenData: ResultadoExamen[] | undefined;
+let resultadosExamenLoading = false;
+const descargarUnwrapMock = vi.fn();
+const descargarResultadoMock = vi.fn(() => ({ unwrap: descargarUnwrapMock }));
+
 vi.mock("@/redux/features/control-escolar/evaluacionesApiSlice", () => ({
   useCalificarRespuestaAbiertaMutation: () => [calificarMock, { isLoading: false }],
   useGetRespuestasPendientesQuery: () => ({
     data: respuestasPendientesData,
     isLoading: false,
   }),
+  useGetResultadosExamenQuery: () => ({
+    data: resultadosExamenData,
+    isLoading: resultadosExamenLoading,
+  }),
+}));
+
+vi.mock("@/redux/features/control-escolar/examenesEstudianteApiSlice", () => ({
+  useDescargarExamenPdfMutation: () => [descargarResultadoMock, { isLoading: false }],
 }));
 
 vi.mock("@/redux/hooks", () => ({
@@ -27,6 +49,10 @@ vi.mock("@/redux/hooks", () => ({
 
 vi.mock("@/redux/features/alert/alertSlice", () => ({
   setAlert: (payload: unknown) => ({ type: "alert/setAlert", payload }),
+}));
+
+vi.mock("@/lib/download-blob", () => ({
+  openOrDownloadBlob: vi.fn(),
 }));
 
 function buildRespuesta(overrides: Partial<RespuestaPendiente> = {}): RespuestaPendiente {
@@ -201,5 +227,60 @@ describe("RespuestasPendientesPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: /ana lópez/i }));
 
     expect(screen.getByPlaceholderText("0 - 7")).toBeInTheDocument();
+  });
+});
+
+function buildResultado(overrides: Partial<ResultadoExamen> = {}): ResultadoExamen {
+  return {
+    id: 74,
+    estudiante: 130,
+    estudiante_nombre: "Ana Gómez Ruiz",
+    calificacion: "60.00",
+    pendiente_revision: false,
+    intento: 1,
+    ...overrides,
+  };
+}
+
+describe("ResultadosExamenPanel", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    descargarUnwrapMock.mockResolvedValue(new Blob());
+    resultadosExamenData = undefined;
+    resultadosExamenLoading = false;
+  });
+
+  it("shows an empty state when nobody has submitted the exam", () => {
+    resultadosExamenData = [];
+    render(<ResultadosExamenPanel examenId={5} />);
+    expect(screen.getByText(/nadie ha entregado/i)).toBeInTheDocument();
+  });
+
+  it("shows 'En revisión' instead of a grade for pending attempts", () => {
+    resultadosExamenData = [buildResultado({ pendiente_revision: true })];
+    render(<ResultadosExamenPanel examenId={5} />);
+    expect(screen.getByText("En revisión")).toBeInTheDocument();
+    expect(screen.queryByText("60.0")).not.toBeInTheDocument();
+  });
+
+  it("shows the grade and Aprobado/Reprobado for a graded attempt", () => {
+    resultadosExamenData = [buildResultado({ calificacion: "45.00" })];
+    render(<ResultadosExamenPanel examenId={5} />);
+    expect(screen.getByText("45.0")).toBeInTheDocument();
+    expect(screen.getByText("Reprobado")).toBeInTheDocument();
+  });
+
+  it("downloads the PDF for the row's estudiante id when clicking PDF", async () => {
+    resultadosExamenData = [buildResultado()];
+    render(<ResultadosExamenPanel examenId={5} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /pdf/i }));
+
+    await waitFor(() => expect(descargarResultadoMock).toHaveBeenCalledTimes(1));
+    expect(descargarResultadoMock).toHaveBeenCalledWith({
+      id: 5,
+      estudiante: 130,
+      intento: 1,
+    });
   });
 });

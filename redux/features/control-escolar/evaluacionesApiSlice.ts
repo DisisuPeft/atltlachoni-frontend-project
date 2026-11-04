@@ -16,6 +16,7 @@ import type {
   CreateTipoExamenBody,
   CreateTipoPreguntaBody,
   RespuestaPendiente,
+  ResultadoExamen,
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
 
@@ -118,7 +119,7 @@ export const evaluacionesApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Examen"],
     }),
-    getResultadosExamen: builder.query<CalificacionExamen[], number>({
+    getResultadosExamen: builder.query<ResultadoExamen[], number>({
       query: (id) => `/control-escolar/examenes/${id}/resultados/`,
       providesTags: (_r, _e, id) => [
         { type: "CalificacionExamen" as const, id },

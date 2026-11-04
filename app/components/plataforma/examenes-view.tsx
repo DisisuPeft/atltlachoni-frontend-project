@@ -35,7 +35,7 @@ function ScoreCard({
   total,
 }: {
   calificacion: number;
-  correctas: number;
+  correctas: number | null;
   total: number;
 }) {
   const passed = calificacion >= 60;
@@ -58,7 +58,7 @@ function ScoreCard({
         {passed ? "Aprobado" : "Reprobado"}
       </span>
       <p className="text-sm text-gray-500">
-        {correctas} de {total} correctas
+        {correctas === null ? "Calculando…" : `${correctas} de ${total} correctas`}
       </p>
     </div>
   );
@@ -68,10 +68,13 @@ function DescargarPdfButton({
   examenId,
   intento,
   pendiente,
+  estudianteId,
 }: {
   examenId: number;
   intento: number;
   pendiente: boolean;
+  /** Solo lo usan las vistas de docente/admin para pedir el PDF de otro alumno. */
+  estudianteId?: number;
 }) {
   const [descargar, { isLoading }] = useDescargarExamenPdfMutation();
   const [error, setError] = useState<string | null>(null);
@@ -79,8 +82,15 @@ function DescargarPdfButton({
   const handleClick = async () => {
     setError(null);
     try {
-      const blob = await descargar({ id: examenId, intento }).unwrap();
-      openOrDownloadBlob(blob, `examen_${examenId}_intento_${intento}.pdf`);
+      const blob = await descargar({
+        id: examenId,
+        intento,
+        estudiante: estudianteId,
+      }).unwrap();
+      const filename = estudianteId
+        ? `examen_${examenId}_alumno_${estudianteId}_intento_${intento}.pdf`
+        : `examen_${examenId}_intento_${intento}.pdf`;
+      openOrDownloadBlob(blob, filename);
     } catch (err) {
       const detail = (err as { data?: { detail?: string } })?.data?.detail;
       setError(detail ?? "No se pudo descargar el PDF.");
@@ -141,7 +151,9 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
 
   const { data: miCalificacion, isLoading: calLoading } =
     useGetMiCalificacionExamenQuery(selectedId!, {
-      skip: selectedId === null || effectiveMode !== "reviewing",
+      skip:
+        selectedId === null ||
+        (effectiveMode !== "reviewing" && effectiveMode !== "result"),
     });
 
   const [enviarRespuestas, { isLoading: submitting }] =
@@ -399,6 +411,17 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
         ? examenDetalle.max_intentos - submitResult.intento
         : 0;
 
+    // El "correctas" de submitResult no es confiable (el backend no lo
+    // garantiza en esta respuesta); el detalle pregunta por pregunta de
+    // mi_calificacion sí trae `es_correcta` ya calculado por respuesta.
+    const intentoActual = miCalificacion?.intentos.find(
+      (i) => i.intento === submitResult.intento,
+    );
+    const correctas = intentoActual
+      ? intentoActual.respuestas.filter((r) => r.es_correcta === true).length
+      : null;
+    const totalPreguntas = intentoActual?.respuestas.length ?? submitResult.total_preguntas;
+
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-8 px-6 py-16">
         <p className="text-xs text-gray-400">
@@ -417,8 +440,8 @@ export default function ExamenesView({ programaId: _programaId }: Props) {
         ) : submitResult.calificacion !== undefined ? (
           <ScoreCard
             calificacion={submitResult.calificacion}
-            correctas={submitResult.correctas ?? 0}
-            total={submitResult.total_preguntas}
+            correctas={correctas}
+            total={totalPreguntas}
           />
         ) : null}
 

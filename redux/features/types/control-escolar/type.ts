@@ -824,6 +824,15 @@ export interface CalificacionExamen {
   examen_obj: Examen | null;
 }
 
+export interface ResultadoExamen {
+  id: number;
+  estudiante: number;
+  estudiante_nombre: string;
+  calificacion: string;
+  pendiente_revision: boolean;
+  intento: number;
+}
+
 export interface CreateExamenBody {
   name: string;
   programa_educativo: number;
