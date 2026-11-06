@@ -16,6 +16,7 @@ import {
   useDescargarReciboPagoMutation,
   useRegenerarReciboPagoMutation,
   useDescargarReciboConsolidadoMutation,
+  useGenerarConstanciaEstudiosMutation,
 } from "@/redux/features/control-escolar/alumnosApiSlice";
 import { useRetrieveUserQuery } from "@/redux/features/auth/authApiSlice";
 import { useGetEstadoCuentaEstudianteQuery } from "@/redux/features/control-escolar/pagosApiSlice";
@@ -46,6 +47,7 @@ import {
   Send,
   FileText,
   RotateCw,
+  Award,
 } from "lucide-react";
 
 interface Props {
@@ -883,6 +885,7 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
   const [descargarRecibo] = useDescargarReciboPagoMutation();
   const [regenerarRecibo] = useRegenerarReciboPagoMutation();
   const [descargarConsolidado] = useDescargarReciboConsolidadoMutation();
+  const [generarConstancia] = useGenerarConstanciaEstudiosMutation();
 
   const [downloadingPagoId, setDownloadingPagoId] = useState<number | null>(
     null,
@@ -891,6 +894,9 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
     null,
   );
   const [loadingConsolidadoId, setLoadingConsolidadoId] = useState<
+    number | null
+  >(null);
+  const [loadingConstanciaId, setLoadingConstanciaId] = useState<
     number | null
   >(null);
 
@@ -955,6 +961,27 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
       Swal.fire({ icon: "error", title: "Error", text: msg });
     } finally {
       setLoadingConsolidadoId(null);
+    }
+  };
+
+  const handleGenerarConstancia = async (inscripcionId: number) => {
+    setLoadingConstanciaId(inscripcionId);
+    try {
+      const blob = await generarConstancia({ inscripcionId }).unwrap();
+      openOrDownloadBlob(
+        blob,
+        `constancia-estudios-inscripcion-${inscripcionId}.pdf`,
+      );
+    } catch (err: unknown) {
+      const data = (err as { data?: { detail?: string; error?: string } })
+        ?.data;
+      const msg =
+        data?.detail ||
+        data?.error ||
+        "No se pudo generar la constancia de estudios.";
+      Swal.fire({ icon: "error", title: "Error", text: msg });
+    } finally {
+      setLoadingConstanciaId(null);
     }
   };
 
@@ -1137,6 +1164,21 @@ function InscripcionesTab({ uuid }: { uuid: string }) {
                       <FileText className="w-3.5 h-3.5" />
                     )}
                     Estado de cuenta
+                  </button>
+                  <span className="text-gray-200">|</span>
+                  <button
+                    type="button"
+                    onClick={() => handleGenerarConstancia(ins.id)}
+                    disabled={loadingConstanciaId === ins.id}
+                    title="Generar constancia de estudios en PDF"
+                    className="flex items-center gap-1.5 text-xs font-medium text-[#0056D2] hover:text-[#00419e] transition-colors disabled:opacity-50"
+                  >
+                    {loadingConstanciaId === ins.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Award className="w-3.5 h-3.5" />
+                    )}
+                    Constancia de estudios
                   </button>
                 </>
               )}

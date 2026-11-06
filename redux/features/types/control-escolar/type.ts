@@ -762,6 +762,14 @@ export interface InscripcionEstudianteDetail {
   notas_precio_custom: string | null;
 }
 
+export interface ConstanciaEstudio {
+  id: number;
+  alumno_nombre: string;
+  programa_nombre: string;
+  tiene_constancia: boolean;
+  fecha_generacion: string | null;
+}
+
 export interface EventoShowInterface {
   nombre: string;
   descripcion: string;

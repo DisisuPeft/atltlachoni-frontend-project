@@ -1,6 +1,7 @@
 import { apiSlice } from "@/redux/services/apiSlice";
 import {
   ComprobantePago,
+  ConstanciaEstudio,
   EstudiantePerfil,
   EstudiantePerfilForm,
   InscripcionBody,
@@ -287,6 +288,64 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
         },
       }),
     }),
+    getConstanciasEstudio: builder.query<
+      PaginatedResponse<ConstanciaEstudio>,
+      { inscripcion: number }
+    >({
+      query: ({ inscripcion }) =>
+        `/control-escolar/constancias-estudio/?inscripcion=${inscripcion}`,
+    }),
+    generarConstanciaEstudios: builder.mutation<Blob, { inscripcionId: number }>({
+      query: ({ inscripcionId }) => ({
+        url: "/control-escolar/constancias-estudio/generar/",
+        method: "POST",
+        body: { inscripcion: inscripcionId },
+        responseHandler: async (response) => {
+          if (!response.ok) {
+            const error = await response
+              .json()
+              .catch(() => ({
+                detail: "Error al generar la constancia de estudios",
+              }));
+            return Promise.reject({ status: response.status, data: error });
+          }
+          return response.blob();
+        },
+      }),
+    }),
+    regenerarConstanciaEstudios: builder.mutation<Blob, { constanciaId: number }>({
+      query: ({ constanciaId }) => ({
+        url: `/control-escolar/constancias-estudio/${constanciaId}/regenerar/`,
+        method: "POST",
+        responseHandler: async (response) => {
+          if (!response.ok) {
+            const error = await response
+              .json()
+              .catch(() => ({
+                detail: "Error al regenerar la constancia de estudios",
+              }));
+            return Promise.reject({ status: response.status, data: error });
+          }
+          return response.blob();
+        },
+      }),
+    }),
+    descargarConstanciaEstudios: builder.mutation<Blob, { constanciaId: number }>({
+      query: ({ constanciaId }) => ({
+        url: `/control-escolar/constancias-estudio/${constanciaId}/descargar/`,
+        responseHandler: async (response) => {
+          if (!response.ok) {
+            const error = await response
+              .json()
+              .catch(() => ({
+                detail: "Error al descargar la constancia de estudios",
+              }));
+            return Promise.reject({ status: response.status, data: error });
+          }
+          return response.blob();
+        },
+      }),
+    }),
   }),
 });
 
@@ -313,4 +372,8 @@ export const {
   useDescargarReciboPagoMutation,
   useRegenerarReciboPagoMutation,
   useDescargarReciboConsolidadoMutation,
+  useGetConstanciasEstudioQuery,
+  useGenerarConstanciaEstudiosMutation,
+  useRegenerarConstanciaEstudiosMutation,
+  useDescargarConstanciaEstudiosMutation,
 } = alumnoApiSlice;
