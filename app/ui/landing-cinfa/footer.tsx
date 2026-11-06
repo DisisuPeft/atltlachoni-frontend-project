@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 
 const WA_LINK = "https://wa.link/fgv19q";
-const PRIVACY_NOTICE_URL = `${process.env.NEXT_PUBLIC_HOST}/api/sistema/aviso-privacidad/`;
 
 export default function Footer() {
   return (
@@ -207,9 +206,7 @@ export default function Footer() {
           </p>
           <div className="flex gap-5">
             <Link
-              href={PRIVACY_NOTICE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/aviso-privacidad"
               className="text-white/40 hover:text-white/70 transition-colors text-sm"
             >
               Aviso de Privacidad

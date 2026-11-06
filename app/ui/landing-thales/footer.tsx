@@ -3,8 +3,6 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 
-const PRIVACY_NOTICE_URL = `${process.env.NEXT_PUBLIC_HOST}/api/sistema/aviso-privacidad/`;
-
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -156,9 +154,7 @@ export default function Footer() {
 
           <div className="flex gap-6 text-sm">
             <Link
-              href={PRIVACY_NOTICE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/aviso-privacidad"
               className="text-white/60 hover:text-[#d7a556] transition-colors"
             >
               Aviso de Privacidad
