@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import {
   useGetMaterialesProgramaQuery,
   useDeleteMaterialMutation,
@@ -83,10 +83,11 @@ const MAX_MB = 1000;
 interface SectionUploaderProps {
   programaRef: string;
   moduloId?: number | null;
+  campaniaId?: number | null;
   onSuccess: () => void;
 }
 
-function SectionUploader({ programaRef, moduloId, onSuccess }: SectionUploaderProps) {
+function SectionUploader({ programaRef, moduloId, campaniaId, onSuccess }: SectionUploaderProps) {
   const { upload, isUploading, progress, isSuccess, error, reset } = useMaterialUpload();
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -115,6 +116,7 @@ function SectionUploader({ programaRef, moduloId, onSuccess }: SectionUploaderPr
     await upload(file, {
       programa: programaRef,
       modulo: moduloId ?? undefined,
+      campania: campaniaId ?? undefined,
     });
     setFile(null);
     onSuccess();
@@ -278,12 +280,25 @@ export default function DocenteMaterialesView({ programaInicial }: { programaIni
   } | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [previewing, setPreviewing] = useState<Material | null>(null);
+  const [selectedCampaniaId, setSelectedCampaniaId] = useState<number | null>(null);
 
-  const { data: modulos, refetch } = useGetMaterialesProgramaQuery(activeRef!, {
+  const { data: materialesData, refetch } = useGetMaterialesProgramaQuery(activeRef!, {
     skip: !activeRef,
   });
+  const modulos = materialesData?.modulos;
+  const requiereSeleccionCampania = materialesData?.requiere_seleccion_campania ?? false;
+  const campaniasDisponibles = materialesData?.campanias_disponibles ?? [];
+  // Cuando hay una sola campaña, el backend ya la resuelve; cuando hay
+  // varias, se usa la que el docente elija en el selector de abajo.
+  const campaniaIdParaSubir = materialesData?.campania_id ?? selectedCampaniaId;
 
   const [deleteMaterial] = useDeleteMaterialMutation();
+
+  // La campaña elegida pertenece a un programa en particular: al cambiar de
+  // programa hay que olvidar la selección anterior.
+  useEffect(() => {
+    setSelectedCampaniaId(null);
+  }, [activeRef]);
 
   const applyFilter = useCallback(
     (materials: Material[]) => {
@@ -378,6 +393,32 @@ export default function DocenteMaterialesView({ programaInicial }: { programaIni
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <BookOpen className="w-4 h-4 text-purple-500" />
           <span className="font-medium">{programas[0].nombre}</span>
+        </div>
+      )}
+
+      {/* Campaña resuelta, o selector cuando el programa tiene varias */}
+      {materialesData?.campania_nombre && (
+        <p className="text-xs text-gray-400">
+          Campaña: <span className="font-medium text-gray-600">{materialesData.campania_nombre}</span>
+        </p>
+      )}
+      {requiereSeleccionCampania && (
+        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          <span className="text-xs text-amber-700">
+            Este programa tiene varias campañas. Elige una antes de subir material:
+          </span>
+          <select
+            value={selectedCampaniaId ?? ""}
+            onChange={(e) => setSelectedCampaniaId(e.target.value ? Number(e.target.value) : null)}
+            className="text-xs border border-amber-300 rounded px-2 py-1 bg-white"
+          >
+            <option value="">Selecciona una campaña</option>
+            {campaniasDisponibles.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nombre}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 
@@ -487,12 +528,19 @@ export default function DocenteMaterialesView({ programaInicial }: { programaIni
             </button>
           </div>
 
-          {uploadModal && activeRef && (
-            <SectionUploader
-              programaRef={activeRef}
-              moduloId={uploadModal.modulo.modulo_id}
-              onSuccess={() => { refetch(); setUploadModal(null); }}
-            />
+          {uploadModal && activeRef && requiereSeleccionCampania && !campaniaIdParaSubir ? (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              Elige primero la campaña arriba para poder subir material.
+            </p>
+          ) : (
+            uploadModal && activeRef && (
+              <SectionUploader
+                programaRef={activeRef}
+                moduloId={uploadModal.modulo.modulo_id}
+                campaniaId={campaniaIdParaSubir}
+                onSuccess={() => { refetch(); setUploadModal(null); }}
+              />
+            )
           )}
         </div>
       </Modal>

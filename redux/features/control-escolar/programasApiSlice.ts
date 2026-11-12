@@ -100,6 +100,13 @@ const programasApiSlice = apiSlice.injectEndpoints({
           cache: "no-store",
         };
       },
+      // El backend puede envolver la respuesta en un objeto con `modulos`
+      // (mismo cambio que en /materiales/?programa=) en vez del arreglo
+      // plano de siempre; soportamos ambas formas para no romper esta vista.
+      transformResponse: (
+        response: ModuloMaterial[] | { modulos?: ModuloMaterial[] },
+      ): ModuloMaterial[] =>
+        Array.isArray(response) ? response : (response?.modulos ?? []),
       providesTags: (_result, _error, { ref }) => [
         { type: "Materiales" as const, id: ref },
         { type: "Materiales" as const, id: "LIST" },

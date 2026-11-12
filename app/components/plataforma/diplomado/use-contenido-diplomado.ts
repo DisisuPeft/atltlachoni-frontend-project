@@ -41,7 +41,7 @@ export function useContenidoDiplomado(programaId: string) {
   );
 
   const { entradas, generales, total } = useMemo(() => {
-    const grupos = (materialesQuery.data ?? []).map((g) => ({
+    const grupos = (materialesQuery.data?.modulos ?? []).map((g) => ({
       ...g,
       materiales: g.materiales.filter(isMaterialVisible),
     }));

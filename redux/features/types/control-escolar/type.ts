@@ -493,6 +493,29 @@ export interface ModuloConMateriales {
   materiales: Material[];
 }
 
+export interface CampaniaOpcion {
+  id: number;
+  nombre: string;
+}
+
+/**
+ * Forma que regresa GET /materiales/?programa= para Administrador, Tutor o
+ * Docente: incluye TODOS los módulos del programa (aunque no tengan
+ * materiales) y resuelve la campaña automáticamente cuando el programa solo
+ * tiene una. Para Alumno el backend sigue regresando el arreglo plano de
+ * siempre (ModuloConMateriales[]); eso se normaliza a esta misma forma en
+ * `transformResponse` para no duplicar el endpoint.
+ */
+export interface MaterialesProgramaResponse {
+  programa_id: number | null;
+  programa_nombre: string | null;
+  campania_id: number | null;
+  campania_nombre: string | null;
+  requiere_seleccion_campania: boolean;
+  campanias_disponibles: CampaniaOpcion[];
+  modulos: ModuloConMateriales[];
+}
+
 export interface ProgramaDestacado {
   id: number;
   ref?: string;

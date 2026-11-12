@@ -7,6 +7,7 @@ import {
   InscripcionBody,
   InscripcionEstudianteDetail,
   Material,
+  MaterialesProgramaResponse,
   MiInscripcionPagos,
   ModuloConMateriales,
   ProgramaEducativoDetail,
@@ -166,11 +167,29 @@ const alumnoApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: [{ type: "Materiales" as const, id: "LIST" }],
     }),
-    getMaterialesPrograma: builder.query<ModuloConMateriales[], string>({
+    getMaterialesPrograma: builder.query<MaterialesProgramaResponse, string>({
       query: (programaId) => ({
         url: `/control-escolar/materiales/?programa=${programaId}`,
         cache: "no-store",
       }),
+      // Alumno sigue recibiendo el arreglo plano de siempre; Administrador/
+      // Tutor/Docente ahora reciben el objeto con `modulos` + campaña
+      // resuelta. Normalizamos ambas formas a MaterialesProgramaResponse
+      // para que los consumidores no tengan que distinguir por rol.
+      transformResponse: (
+        response: ModuloConMateriales[] | MaterialesProgramaResponse,
+      ): MaterialesProgramaResponse =>
+        Array.isArray(response)
+          ? {
+              programa_id: null,
+              programa_nombre: null,
+              campania_id: null,
+              campania_nombre: null,
+              requiere_seleccion_campania: false,
+              campanias_disponibles: [],
+              modulos: response,
+            }
+          : response,
       providesTags: [{ type: "Materiales" as const, id: "LIST" }],
     }),
     deleteMaterial: builder.mutation<void, number>({
