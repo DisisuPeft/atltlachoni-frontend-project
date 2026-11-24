@@ -9,6 +9,7 @@ import {
   useDeleteParticipanteMutation,
   useGenerarConstanciaMutation,
   useRegenerarConstanciaMutation,
+  useEnviarCorreoConstanciaMutation,
   usePatchPonenciaMutation,
 } from "@/redux/features/control-escolar/ponenciasApiSlice";
 import { Ponencia, Participante, PlantillaConstancia } from "@/redux/features/types/control-escolar/type";
@@ -26,6 +27,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ImageIcon,
+  Mail,
+  MailCheck,
+  Users,
 } from "lucide-react";
 import { PaginatedResponse } from "@/redux/features/types/paginated";
 import { useAppDispatch } from "@/redux/hooks";
@@ -133,13 +137,15 @@ function ParticipanteRow({
   const [confirming, setConfirming] = useState(false);
   const [generar] = useGenerarConstanciaMutation();
   const [regenerar] = useRegenerarConstanciaMutation();
+  const [enviarCorreo] = useEnviarCorreoConstanciaMutation();
   const [loading, setLoading] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const dispatch = useAppDispatch();
 
-  const downloadUrl = participante.constancia_url
-    ? (participante.constancia_url.startsWith("http")
-      ? participante.constancia_url
-      : `${UPLOAD_HOST}/api${participante.constancia_url}`)
+  const downloadUrl = participante.constancia_path
+    ? (participante.constancia_path.startsWith("http")
+      ? participante.constancia_path
+      : `${UPLOAD_HOST}/api${participante.constancia_path}`)
     : `${UPLOAD_HOST}/api/control-escolar/ponencias/${ponenciaId}/participantes/${participante.id}/constancia/`;
 
   const handleGenerar = async (force = false) => {
@@ -155,29 +161,71 @@ function ParticipanteRow({
     }
   };
 
+  const handleEnviarCorreo = async () => {
+    setSendingEmail(true);
+    try {
+      await enviarCorreo({ ponenciaId, participanteId: participante.id }).unwrap();
+      onRefresh();
+      dispatch(setAlert({ type: "success", message: "Correo enviado." }));
+    } catch (err) {
+      const detail = (err as { data?: { detail?: string } })?.data?.detail;
+      dispatch(setAlert({ type: "error", message: detail ?? "No se pudo enviar el correo." }));
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   return (
     <div className="flex items-center gap-3 px-4 py-2.5 group hover:bg-gray-50 transition-colors">
-      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${participante.constancia_generada ? "bg-green-100" : "bg-gray-100"}`}>
-        {participante.constancia_generada
+      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${participante.tiene_constancia ? "bg-green-100" : "bg-gray-100"}`}>
+        {participante.tiene_constancia
           ? <Check className="w-3.5 h-3.5 text-green-600" />
           : <Award className="w-3.5 h-3.5 text-gray-400" />
         }
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-800 truncate">{participante.nombre_completo}</p>
-        <p className="text-xs text-gray-400 truncate">{participante.email}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm font-medium text-gray-800 truncate">{participante.nombre_completo}</p>
+          {participante.lead != null && (
+            <span
+              title={`Viene del registro público · Lead #${participante.lead}`}
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-medium shrink-0"
+            >
+              <Users className="w-2.5 h-2.5" />
+              CRM
+            </span>
+          )}
+          {participante.email_enviado_en && (
+            <span
+              title={`Correo enviado: ${new Date(participante.email_enviado_en).toLocaleString("es-MX")}`}
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-50 text-[#0056D2] text-[10px] font-medium shrink-0"
+            >
+              <MailCheck className="w-2.5 h-2.5" />
+              Enviado
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-gray-400 truncate">
+          {participante.email}
+          {participante.telefono ? ` · ${participante.telefono}` : ""}
+        </p>
       </div>
 
       <div className="flex items-center gap-1 shrink-0">
-        {loading && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
+        {(loading || sendingEmail) && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
 
-        {!loading && participante.constancia_generada && (
+        {!loading && !sendingEmail && participante.tiene_constancia && (
           <>
             <a href={downloadUrl} target="_blank" rel="noopener noreferrer"
               className="p-1.5 text-gray-400 hover:text-[#0056D2] hover:bg-blue-50 rounded-lg transition-colors" title="Descargar">
               <Download className="w-3.5 h-3.5" />
             </a>
+            <button type="button" onClick={handleEnviarCorreo}
+              className="p-1.5 text-gray-400 hover:text-[#0056D2] hover:bg-blue-50 rounded-lg transition-colors"
+              title={participante.email_enviado_en ? "Reenviar por correo" : "Enviar por correo"}>
+              <Mail className="w-3.5 h-3.5" />
+            </button>
             <button type="button" onClick={() => handleGenerar(true)}
               className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Regenerar">
               <RefreshCw className="w-3.5 h-3.5" />
@@ -185,7 +233,7 @@ function ParticipanteRow({
           </>
         )}
 
-        {!loading && !participante.constancia_generada && (
+        {!loading && !sendingEmail && !participante.tiene_constancia && (
           <button type="button" onClick={() => handleGenerar(false)}
             className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Generar">
             <Award className="w-3.5 h-3.5" />
@@ -234,6 +282,7 @@ export default function ConstanciasPanel({
   // Add participant state
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
+  const [telefono, setTelefono] = useState("");
   const [addingPart, setAddingPart] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
 
@@ -274,7 +323,7 @@ export default function ConstanciasPanel({
   const [deleteParticipante] = useDeleteParticipanteMutation();
   const [generarConstancia] = useGenerarConstanciaMutation();
 
-  const conConstancia = participantes.filter((p) => p.constancia_generada);
+  const conConstancia = participantes.filter((p) => p.tiene_constancia);
 
   const handleSaveConfig = async () => {
     setSavingConfig(true);
@@ -294,8 +343,8 @@ export default function ConstanciasPanel({
   };
 
   const handleAddParticipante = async () => {
-    if (!nombre.trim() || !email.trim()) {
-      setAddError("Nombre y email son obligatorios");
+    if (!nombre.trim()) {
+      setAddError("El nombre es obligatorio");
       return;
     }
     setAddError(null);
@@ -304,14 +353,17 @@ export default function ConstanciasPanel({
       await addParticipante({
         ponenciaId: ponencia.id,
         nombre_completo: nombre.trim(),
-        email: email.trim(),
+        email: email.trim() || undefined,
+        telefono: telefono.trim() || undefined,
       }).unwrap();
       setNombre("");
       setEmail("");
+      setTelefono("");
       setPage(1);
       refetchParts();
-    } catch {
-      setAddError("Error al agregar el participante");
+    } catch (err) {
+      const detail = (err as { data?: { detail?: string } })?.data?.detail;
+      setAddError(detail ?? "Error al agregar el participante");
     } finally {
       setAddingPart(false);
     }
@@ -347,7 +399,7 @@ export default function ConstanciasPanel({
         break;
       }
 
-      const pending = pageData.results.filter((p) => !p.constancia_generada);
+      const pending = pageData.results.filter((p) => !p.tiene_constancia);
       for (const p of pending) {
         try {
           await generarConstancia({ ponenciaId: ponencia.id, participanteId: p.id }).unwrap();
@@ -520,6 +572,14 @@ export default function ConstanciasPanel({
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddParticipante()}
                 className="flex-1 h-8 px-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0056D2] bg-white"
+              />
+              <input
+                type="tel"
+                placeholder="Teléfono (opcional)"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddParticipante()}
+                className="w-36 h-8 px-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0056D2] bg-white shrink-0"
               />
               <button
                 type="button"

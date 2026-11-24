@@ -451,13 +451,35 @@ export interface PlantillaConstancia {
 
 export interface Participante {
   id: number;
+  ponencia: number;
+  ponencia_titulo: string;
+  user: number | null;
   nombre_completo: string;
   email: string;
-  user: number | null;
-  constancia_generada: boolean;
-  constancia_url: string | null;
+  telefono: string | null;
   token: string | null;
+  tiene_constancia: boolean;
+  constancia_path: string | null;
+  fecha_generacion: string | null;
+  /** Id del Lead del CRM si el participante vino del registro público; null en altas manuales. */
+  lead: number | null;
+  email_enviado_en: string | null;
   created_at: string;
+}
+
+export interface PonenciaRegistroPublico {
+  ref: string;
+  titulo: string;
+  tipo: string;
+  fecha_evento: string | null;
+}
+
+export interface PonenciaRegistroPublicoResponse {
+  id: number;
+  nombre_completo: string;
+  email: string;
+  telefono: string | null;
+  token: string;
 }
 
 export interface ConstanciaPublica {

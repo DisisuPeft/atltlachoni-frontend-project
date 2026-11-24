@@ -4,6 +4,8 @@ import {
   PlantillaConstancia,
   Participante,
   ConstanciaPublica,
+  PonenciaRegistroPublico,
+  PonenciaRegistroPublicoResponse,
 } from "../types/control-escolar/type";
 import { PaginatedResponse } from "../types/paginated";
 
@@ -71,7 +73,13 @@ const ponenciasApiSlice = apiSlice.injectEndpoints({
     }),
     addParticipante: builder.mutation<
       Participante,
-      { ponenciaId: number; nombre_completo: string; email: string }
+      {
+        ponenciaId: number;
+        nombre_completo: string;
+        email?: string;
+        telefono?: string;
+        user?: number | null;
+      }
     >({
       query: ({ ponenciaId, ...body }) => ({
         url: `/control-escolar/ponencias/${ponenciaId}/participantes/`,
@@ -119,10 +127,34 @@ const ponenciasApiSlice = apiSlice.injectEndpoints({
         method: "POST",
       }),
     }),
+    enviarCorreoConstancia: builder.mutation<
+      { detail: string; email_enviado_en: string },
+      { ponenciaId: number; participanteId: number }
+    >({
+      query: ({ ponenciaId, participanteId }) => ({
+        url: `/control-escolar/ponencias/${ponenciaId}/participantes/${participanteId}/enviar-correo/`,
+        method: "POST",
+      }),
+    }),
 
     // ── Verificación pública ──────────────────────────────────────────────
     getConstanciaPublica: builder.query<ConstanciaPublica, string>({
       query: (token) => `/public/constancias/${token}/`,
+    }),
+
+    // ── Registro público a webinar/ponencia ────────────────────────────────
+    getPonenciaRegistro: builder.query<PonenciaRegistroPublico, string>({
+      query: (ref) => `/public/ponencias/${ref}/registro/`,
+    }),
+    registrarParticipantePublico: builder.mutation<
+      PonenciaRegistroPublicoResponse,
+      { ref: string; nombre_completo: string; email: string; telefono?: string }
+    >({
+      query: ({ ref, ...body }) => ({
+        url: `/public/ponencias/${ref}/registro/`,
+        method: "POST",
+        body,
+      }),
     }),
   }),
 });
@@ -138,5 +170,8 @@ export const {
   useDeleteParticipanteMutation,
   useGenerarConstanciaMutation,
   useRegenerarConstanciaMutation,
+  useEnviarCorreoConstanciaMutation,
   useGetConstanciaPublicaQuery,
+  useGetPonenciaRegistroQuery,
+  useRegistrarParticipantePublicoMutation,
 } = ponenciasApiSlice;
