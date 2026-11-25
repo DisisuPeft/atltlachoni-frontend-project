@@ -73,7 +73,7 @@ function PonenciaViewer({ ponencia, onClose }: { ponencia: Ponencia; onClose: ()
 
   return (
     <div className="border border-gray-200 rounded-xl overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center gap-2 min-w-0">
           {typeIcon(ponencia)}
           <span className="text-sm font-semibold text-gray-800 truncate">{ponencia.titulo}</span>
@@ -83,7 +83,7 @@ function PonenciaViewer({ ponencia, onClose }: { ponencia: Ponencia; onClose: ()
           <a href={downloadUrl} target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
             <Download className="w-3.5 h-3.5" />
-            Descargar
+            <span className="hidden sm:inline">Descargar</span>
           </a>
           <button type="button" onClick={onClose}
             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
@@ -301,51 +301,55 @@ function PonenciaRow({
   };
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 transition-colors group ${isSelected ? "bg-blue-50 border-l-2 border-[#0056D2]" : isConstanciasOpen ? "bg-indigo-50 border-l-2 border-indigo-400" : "hover:bg-gray-50"}`}>
+    <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-4 py-3 transition-colors group ${isSelected ? "bg-blue-50 border-l-2 border-[#0056D2]" : isConstanciasOpen ? "bg-indigo-50 border-l-2 border-indigo-400" : "hover:bg-gray-50"}`}>
       <button type="button" onClick={onSelect} className="flex items-center gap-3 flex-1 min-w-0 text-left">
         {typeIcon(ponencia)}
         <div className="flex-1 min-w-0">
           <p className={`text-sm font-medium truncate ${isSelected ? "text-[#0056D2]" : isConstanciasOpen ? "text-indigo-700" : "text-gray-800"}`}>
             {ponencia.titulo}
           </p>
-          <p className="text-xs text-gray-400 mt-0.5">{ponencia.original_name} · {ponencia.size_formatted}</p>
+          <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+            <span className="text-xs text-gray-400 truncate">{ponencia.original_name} · {ponencia.size_formatted}</span>
+            {tipoBadge(ponencia.tipo)}
+          </div>
         </div>
-        {tipoBadge(ponencia.tipo)}
-        <PlayCircle className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#0056D2]" : "text-gray-300 group-hover:text-gray-400"}`} />
+        <PlayCircle className={`hidden sm:block w-4 h-4 shrink-0 ${isSelected ? "text-[#0056D2]" : "text-gray-300 group-hover:text-gray-400"}`} />
       </button>
 
-      <button
-        type="button"
-        onClick={handleCopyLink}
-        className={`shrink-0 p-1.5 rounded-lg transition-all ${copied ? "text-green-600 bg-green-50" : "opacity-0 group-hover:opacity-100 text-gray-400 hover:text-[#0056D2] hover:bg-blue-50"}`}
-        title="Copiar liga pública de registro"
-      >
-        {copied ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
-      </button>
-
-      <button
-        type="button"
-        onClick={onOpenConstancias}
-        className={`shrink-0 p-1.5 rounded-lg transition-all ${isConstanciasOpen ? "text-indigo-600 bg-indigo-100" : "opacity-0 group-hover:opacity-100 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50"}`}
-        title="Constancias"
-      >
-        <Award className="w-4 h-4" />
-      </button>
-
-      {confirming ? (
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-xs text-red-600">¿Eliminar?</span>
-          <button type="button" onClick={() => onDelete(ponencia.id)}
-            className="text-xs px-2 py-0.5 bg-red-600 text-white rounded hover:bg-red-700">Sí</button>
-          <button type="button" onClick={() => setConfirming(false)}
-            className="text-xs px-2 py-0.5 border border-gray-300 rounded hover:bg-gray-50 text-gray-600">No</button>
-        </div>
-      ) : (
-        <button type="button" onClick={() => setConfirming(true)}
-          className="shrink-0 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-1">
-          <Trash2 className="w-4 h-4" />
+      <div className="flex items-center gap-1 justify-end sm:justify-normal shrink-0">
+        <button
+          type="button"
+          onClick={handleCopyLink}
+          className={`shrink-0 p-1.5 rounded-lg transition-all ${copied ? "text-green-600 bg-green-50" : "text-gray-400 hover:text-[#0056D2] hover:bg-blue-50 sm:opacity-0 sm:group-hover:opacity-100"}`}
+          title="Copiar liga pública de registro"
+        >
+          {copied ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
         </button>
-      )}
+
+        <button
+          type="button"
+          onClick={onOpenConstancias}
+          className={`shrink-0 p-1.5 rounded-lg transition-all ${isConstanciasOpen ? "text-indigo-600 bg-indigo-100" : "text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 sm:opacity-0 sm:group-hover:opacity-100"}`}
+          title="Constancias"
+        >
+          <Award className="w-4 h-4" />
+        </button>
+
+        {confirming ? (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-xs text-red-600">¿Eliminar?</span>
+            <button type="button" onClick={() => onDelete(ponencia.id)}
+              className="text-xs px-2 py-0.5 bg-red-600 text-white rounded hover:bg-red-700">Sí</button>
+            <button type="button" onClick={() => setConfirming(false)}
+              className="text-xs px-2 py-0.5 border border-gray-300 rounded hover:bg-gray-50 text-gray-600">No</button>
+          </div>
+        ) : (
+          <button type="button" onClick={() => setConfirming(true)}
+            className="shrink-0 text-gray-400 hover:text-red-500 transition-all p-1.5 sm:opacity-0 sm:group-hover:opacity-100">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -390,9 +394,9 @@ export default function PonenciasAdminView() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Ponencias</h1>
           <p className="text-sm text-gray-500 mt-0.5">Material independiente de programas</p>
@@ -400,7 +404,7 @@ export default function PonenciasAdminView() {
         <button
           type="button"
           onClick={() => setShowUpload((v) => !v)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#0056D2] text-white text-sm font-semibold rounded-lg hover:bg-[#004BB5] transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#0056D2] text-white text-sm font-semibold rounded-lg hover:bg-[#004BB5] transition-colors w-full sm:w-auto"
         >
           <Upload className="w-4 h-4" />
           {showUpload ? "Cancelar" : "Nueva ponencia"}

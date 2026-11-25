@@ -177,43 +177,45 @@ function ParticipanteRow({
   };
 
   return (
-    <div className="flex items-center gap-3 px-4 py-2.5 group hover:bg-gray-50 transition-colors">
-      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${participante.tiene_constancia ? "bg-green-100" : "bg-gray-100"}`}>
-        {participante.tiene_constancia
-          ? <Check className="w-3.5 h-3.5 text-green-600" />
-          : <Award className="w-3.5 h-3.5 text-gray-400" />
-        }
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <p className="text-sm font-medium text-gray-800 truncate">{participante.nombre_completo}</p>
-          {participante.lead != null && (
-            <span
-              title={`Viene del registro público · Lead #${participante.lead}`}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-medium shrink-0"
-            >
-              <Users className="w-2.5 h-2.5" />
-              CRM
-            </span>
-          )}
-          {participante.email_enviado_en && (
-            <span
-              title={`Correo enviado: ${new Date(participante.email_enviado_en).toLocaleString("es-MX")}`}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-50 text-[#0056D2] text-[10px] font-medium shrink-0"
-            >
-              <MailCheck className="w-2.5 h-2.5" />
-              Enviado
-            </span>
-          )}
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-4 py-2.5 group hover:bg-gray-50 transition-colors">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${participante.tiene_constancia ? "bg-green-100" : "bg-gray-100"}`}>
+          {participante.tiene_constancia
+            ? <Check className="w-3.5 h-3.5 text-green-600" />
+            : <Award className="w-3.5 h-3.5 text-gray-400" />
+          }
         </div>
-        <p className="text-xs text-gray-400 truncate">
-          {participante.email}
-          {participante.telefono ? ` · ${participante.telefono}` : ""}
-        </p>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="text-sm font-medium text-gray-800 truncate">{participante.nombre_completo}</p>
+            {participante.lead != null && (
+              <span
+                title={`Viene del registro público · Lead #${participante.lead}`}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-medium shrink-0"
+              >
+                <Users className="w-2.5 h-2.5" />
+                CRM
+              </span>
+            )}
+            {participante.email_enviado_en && (
+              <span
+                title={`Correo enviado: ${new Date(participante.email_enviado_en).toLocaleString("es-MX")}`}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-50 text-[#0056D2] text-[10px] font-medium shrink-0"
+              >
+                <MailCheck className="w-2.5 h-2.5" />
+                Enviado
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-gray-400 truncate">
+            {participante.email}
+            {participante.telefono ? ` · ${participante.telefono}` : ""}
+          </p>
+        </div>
       </div>
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-1 justify-end sm:justify-normal shrink-0">
         {(loading || sendingEmail) && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
 
         {!loading && !sendingEmail && participante.tiene_constancia && (
@@ -250,7 +252,7 @@ function ParticipanteRow({
           </div>
         ) : (
           <button type="button" onClick={() => setConfirming(true)}
-            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
+            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg sm:opacity-0 sm:group-hover:opacity-100 transition-all">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         )}
@@ -440,12 +442,12 @@ export default function ConstanciasPanel({
   return (
     <div className="border border-indigo-200 rounded-xl overflow-hidden bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-indigo-50 border-b border-indigo-200">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2 px-4 py-3 bg-indigo-50 border-b border-indigo-200">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <Award className="w-4 h-4 text-indigo-600 shrink-0" />
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-indigo-900">Constancias</p>
-            <p className="text-xs text-indigo-500 truncate max-w-xs">{ponencia.titulo}</p>
+            <p className="text-xs text-indigo-500 truncate">{ponencia.titulo}</p>
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
@@ -547,7 +549,7 @@ export default function ConstanciasPanel({
 
         {/* ── Participantes section ── */}
         <section className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <ConfigHeader
               title={`Participantes (${totalParticipantes})`}
               subtitle={`${conConstancia.length} con constancia en esta página · página ${page}`}
@@ -557,7 +559,7 @@ export default function ConstanciasPanel({
                 type="button"
                 onClick={handleGenerarTodas}
                 disabled={generating}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors w-full sm:w-auto shrink-0"
               >
                 {generating ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -571,53 +573,54 @@ export default function ConstanciasPanel({
 
           {/* Add form + search */}
           <div className="border border-gray-200 rounded-xl overflow-hidden">
-            <div className="flex gap-2 px-3 py-2.5 bg-gray-50 border-b border-gray-100">
+            <div className="flex flex-col gap-2 px-3 py-2.5 bg-gray-50 border-b border-gray-100">
               <input
                 type="search"
                 placeholder="Buscar por nombre…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-40 h-8 px-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0056D2] bg-white shrink-0"
+                className="w-full sm:w-48 h-8 px-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0056D2] bg-white shrink-0"
               />
-              <div className="w-px bg-gray-200 self-stretch" />
 
-              <input
-                type="text"
-                placeholder="Nombre completo"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddParticipante()}
-                className="flex-1 h-8 px-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0056D2] bg-white"
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddParticipante()}
-                className="flex-1 h-8 px-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0056D2] bg-white"
-              />
-              <input
-                type="tel"
-                placeholder="Teléfono (opcional)"
-                value={telefono}
-                onChange={(e) => setTelefono(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddParticipante()}
-                className="w-36 h-8 px-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0056D2] bg-white shrink-0"
-              />
-              <button
-                type="button"
-                onClick={handleAddParticipante}
-                disabled={addingPart}
-                className="flex items-center gap-1 px-3 py-1.5 bg-[#0056D2] text-white text-xs font-medium rounded-lg hover:bg-[#004BB5] disabled:opacity-50 transition-colors shrink-0"
-              >
-                {addingPart ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Plus className="w-3.5 h-3.5" />
-                )}
-                Añadir
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  placeholder="Nombre completo"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddParticipante()}
+                  className="flex-1 h-8 px-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0056D2] bg-white"
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddParticipante()}
+                  className="flex-1 h-8 px-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0056D2] bg-white"
+                />
+                <input
+                  type="tel"
+                  placeholder="Teléfono (opcional)"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddParticipante()}
+                  className="sm:w-36 h-8 px-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0056D2] bg-white shrink-0"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddParticipante}
+                  disabled={addingPart}
+                  className="flex items-center justify-center gap-1 px-3 py-1.5 bg-[#0056D2] text-white text-xs font-medium rounded-lg hover:bg-[#004BB5] disabled:opacity-50 transition-colors shrink-0"
+                >
+                  {addingPart ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Plus className="w-3.5 h-3.5" />
+                  )}
+                  Añadir
+                </button>
+              </div>
             </div>
             {addError && (
               <p className="px-4 py-2 text-xs text-red-600 bg-red-50 flex items-center gap-1">
@@ -656,7 +659,7 @@ export default function ConstanciasPanel({
 
             {/* Paginación */}
             {(hasNext || hasPrev) && (
-              <div className="flex items-center justify-between px-4 py-2.5 border-t border-gray-100 bg-gray-50">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-t border-gray-100 bg-gray-50">
                 <button
                   type="button"
                   onClick={() => setPage((p) => p - 1)}
