@@ -30,6 +30,7 @@ import {
   Mail,
   MailCheck,
   Users,
+  Link2,
 } from "lucide-react";
 import { PaginatedResponse } from "@/redux/features/types/paginated";
 import { useAppDispatch } from "@/redux/hooks";
@@ -278,6 +279,19 @@ export default function ConstanciasPanel({
   const [fechaEvento, setFechaEvento] = useState(ponencia.fecha_evento ?? "");
   const [showPlantillaForm, setShowPlantillaForm] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const handleCopyRegistroLink = async () => {
+    const link = `${window.location.origin}/webinar/${ponencia.ref}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setLinkCopied(true);
+      dispatch(setAlert({ type: "success", message: "Liga de registro copiada" }));
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      dispatch(setAlert({ type: "error", message: "No se pudo copiar la liga" }));
+    }
+  };
 
   // Add participant state
   const [nombre, setNombre] = useState("");
@@ -434,10 +448,20 @@ export default function ConstanciasPanel({
             <p className="text-xs text-indigo-500 truncate max-w-xs">{ponencia.titulo}</p>
           </div>
         </div>
-        <button type="button" onClick={onClose}
-          className="p-1.5 text-indigo-400 hover:text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors">
-          <X className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={handleCopyRegistroLink}
+            title="Copiar liga pública de registro"
+            className={`p-1.5 rounded-lg transition-colors ${linkCopied ? "text-green-600 bg-green-100" : "text-indigo-400 hover:text-indigo-700 hover:bg-indigo-100"}`}
+          >
+            {linkCopied ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
+          </button>
+          <button type="button" onClick={onClose}
+            className="p-1.5 text-indigo-400 hover:text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <div className="p-5 space-y-6">

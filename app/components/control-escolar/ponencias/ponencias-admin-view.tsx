@@ -23,6 +23,7 @@ import {
   ChevronDown,
   X,
   Award,
+  Link2,
 } from "lucide-react";
 import ConstanciasPanel from "./constancias-panel";
 import { useAppDispatch } from "@/redux/hooks";
@@ -284,6 +285,20 @@ function PonenciaRow({
   onDelete: (id: number) => void;
 }) {
   const [confirming, setConfirming] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const dispatch = useAppDispatch();
+
+  const handleCopyLink = async () => {
+    const link = `${window.location.origin}/webinar/${ponencia.ref}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      dispatch(setAlert({ type: "success", message: "Liga de registro copiada" }));
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      dispatch(setAlert({ type: "error", message: "No se pudo copiar la liga" }));
+    }
+  };
 
   return (
     <div className={`flex items-center gap-3 px-4 py-3 transition-colors group ${isSelected ? "bg-blue-50 border-l-2 border-[#0056D2]" : isConstanciasOpen ? "bg-indigo-50 border-l-2 border-indigo-400" : "hover:bg-gray-50"}`}>
@@ -297,6 +312,15 @@ function PonenciaRow({
         </div>
         {tipoBadge(ponencia.tipo)}
         <PlayCircle className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#0056D2]" : "text-gray-300 group-hover:text-gray-400"}`} />
+      </button>
+
+      <button
+        type="button"
+        onClick={handleCopyLink}
+        className={`shrink-0 p-1.5 rounded-lg transition-all ${copied ? "text-green-600 bg-green-50" : "opacity-0 group-hover:opacity-100 text-gray-400 hover:text-[#0056D2] hover:bg-blue-50"}`}
+        title="Copiar liga pública de registro"
+      >
+        {copied ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
       </button>
 
       <button

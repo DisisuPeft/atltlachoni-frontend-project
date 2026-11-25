@@ -493,6 +493,7 @@ export interface ConstanciaPublica {
 
 export interface Ponencia {
   id: number;
+  ref: string;
   titulo: string;
   tipo: string;
   original_name: string;
