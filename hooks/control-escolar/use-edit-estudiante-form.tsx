@@ -85,9 +85,19 @@ export default function useAlumnoEditForm(uuid: string) {
     return yearsOld - 1;
   };
 
+  // Recalcula la edad cada vez que cambia la fecha de nacimiento en el
+  // formulario (antes solo se calculaba una vez, al cargar los datos del
+  // alumno, y no se actualizaba si el usuario editaba la fecha).
   useEffect(() => {
-    setValue("user.edad", caluleAgeBirth());
+    if (!dateBirth) return;
+    const age = caluleAgeBirth();
+    if (!Number.isNaN(age)) {
+      setValue("user.edad", age);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateBirth, setValue]);
 
+  useEffect(() => {
     if (estudiante && !isLoading && !isLoadingLocalidad) {
       const mapped = {
         especialidad: estudiante.especialidad,
